@@ -1,0 +1,159 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "Marcación por QR";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .qr-card {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .qr-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+            .qr-header i {
+                font-size: 50px;
+                margin-bottom: 15px;
+            }
+
+        .hora-actual {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .btn-marcador {
+            font-size: 16px;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-card">
+        <div class="qr-header">
+            <i class="fas fa-qrcode"></i>
+            <h3>Marcación de Asistencia</h3>
+            <div class="hora-actual" id="horaActual">--:--:--</div>
+            <div id="fechaActual" class="mt-2"></div>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-user-circle"></i>
+                <strong>@ViewBag.Nombre</strong>
+            </div>
+
+            <div class="row">
+                <div class="col-6">
+                    <button type="button" class="btn btn-success btn-marcador w-100" onclick="marcar('Entrada')">
+                        <i class="fas fa-door-open"></i> ENTRADA
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-warning btn-marcador w-100" onclick="marcar('Almuerzo_Salida')">
+                        <i class="fas fa-utensils"></i> ALMUERZO
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-6">
+                    <button type="button" class="btn btn-info btn-marcador w-100" onclick="marcar('Almuerzo_Retorno')">
+                        <i class="fas fa-utensils"></i> RETORNO
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-danger btn-marcador w-100" onclick="marcar('Salida')">
+                        <i class="fas fa-door-closed"></i> SALIDA
+                    </button>
+                </div>
+            </div>
+
+            <hr />
+            <div class="form-group">
+                <label><i class="fas fa-comment"></i> Comentario (Opcional):</label>
+                <textarea id="txtComentario" class="form-control" rows="2" placeholder="Ej: Permiso médico, salida temprano, etc."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function actualizarHora() {
+            var ahora = new Date();
+            var horas = ahora.getHours().toString().padStart(2, '0');
+            var minutos = ahora.getMinutes().toString().padStart(2, '0');
+            var segundos = ahora.getSeconds().toString().padStart(2, '0');
+            document.getElementById('horaActual').innerText = horas + ':' + minutos + ':' + segundos;
+
+            var opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('fechaActual').innerText = ahora.toLocaleDateString('es-ES', opciones);
+        }
+
+        setInterval(actualizarHora, 1000);
+        actualizarHora();
+
+        function marcar(tipo) {
+            var comentario = $('#txtComentario').val();
+
+            $.ajax({
+                url: '@Url.Action("Registrar", "Qr")',
+                type: 'POST',
+                data: { tipo: tipo, comentario: comentario },
+                success: function(response) {
+                    if (response.exito) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: response.mensaje,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        $('#txtComentario').val('');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.mensaje
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error de conexión'
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

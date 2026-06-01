@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Control Asistencia</title>
+
+    <script>
+        // Variables globales para rutas (definidas al inicio)
+        var VG_RUTA_SERVIDOR = "@Url.Content("~")";
+        var VG_RUTA = "@ViewBag.vRuta";
+
+        // Función para obtener ruta completa de imágenes
+        function ObtenerRutaImagen(nombreImagen) {
+            if (VG_RUTA && VG_RUTA !== "") {
+                return VG_RUTA_SERVIDOR + VG_RUTA + "/" + nombreImagen;
+            }
+            return VG_RUTA_SERVIDOR + "Content/images/" + nombreImagen;
+        }
+
+        console.log("=== LAYOUT - Variables globales ===");
+        console.log("VG_RUTA_SERVIDOR:", VG_RUTA_SERVIDOR);
+        console.log("VG_RUTA:", VG_RUTA);
+    </script>
+    <link href="~/Content/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/css/all.min.css" rel="stylesheet" />
+ 
+    <style>
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-brand i {
+            margin-right: 8px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        footer {
+            font-size: 12px;
+        }
+
+        .navbar-nav .nav-link {
+            transition: all 0.3s ease;
+        }
+
+            .navbar-nav .nav-link:hover {
+                transform: translateY(-2px);
+            }
+
+        .badge {
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1d1e20;">
+        <div class="container">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    @if (Session["Rol"] != null && Session["Rol"].ToString() == "Admin")
+                    {
+                        <!-- Menús para ADMINISTRADOR -->
+                        <li class="nav-item"><a class="nav-link" href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="@Url.Action("Usuarios", "Admin")"><i class="fas fa-users"></i> Usuarios</a></li>
+                        @* <li class="nav-item"><a class="nav-link" href="@Url.Action("Reportes", "Admin")"><i class="fas fa-file-alt"></i> Reportes</a></li>*@
+                        @*<li class="nav-item"><a class="nav-link" href="@Url.Action("ReportePagos", "Admin")"><i class="fas fa-money-bill-wave"></i> Pagos</a></li>*@
+                        @*<li class="nav-item"><a class="nav-link" href="@Url.Action("GestionarPermisos", "Admin")"><i class="fas fa-user-shield"></i> Permisos Excepcionales</a></li>*@
+                @*<li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "IPERC")"><i class="fas fa-chart-line"></i> Matriz IPERC</a></li>*@
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("GestionarSolicitudes", "Admin")">
+                                <i class="fas fa-bell"></i> Solicitudes Pendientes
+                                <span id="notificacionesCount" class="badge bg-danger" style="display:none;">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" id="btnAlertasHoras">
+                                <i class="fas fa-bell"></i> Alertas Horas
+                                <span id="alertaCount" class="badge bg-danger rounded-pill" style="display:none;">0</span>
+                            </a>
+                        </li>
+                    }
+                   
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Logout", "Account")">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        @RenderBody()
+    </main>
+
+    <footer class="text-center mt-5 py-3 text-muted border-top">
+        <small>Sistema de Control de Asistencia &copy; 2024</small>
+    </footer>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================ -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Variables globales
+        var usuarioRol = '@Session["Rol"]';
+        var esAdmin = (usuarioRol === 'Admin');
+
+
+
+        // ============================================
+        // FUNCIONES PARA ADMINISTRADOR (solo si es Admin)
+        // ============================================
+
+                 function cargarNotificaciones() {
+                    if (!esAdmin) return;
+
+                    $.ajax({
+                        url: '@Url.Action("ObtenerTotalSolicitudesPendientes", "Admin")',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.unauthorized) {
+                                $('#notificacionesCount').hide();
+                                return;
+                            }
+
+                            if (response.success && response.count > 0) {
+                                $('#notificacionesCount').text(response.count).show();
+                                console.log("Solicitudes pendientes:", response.count);
+                            } else {
+                                $('#notificacionesCount').hide();
+                            }
+                        },
+                        error: function() {
+                            $('#notificacionesCount').hide();
+                        }
+                    });
+                }
+
+        function cargarAlertasHoras() {
+            if (!esAdmin) return;
+
+            $.ajax({
+                url: '@Url.Action("ObtenerAlertasHoras", "Admin")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.unauthorized) {
+                        $('#alertaCount').hide();
+                        return;
+                    }
+
+                    if (response.success && response.count > 0) {
+                        $('#alertaCount').text(response.count).show();
+                    } else {
+                        $('#alertaCount').hide();
+                    }
+                },
+                error: function() {
+                    $('#alertaCount').hide();
+                }
+            });
+        }
+
+        // ============================================
+        // EVENTOS SOLO PARA ADMINISTRADOR
+        // ============================================
+
+        $('#btnAlertasHoras').click(function(e) {
+            e.preventDefault();
+
+            if (!esAdmin) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Acceso denegado',
+                    text: 'No tiene permisos para acceder a las alertas. Esta función es solo para administradores.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("ObtenerAlertasHoras", "Admin")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        var contenido = '<div class="list-group" style="max-height: 400px; overflow-y: auto;">';
+                        if (response.data.length === 0) {
+                            contenido = '<div class="alert alert-info text-center">No hay alertas pendientes</div>';
+                        } else {
+                            for (var i = 0; i < response.data.length; i++) {
+                                var item = response.data[i];
+                                var porcentaje = (item.HorasAlcanzadas / item.HorasObjetivo) * 100;
+                                porcentaje = Math.min(porcentaje, 100);
+
+                                contenido += '<div class="list-group-item list-group-item-warning">' +
+                                    '<div class="d-flex w-100 justify-content-between">' +
+                                    '<h6 class="mb-1"><i class="fas fa-user"></i> ' + item.NombreCompleto + '</h6>' +
+                                    '<small>' + item.FechaAlerta + '</small>' +
+                                    '</div>' +
+                                    '<p class="mb-1">🎯 Ha alcanzado <strong>' + item.HorasAlcanzadas + '</strong> horas de <strong>' + item.HorasObjetivo + '</strong> horas objetivo.</p>' +
+                                    '<div class="progress mb-2" style="height: 5px;">' +
+                                    '<div class="progress-bar bg-success" role="progressbar" style="width: ' + porcentaje + '%;"></div>' +
+                                    '</div>' +
+                                    '<small class="text-success"><i class="fas fa-check-circle"></i> Rol: ' + item.RolPago + '</small>' +
+                                    '</div>';
+                            }
+                        }
+                        contenido += '</div>';
+
+                        Swal.fire({
+                            title: '📢 Alertas de Horas Completadas',
+                            html: contenido,
+                            icon: 'info',
+                            confirmButtonText: 'Cerrar',
+                            width: '500px'
+                        });
+                    }
+                }
+            });
+        });
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+
+        $(document).ready(function() {
+            if (esAdmin) {
+                cargarNotificaciones();
+                cargarAlertasHoras();
+
+                // Actualizar cada 30 segundos
+                setInterval(cargarNotificaciones, 30000);
+                setInterval(cargarAlertasHoras, 30000);
+            }
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

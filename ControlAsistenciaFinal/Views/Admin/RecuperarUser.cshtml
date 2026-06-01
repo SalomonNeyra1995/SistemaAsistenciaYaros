@@ -1,0 +1,324 @@
+﻿@{
+    ViewBag.Title = "Recuperar Contraseña";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-key text-danger"></i> Recuperar Contraseña</h2>
+        <p class="text-muted">Busque un usuario y cambie su contraseña fácilmente</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <i class="fas fa-search"></i> Buscar Usuario
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="input-group input-group-lg mb-3">
+                    <span class="input-group-text bg-danger text-white">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Escriba nombre, email o DNI..." autocomplete="off">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> La búsqueda se realiza automáticamente mientras escribe
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header bg-danger text-white">
+        <i class="fas fa-users"></i> Resultados de Búsqueda
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="resultadosBody">
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+                            Cargando usuarios...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambiar contraseña -->
+<div class="modal fade" id="modalCambiarContrasena" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-key"></i> Cambiar Contraseña
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuarioId" />
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-user-circle"></i>
+                    <strong id="usuarioNombre"></strong>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Nueva Contraseña *</label>
+                    <div class="input-group">
+                        <input type="password" id="nuevaContrasena" class="form-control" placeholder="Ingrese nueva contraseña" autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('nuevaContrasena')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Mínimo 6 caracteres</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Confirmar Contraseña *</label>
+                    <div class="input-group">
+                        <input type="password" id="confirmarContrasena" class="form-control" placeholder="Confirme la nueva contraseña" autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmarContrasena')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnCambiarContrasena" class="btn btn-danger">Cambiar Contraseña</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+        .table tbody tr:hover {
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+
+    .search-highlight {
+        background-color: #ffc107;
+        font-weight: bold;
+        padding: 0 2px;
+        border-radius: 3px;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let timeoutId = null;
+
+        $(document).ready(function() {
+            // Cargar TODOS los usuarios al iniciar la página
+            cargarTodosLosUsuarios();
+
+            $('#searchInput').on('input', function() {
+                clearTimeout(timeoutId);
+                var term = $(this).val().trim();
+
+                // Si el término está vacío, cargar todos los usuarios
+                if (term.length === 0) {
+                    cargarTodosLosUsuarios();
+                    return;
+                }
+
+                timeoutId = setTimeout(function() {
+                    buscarUsuarios(term);
+                }, 300);
+            });
+
+            $('#clearSearch').click(function() {
+                $('#searchInput').val('');
+                cargarTodosLosUsuarios();
+            });
+
+            $('#btnCambiarContrasena').click(function() {
+                cambiarContrasena();
+            });
+        });
+
+        function cargarTodosLosUsuarios() {
+            $.ajax({
+                url: '@Url.Action("BuscarUsuarios", "Admin")',
+                type: 'POST',
+                data: { termino: '' },
+                dataType: 'json',
+                success: function(response) {
+                    mostrarResultados(response);
+                },
+                error: function() {
+                    $('#resultadosBody').html('<tr><td colspan="5" class="text-center py-5 text-danger">Error al cargar usuarios</td></tr>');
+                }
+            });
+        }
+
+        function buscarUsuarios(termino) {
+            $.ajax({
+                url: '@Url.Action("BuscarUsuarios", "Admin")',
+                type: 'POST',
+                data: { termino: termino },
+                dataType: 'json',
+                success: function(response) {
+                    mostrarResultados(response);
+                },
+                error: function() {
+                    $('#resultadosBody').html('<tr><td colspan="5" class="text-center py-5 text-danger">Error al buscar usuarios</td></tr>');
+                }
+            });
+        }
+
+        function mostrarResultados(response) {
+            var tbody = $('#resultadosBody');
+            tbody.empty();
+
+            if (!response.success || response.data.length === 0) {
+                tbody.html('<tr><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-user-slash fa-2x mb-2 d-block"></i>No se encontraron usuarios</td></tr>');
+                return;
+            }
+
+            var term = $('#searchInput').val().trim();
+
+            for (var i = 0; i < response.data.length; i++) {
+                var item = response.data[i];
+                var nombreMostrar = term ? resaltarTexto(item.NombreCompleto, term) : item.NombreCompleto;
+                var emailMostrar = term ? resaltarTexto(item.Email, term) : item.Email;
+
+                var rolBadge = '';
+                if (item.Rol === 'Admin') {
+                    rolBadge = '<span class="badge bg-danger">Administrador</span>';
+                } else if (item.Rol === 'Trabajador') {
+                    rolBadge = '<span class="badge bg-primary">Trabajador</span>';
+                } else {
+                    rolBadge = '<span class="badge bg-secondary">' + item.Rol + '</span>';
+                }
+
+                tbody.append(
+                    '<tr onclick="abrirModalCambiarContrasena(' + item.Id + ', \'' + escapeHtml(item.NombreCompleto) + '\')">' +
+                        '<td class="text-center">' + item.Id + '</td>' +
+                        '<td>' + nombreMostrar + '</td>' +
+                        '<td>' + emailMostrar + '</td>' +
+                        '<td>' + rolBadge + '</td>' +
+                        '<td class="text-center">' +
+                            '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); abrirModalCambiarContrasena(' + item.Id + ', \'' + escapeHtml(item.NombreCompleto) + '\')">' +
+                                '<i class="fas fa-key"></i> Cambiar contraseña' +
+                            '</button>' +
+                        '</td>' +
+                    '</tr>'
+                );
+            }
+        }
+
+        function abrirModalCambiarContrasena(id, nombre) {
+            $('#usuarioId').val(id);
+            $('#usuarioNombre').text(nombre);
+            $('#nuevaContrasena').val('');
+            $('#confirmarContrasena').val('');
+            $('#modalCambiarContrasena').modal('show');
+        }
+
+        function cambiarContrasena() {
+            var usuarioId = $('#usuarioId').val();
+            var nueva = $('#nuevaContrasena').val();
+            var confirmar = $('#confirmarContrasena').val();
+
+            if (!nueva) {
+                Swal.fire('Atención', 'Ingrese la nueva contraseña', 'warning');
+                return;
+            }
+            if (nueva.length < 6) {
+                Swal.fire('Atención', 'La contraseña debe tener al menos 6 caracteres', 'warning');
+                return;
+            }
+            if (nueva !== confirmar) {
+                Swal.fire('Atención', 'Las contraseñas no coinciden', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Confirmar cambio',
+                text: '¿Está seguro de cambiar la contraseña de este usuario?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cambiar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: '@Url.Action("CambiarContrasena", "Admin")',
+                        type: 'POST',
+                        data: { usuarioId: usuarioId, nuevaContrasena: nueva },
+                        success: function(response) {
+                            Swal.close();
+                            if (response.success) {
+                                Swal.fire('¡Éxito!', response.message, 'success');
+                                $('#modalCambiarContrasena').modal('hide');
+                                // Recargar la lista de usuarios
+                                cargarTodosLosUsuarios();
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire('Error', 'Error al cambiar la contraseña', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function resaltarTexto(texto, busqueda) {
+            if (!texto || !busqueda) return texto;
+            var regex = new RegExp('(' + busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            return texto.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function togglePassword(inputId) {
+            var input = $('#' + inputId);
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+            } else {
+                input.attr('type', 'password');
+            }
+        }
+    </script>
+}

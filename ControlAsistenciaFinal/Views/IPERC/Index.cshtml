@@ -1,0 +1,192 @@
+﻿@model List<ControlAsistenciaFinal.Models.IPERC_Matriz>
+@{
+    ViewBag.Title = "Matriz IPERC";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-chart-line text-warning"></i> Matriz IPERC</h2>
+                <p class="text-muted">Identificación de Peligros, Evaluación de Riesgos y Controles</p>
+            </div>
+            <div>
+                <a href="@Url.Action("Create")" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nuevo Registro
+                </a>
+                <a href="@Url.Action("Reporte")" class="btn btn-info">
+                    <i class="fas fa-chart-bar"></i> Reporte
+                </a>
+                <a href="@Url.Action("ExportarExcel")" class="btn btn-primary">
+                    <i class="fas fa-file-excel"></i> Exportar a Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning text-white">
+        <i class="fas fa-table"></i> Lista de Riesgos Identificados
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="tablaIPERC">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Código</th>
+                        <th>Puesto</th>
+                        <th>Actividad</th>
+                        <th>Peligro</th>
+                        <th>Riesgo</th>
+                        <th>Tipo</th>
+                        <th>Nivel</th>
+                        <th>Significancia</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        // Calcular variables sin usar ?. (operador null-conditional)
+                        int nivelRiesgo = 0;
+                        bool significancia = false;
+
+                        if (item.Evaluacion != null)
+                        {
+                            nivelRiesgo = item.Evaluacion.NivelRiesgo;
+                            significancia = item.Evaluacion.Significancia;
+                        }
+
+                        string color = "";
+                        string texto = "";
+
+                        if (nivelRiesgo <= 4)
+                        {
+                            color = "success";
+                            texto = "Bajo";
+                        }
+                        else if (nivelRiesgo <= 9)
+                        {
+                            color = "warning";
+                            texto = "Medio";
+                        }
+                        else if (nivelRiesgo <= 16)
+                        {
+                            color = "orange";
+                            texto = "Alto";
+                        }
+                        else
+                        {
+                            color = "danger";
+                            texto = "Muy Alto";
+                        }
+
+                        <tr>
+                            <td>@item.Codigo</td>
+                            <td>@item.PuestoNombre</td>
+                            <td>@Truncar(item.Actividad, 40)</td>
+                            <td>@Truncar(item.Peligro, 40)</td>
+                            <td>@Truncar(item.Riesgo, 40)</td>
+                            <td><span class="badge bg-secondary">@item.TipoPeligroNombre</span></td>
+                            <td><span class="badge bg-@color">@texto (@nivelRiesgo)</span></td>
+                            <td>
+                                @if (significancia)
+                                {
+                                    <span class="badge bg-danger">SÍ</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">NO</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm btn-danger btn-eliminar" data-id="@item.Id" data-nombre="@item.Codigo">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-orange {
+        background-color: #FFA500;
+        color: white;
+    }
+
+    table.dataTable tbody tr:hover {
+        background-color: rgba(255, 193, 7, 0.1);
+        cursor: pointer;
+    }
+</style>
+
+@functions {
+    public string Truncar(string texto, int longitud)
+    {
+        if (string.IsNullOrEmpty(texto)) return "";
+        return texto.Length > longitud ? texto.Substring(0, longitud) + "..." : texto;
+    }
+}
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#tablaIPERC').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+                },
+                order: [[6, 'desc']]
+            });
+
+            $('.btn-eliminar').click(function() {
+                var id = $(this).data('id');
+                var nombre = $(this).data('nombre');
+
+                Swal.fire({
+                    title: '¿Eliminar registro?',
+                    text: '¿Está seguro de eliminar el registro ' + nombre + '?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("Delete", "IPERC")',
+                            type: 'POST',
+                            data: { id: id },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire('Eliminado', response.message, 'success').then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error', 'Error al eliminar', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

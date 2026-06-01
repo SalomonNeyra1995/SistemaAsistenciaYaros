@@ -1,0 +1,320 @@
+﻿@model ControlAsistenciaFinal.Models.IPERCViewModel
+@{
+    ViewBag.Title = "Nuevo Registro IPERC";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-plus-circle text-warning"></i> Nuevo Registro IPERC</h2>
+        <p class="text-muted">Complete la información para identificar el peligro y evaluar el riesgo</p>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<form method="post" id="frmIPERC">
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <!-- Columna Izquierda: Datos generales -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-white">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label>Código</label>
+                        @Html.TextBoxFor(m => m.Matriz.Codigo, new { @class = "form-control", placeholder = "IPERC-001" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Puesto de Trabajo *</label>
+                        @Html.DropDownListFor(m => m.Matriz.PuestoId,
+                            new SelectList(Model.Puestos, "Id", "Nombre"), "Seleccione...",
+                            new { @class = "form-control", required = "required" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Actividad *</label>
+                        @Html.TextBoxFor(m => m.Matriz.Actividad, new { @class = "form-control", required = "required" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Tarea *</label>
+                        @Html.TextAreaFor(m => m.Matriz.Tarea, new { @class = "form-control", rows = 2, required = "required" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Tipo de Peligro *</label>
+                        @Html.DropDownListFor(m => m.Matriz.TipoPeligroId,
+                            new SelectList(Model.TiposPeligro, "Id", "Nombre"), "Seleccione...",
+                            new { @class = "form-control", required = "required" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Base Legal</label>
+                        @Html.TextAreaFor(m => m.Matriz.BaseLegal, new { @class = "form-control", rows = 2 })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Peligro y Riesgo -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-white">
+                    <i class="fas fa-exclamation-triangle"></i> Identificación
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label>Peligro *</label>
+                        @Html.TextAreaFor(m => m.Matriz.Peligro, new { @class = "form-control", rows = 2, required = "required" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Riesgo *</label>
+                        @Html.TextAreaFor(m => m.Matriz.Riesgo, new { @class = "form-control", rows = 2, required = "required" })
+                    </div>
+                    <div class="mb-3">
+                        <label>Consecuencia</label>
+                        @Html.TextAreaFor(m => m.Matriz.Consecuencia, new { @class = "form-control", rows = 3 })
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                @Html.CheckBoxFor(m => m.Matriz.EsRutinaria, new { @class = "form-check-input" })
+                                <label class="form-check-label">¿Es Rutinaria?</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                @Html.CheckBoxFor(m => m.Matriz.EsEmergencia, new { @class = "form-check-input" })
+                                <label class="form-check-label">¿Es Emergencia?</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-2">
+                        <label>Grupo Vulnerable</label>
+                        @Html.TextBoxFor(m => m.Matriz.GrupoVulnerable, new { @class = "form-control" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluación de Riesgos -->
+    <div class="card mb-3">
+        <div class="card-header bg-warning text-white">
+            <i class="fas fa-calculator"></i> Evaluación de Riesgos
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Personas Expuestas *</label>
+                    @Html.DropDownListFor(m => m.Evaluacion.PersonasExpuestas,
+                        new SelectList(Model.FactoresPersonas, "Valor", "Descripcion"), "Seleccione...",
+                        new { @class = "form-control factor-select", data_factor = "personas", required = "required" })
+                </div>
+                <div class="col-md-3">
+                    <label>Procedimientos Existentes *</label>
+                    @Html.DropDownListFor(m => m.Evaluacion.ProcedimientosExistentes,
+                        new SelectList(Model.FactoresProcedimientos, "Valor", "Descripcion"), "Seleccione...",
+                        new { @class = "form-control factor-select", data_factor = "procedimientos", required = "required" })
+                </div>
+                <div class="col-md-3">
+                    <label>Capacitación *</label>
+                    @Html.DropDownListFor(m => m.Evaluacion.Capacitacion,
+                        new SelectList(Model.FactoresCapacitacion, "Valor", "Descripcion"), "Seleccione...",
+                        new { @class = "form-control factor-select", data_factor = "capacitacion", required = "required" })
+                </div>
+                <div class="col-md-3">
+                    <label>Exposición al Riesgo *</label>
+                    @Html.DropDownListFor(m => m.Evaluacion.ExposicionRiesgo,
+                        new SelectList(Model.FactoresExposicion, "Valor", "Descripcion"), "Seleccione...",
+                        new { @class = "form-control factor-select", data_factor = "exposicion", required = "required" })
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <label>Severidad *</label>
+                    @Html.DropDownListFor(m => m.Evaluacion.Severidad,
+                        new SelectList(Model.FactoresSeveridad, "Valor", "Descripcion"), "Seleccione...",
+                        new { @class = "form-control factor-select", data_factor = "severidad", required = "required" })
+                </div>
+                <div class="col-md-4">
+                    <label>Resultado:</label>
+                    <div id="resultadoCalculo" class="p-3 text-center rounded">
+                        <h3 id="nivelRiesgo">--</h3>
+                        <span id="significancia" class="badge"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div id="barraProgreso" class="mt-2">
+                        <div class="progress" style="height: 30px;">
+                            <div id="barraColor" class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medidas de Control -->
+    <div class="card mb-3">
+        <div class="card-header bg-warning text-white">
+            <i class="fas fa-shield-alt"></i> Medidas de Control
+        </div>
+        <div class="card-body">
+            <div id="controles-container">
+                <div class="row control-item mb-2">
+                    <div class="col-md-3">
+                        <select name="Controles[0].TipoControl" class="form-control">
+                            <option value="">Seleccione tipo</option>
+                            <option value="ELIMINACION">Eliminación</option>
+                            <option value="SUSTITUCION">Sustitución</option>
+                            <option value="INGENIERIA">Ingeniería</option>
+                            <option value="ADMINISTRATIVO">Administrativo</option>
+                            <option value="EPP">Equipo de Protección Personal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="text" name="Controles[0].Descripcion" class="form-control" placeholder="Descripción del control" />
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-eliminar-control" style="display:none;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="btnAgregarControl" class="btn btn-sm btn-secondary mt-2">
+                <i class="fas fa-plus"></i> Agregar Control
+            </button>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button type="submit" class="btn btn-success btn-lg">
+            <i class="fas fa-save"></i> Guardar Registro
+        </button>
+        <a href="@Url.Action("Index")" class="btn btn-secondary btn-lg">
+            <i class="fas fa-arrow-left"></i> Cancelar
+        </a>
+    </div>
+</form>
+
+<style>
+    #resultadoCalculo {
+        transition: all 0.3s ease;
+    }
+
+    .nivel-bajo {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .nivel-medio {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .nivel-alto {
+        background-color: #ffe5b4;
+        color: #cc7000;
+    }
+
+    .nivel-muy-alto {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            calcularRiesgo();
+
+            $('.factor-select').change(function() {
+                calcularRiesgo();
+            });
+
+            $('#btnAgregarControl').click(function() {
+                var index = $('.control-item').length;
+                var nuevoControl = `
+                    <div class="row control-item mb-2">
+                        <div class="col-md-3">
+                            <select name="Controles[${index}].TipoControl" class="form-control">
+                                <option value="">Seleccione tipo</option>
+                                <option value="ELIMINACION">Eliminación</option>
+                                <option value="SUSTITUCION">Sustitución</option>
+                                <option value="INGENIERIA">Ingeniería</option>
+                                <option value="ADMINISTRATIVO">Administrativo</option>
+                                <option value="EPP">Equipo de Protección Personal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <input type="text" name="Controles[${index}].Descripcion" class="form-control" placeholder="Descripción del control" />
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-danger btn-eliminar-control">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $('#controles-container').append(nuevoControl);
+            });
+
+            $(document).on('click', '.btn-eliminar-control', function() {
+                $(this).closest('.control-item').remove();
+            });
+        });
+
+        function calcularRiesgo() {
+            var personas = parseInt($('#Evaluacion_PersonasExpuestas').val()) || 0;
+            var procedimientos = parseInt($('#Evaluacion_ProcedimientosExistentes').val()) || 0;
+            var capacitacion = parseInt($('#Evaluacion_Capacitacion').val()) || 0;
+            var exposicion = parseInt($('#Evaluacion_ExposicionRiesgo').val()) || 0;
+            var severidad = parseInt($('#Evaluacion_Severidad').val()) || 0;
+
+            if (personas && procedimientos && capacitacion && exposicion && severidad) {
+                var probabilidad = personas + procedimientos + capacitacion + exposicion;
+                var nivelRiesgo = probabilidad * severidad;
+
+                var texto = '';
+                var color = '';
+                var significancia = '';
+                var porcentaje = (nivelRiesgo / 25) * 100;
+
+                if (nivelRiesgo <= 4) {
+                    texto = 'Bajo - ' + nivelRiesgo;
+                    color = 'nivel-bajo';
+                    significancia = 'No Significativo';
+                    $('#barraColor').css('background-color', '#28a745');
+                } else if (nivelRiesgo <= 9) {
+                    texto = 'Medio - ' + nivelRiesgo;
+                    color = 'nivel-medio';
+                    significancia = 'No Significativo';
+                    $('#barraColor').css('background-color', '#ffc107');
+                } else if (nivelRiesgo <= 16) {
+                    texto = 'Alto - ' + nivelRiesgo;
+                    color = 'nivel-alto';
+                    significancia = 'Significativo - Requiere acción inmediata';
+                    $('#barraColor').css('background-color', '#fd7e14');
+                } else {
+                    texto = 'Muy Alto - ' + nivelRiesgo;
+                    color = 'nivel-muy-alto';
+                    significancia = 'MUY SIGNIFICATIVO - Acción prioritaria';
+                    $('#barraColor').css('background-color', '#dc3545');
+                }
+
+                $('#nivelRiesgo').text(texto);
+                $('#significancia').text(significancia);
+                $('#resultadoCalculo').removeClass().addClass('p-3 text-center rounded ' + color);
+                $('#barraColor').css('width', porcentaje + '%').text(Math.round(porcentaje) + '%');
+            } else {
+                $('#nivelRiesgo').text('Complete todos los campos');
+                $('#barraColor').css('width', '0%').text('0%');
+            }
+        }
+    </script>
+}

@@ -1,0 +1,350 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Portal de Control de Asistencia - Yaros Group Peru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @*<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">*@
+<link href="~/Content/css/all.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-size: cover;
+            background-image: url('../../Content/images/Fondo_loginDef.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        /* Contenedor principal - MÁS PEQUEÑO */
+        .login-container {
+            width: 90%;
+            max-width: 680px;
+            margin: 0;
+            background: transparent;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0px;
+        }
+
+        /* Lado izquierdo */
+        .info-side {
+            flex: 1;
+            background: #0099FF;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-right: -32px;
+            text-align: center;
+            color: white;
+            border-radius: 20px;
+        }
+
+        /* Lado derecho */
+        .form-side {
+            flex: 1;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .info-logo {
+            margin-bottom: 20px;
+            text-align: left;
+            margin-top: -30px;
+        }
+
+        .info-logo img {
+            max-width: 260px;
+            height: auto;
+        }
+
+        .info-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 0;
+            line-height: 1.5;
+            text-align: left;
+            margin-top: -15px;
+        }
+
+        .info-title br {
+            display: block;
+            margin: 0;
+        }
+
+        .form-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0099FF;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 19px;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 13px;
+        }
+
+        .form-control:focus {
+            border-color: #0099FF;
+            box-shadow: 0 0 0 2px rgba(0, 153, 255, 0.1);
+            outline: none;
+        }
+
+        .btn-login {
+            background: rgb(89, 90, 89) !important;
+            border: none;
+            width: 100%;
+            padding: 8px;
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 17px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 153, 255, 0.4);
+        }
+
+        .alert {
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            padding: 6px 10px;
+        }
+
+        .mb-3 {
+            margin-bottom: 0.8rem;
+        }
+
+        /* ============================================ */
+        /* RESPONSIVE - SOLO AJUSTA TAMAÑOS, NO MODIFICA EL DISEÑO */
+        /* ============================================ */
+
+        /* Pantallas medianas (tablets) */
+        @@media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .login-container {
+                flex-direction: column;
+                max-width: 420px;
+                width: 100%;
+                gap: 0px;
+            }
+            .info-side {
+                margin-right: 0;
+                border-radius: 20px 20px 0 0;
+            }
+            .form-side {
+                border-radius: 0 0 20px 20px;
+            }
+            .info-side, .form-side {
+                padding: 25px 20px;
+            }
+            .info-logo {
+                margin-top: -20px;
+            }
+            .info-logo img {
+                max-width: 180px;
+            }
+            .info-title {
+                font-size: 20px;
+                margin-top: -10px;
+            }
+            .form-title {
+                font-size: 13px;
+            }
+            .form-label {
+                font-size: 16px;
+            }
+            .btn-login {
+                font-size: 15px;
+            }
+        }
+
+        /* Pantallas pequeñas (celulares grandes) */
+        @@media (max-width: 550px) {
+            .login-container {
+                max-width: 380px;
+            }
+            .info-side, .form-side {
+                padding: 20px 15px;
+            }
+            .info-logo img {
+                max-width: 140px;
+            }
+            .info-title {
+                font-size: 18px;
+            }
+            .form-title {
+                font-size: 12px;
+            }
+            .form-label {
+                font-size: 14px;
+            }
+            .form-control {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            .btn-login {
+                font-size: 14px;
+                padding: 6px;
+            }
+        }
+
+        /* Pantallas muy pequeñas (celulares pequeños) */
+        @@media (max-width: 450px) {
+            .login-container {
+                max-width: 340px;
+            }
+            .info-logo img {
+                max-width: 110px;
+            }
+            .info-title {
+                font-size: 15px;
+            }
+            .form-label {
+                font-size: 13px;
+            }
+            .btn-login {
+                font-size: 13px;
+            }
+        }
+
+        /* Pantallas extra pequeñas */
+        @@media (max-width: 360px) {
+            .login-container {
+                max-width: 300px;
+            }
+            .info-logo img {
+                max-width: 90px;
+            }
+            .info-title {
+                font-size: 13px;
+            }
+            .form-title {
+                font-size: 11px;
+            }
+            .form-label {
+                font-size: 12px;
+            }
+            .form-control {
+                font-size: 11px;
+            }
+            .btn-login {
+                font-size: 12px;
+            }
+        }
+
+        /* Pantallas grandes (escritorios grandes) */
+        @@media (min-width: 1400px) {
+            .login-container {
+                max-width: 780px;
+            }
+            .info-side, .form-side {
+                padding: 35px 25px;
+            }
+            .info-title {
+                font-size: 22px;
+            }
+            .form-title {
+                font-size: 16px;
+            }
+            .form-label {
+                font-size: 20px;
+            }
+            .btn-login {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Lado Izquierdo -->
+        <div class="info-side">
+            <div class="info-logo">
+                <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group Peru" />
+            </div>
+            <div class="info-title">
+                Bienvenidos al portal<br>
+                de control de Asistencia<br>
+                Yaros Group Peru
+            </div>
+        </div>
+
+        <!-- Lado Derecho -->
+        <div class="form-side">
+            <div class="form-title">
+                Ingresa los siguientes datos<br>
+             
+            </div>
+
+            @if (!string.IsNullOrEmpty(ViewBag.Error))
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> @ViewBag.Error
+                </div>
+            }
+
+            <form method="post" action="@Url.Action("Login", "Account")">
+                <div class="mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" name="email" class="form-control" placeholder="usuario@yarosgroup.com" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••" required />
+                </div>
+                <button type="submit" class="btn-login">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

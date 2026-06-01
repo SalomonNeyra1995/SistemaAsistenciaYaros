@@ -1,0 +1,349 @@
+﻿@model System.Data.DataTable
+@{
+    ViewBag.Title = "Gestionar Permisos Excepcionales";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-user-shield"></i> Gestionar Permisos Excepcionales</h2>
+        <p class="text-muted">Active/desactive la opción de marcación manual para cada trabajador</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-users"></i> Trabajadores
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Permiso Especial</th>
+                        <th>Tipo de Permiso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (System.Data.DataRow row in Model.Rows)
+                    {
+                        bool tienePermiso = false;
+                        string tipoPermiso = "Todos";
+
+                        if (row["PermisoMarcacionExcepcional"] != DBNull.Value)
+                        {
+                            tienePermiso = Convert.ToBoolean(row["PermisoMarcacionExcepcional"]);
+                        }
+
+                        if (row["TipoPermisoExcepcional"] != DBNull.Value && row["TipoPermisoExcepcional"] != null)
+                        {
+                            tipoPermiso = row["TipoPermisoExcepcional"].ToString();
+                        }
+
+                        <tr id="fila_@row["Id"]">
+                            <td class="text-center">@row["Id"]</td>
+                            <td class="text-center">@row["NombreCompleto"]</td>
+                            <td class="text-center">@row["Email"]</td>
+                            <td class="text-center">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input permiso-switch" data-id="@row["Id"]" @(tienePermiso ? "checked" : "") />
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <select class="form-control form-control-sm tipo-permiso" data-id="@row["Id"]" @(!tienePermiso ? "disabled" : "")>
+                                    <option value="Entrada" @(tipoPermiso == "Entrada" ? "selected" : "")>Solo Entrada</option>
+                                    <option value="Almuerzo_Salida" @(tipoPermiso == "Almuerzo_Salida" ? "selected" : "")>Solo Salida Almuerzo</option>
+                                    <option value="Almuerzo_Retorno" @(tipoPermiso == "Almuerzo_Retorno" ? "selected" : "")>Solo Retorno Almuerzo</option>
+                                    <option value="Salida" @(tipoPermiso == "Salida" ? "selected" : "")>Solo Salida</option>
+                                    <option value="Todos" @(tipoPermiso == "Todos" ? "selected" : "")>Todos (Entrada, Almuerzo y Salida)</option>
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-info btn-registrar-hora" data-id="@row["Id"]" data-nombre="@row["NombreCompleto"]" data-tipo="@tipoPermiso" @(!tienePermiso ? "disabled" : "")>
+                                    <i class="fas fa-clock"></i> Registrar Hora Manual
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para registrar hora manual -->
+<div class="modal fade" id="modalRegistrarHora" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0" style="border-radius: 24px;">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 24px 24px 0 0;">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-clock me-2"></i> Registrar Hora Manual
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" style="background: #f8f9fc;">
+                <input type="hidden" id="usuarioIdModal" />
+                <input type="hidden" id="tipoPermisoUsuario" />
+
+                <div class="alert alert-info d-flex align-items-center mb-4" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border: none; border-radius: 16px;">
+                    <i class="fas fa-user-circle fa-2x me-3 text-primary"></i>
+                    <div>
+                        <small class="text-muted text-uppercase fw-bold">EMPLEADO</small>
+                        <h5 class="mb-0" id="empleadoNombre" style="color: #1e40af;">Cargando...</h5>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary">
+                        <i class="fas fa-tag me-1"></i> Tipo de Registro
+                    </label>
+                    <select id="tipoRegistroModal" class="form-select" style="border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; background-color: white;">
+                        <!-- Las opciones se llenarán dinámicamente según el permiso del usuario -->
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary">
+                        <i class="fas fa-calendar-alt me-1"></i> Fecha
+                    </label>
+                    <div class="position-relative">
+                        <input type="date" id="fechaModal" class="form-control" style="border-radius: 12px; padding: 12px;" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary">
+                        <i class="fas fa-hourglass-half me-1"></i> Hora
+                    </label>
+                    <div class="position-relative">
+                        <input type="time" id="horaModal" class="form-control" style="border-radius: 12px; padding: 12px;" step="60" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary">
+                        <i class="fas fa-comment-dots me-1"></i> Justificación
+                    </label>
+                    <textarea id="justificacionModal" class="form-control" rows="3" style="border-radius: 12px; background-color: #f8f9fa; border: 1px solid #e2e8f0; padding: 12px;" placeholder="Ej: Olvidó marcar, problema técnico, error en el registro..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0" style="background: #f8f9fc; border-radius: 0 0 24px 24px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px; padding: 8px 24px;">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
+                <button type="button" id="btnGuardarHora" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 10px; padding: 8px 24px;">
+                    <i class="fas fa-save me-1"></i> Registrar Hora
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('.permiso-switch').change(function() {
+                var checkbox = $(this);
+                var usuarioId = checkbox.data('id');
+                var habilitar = checkbox.is(':checked');
+                var selectTipo = $('.tipo-permiso[data-id="' + usuarioId + '"]');
+                var btnRegistrar = $('.btn-registrar-hora[data-id="' + usuarioId + '"]');
+                var tipoPermiso = habilitar ? selectTipo.val() : '';
+
+                Swal.fire({
+                    title: habilitar ? '¿Habilitar permiso?' : '¿Deshabilitar permiso?',
+                    text: habilitar ? 'El trabajador podrá solicitar marcación manual' : 'El trabajador ya no podrá solicitar marcación manual',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, confirmar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("ActualizarPermisoExcepcional", "Admin")',
+                            type: 'POST',
+                            data: { usuarioId: usuarioId, habilitar: habilitar, tipoPermiso: tipoPermiso },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire('Éxito', response.message, 'success');
+                                    if (habilitar) {
+                                        selectTipo.prop('disabled', false);
+                                        btnRegistrar.prop('disabled', false);
+                                        btnRegistrar.data('tipo', tipoPermiso);
+                                    } else {
+                                        selectTipo.prop('disabled', true);
+                                        btnRegistrar.prop('disabled', true);
+                                    }
+                                } else {
+                                    Swal.fire('Error', response.error, 'error');
+                                    checkbox.prop('checked', !habilitar);
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error', 'Error al actualizar el permiso', 'error');
+                                checkbox.prop('checked', !habilitar);
+                            }
+                        });
+                    } else {
+                        checkbox.prop('checked', !habilitar);
+                    }
+                });
+            });
+
+            $('.tipo-permiso').change(function() {
+                var select = $(this);
+                var usuarioId = select.data('id');
+                var tipoPermiso = select.val();
+                var habilitar = $('.permiso-switch[data-id="' + usuarioId + '"]').is(':checked');
+                var btnRegistrar = $('.btn-registrar-hora[data-id="' + usuarioId + '"]');
+
+                if (habilitar) {
+                    // Actualizar el data-tipo del botón
+                    btnRegistrar.data('tipo', tipoPermiso);
+
+                    $.ajax({
+                        url: '@Url.Action("ActualizarPermisoExcepcional", "Admin")',
+                        type: 'POST',
+                        data: { usuarioId: usuarioId, habilitar: true, tipoPermiso: tipoPermiso }
+                    });
+                }
+            });
+
+            $('.btn-registrar-hora').click(function() {
+                var usuarioId = $(this).data('id');
+                var nombre = $(this).data('nombre');
+                var tipoPermiso = $(this).data('tipo'); // Obtener el tipo de permiso
+                var habilitado = $('.permiso-switch[data-id="' + usuarioId + '"]').is(':checked');
+
+                if (!habilitado) {
+                    Swal.fire('Atención', 'Este usuario no tiene permiso habilitado', 'warning');
+                    return;
+                }
+
+                $('#usuarioIdModal').val(usuarioId);
+                $('#tipoPermisoUsuario').val(tipoPermiso);
+                $('#empleadoNombre').text(nombre);
+
+                // Cargar las opciones según el tipo de permiso
+                var selectTipo = $('#tipoRegistroModal');
+                selectTipo.empty();
+
+                var opciones = [];
+
+                if (tipoPermiso === 'Todos') {
+                    opciones = [
+                        { value: 'Entrada', text: 'Entrada' },
+                        { value: 'Almuerzo_Salida', text: 'Salida a Almuerzo' },
+                        { value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo' },
+                        { value: 'Salida', text: 'Salida' }
+                    ];
+                } else if (tipoPermiso === 'Entrada') {
+                    opciones = [{ value: 'Entrada', text: 'Entrada' }];
+                } else if (tipoPermiso === 'Almuerzo_Salida') {
+                    opciones = [{ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo' }];
+                } else if (tipoPermiso === 'Almuerzo_Retorno') {
+                    opciones = [{ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo' }];
+                } else if (tipoPermiso === 'Salida') {
+                    opciones = [{ value: 'Salida', text: 'Salida' }];
+                }
+
+                for (var i = 0; i < opciones.length; i++) {
+                    selectTipo.append('<option value="' + opciones[i].value + '">' + opciones[i].text + '</option>');
+                }
+
+                var hoy = new Date().toISOString().split('T')[0];
+                $('#fechaModal').val(hoy);
+
+                var ahora = new Date();
+                var horas = ahora.getHours().toString().padStart(2, '0');
+                var minutos = ahora.getMinutes().toString().padStart(2, '0');
+                $('#horaModal').val(horas + ':' + minutos);
+                $('#justificacionModal').val('');
+                $('#modalRegistrarHora').modal('show');
+            });
+
+            $('#btnGuardarHora').click(function() {
+                var usuarioId = $('#usuarioIdModal').val();
+                var tipoRegistro = $('#tipoRegistroModal').val();
+                var tipoPermiso = $('#tipoPermisoUsuario').val();
+                var fecha = $('#fechaModal').val();
+                var hora = $('#horaModal').val();
+                var justificacion = $('#justificacionModal').val();
+
+                // Validar que el tipo de registro esté permitido según el permiso
+                if (tipoPermiso !== 'Todos' && tipoRegistro !== tipoPermiso) {
+                    Swal.fire('Atención', 'Este usuario solo puede registrar ' + tipoPermiso, 'warning');
+                    return;
+                }
+
+                if (!fecha) {
+                    Swal.fire('Atención', 'Seleccione la fecha', 'warning');
+                    return;
+                }
+                if (!hora) {
+                    Swal.fire('Atención', 'Seleccione la hora', 'warning');
+                    return;
+                }
+
+                var fechaHoraStr = fecha + 'T' + hora + ':00';
+                var tipoTexto = '';
+                switch(tipoRegistro) {
+                    case 'Entrada': tipoTexto = 'Entrada'; break;
+                    case 'Almuerzo_Salida': tipoTexto = 'Salida a Almuerzo'; break;
+                    case 'Almuerzo_Retorno': tipoTexto = 'Retorno de Almuerzo'; break;
+                    case 'Salida': tipoTexto = 'Salida'; break;
+                }
+
+                Swal.fire({
+                    title: 'Confirmar registro',
+                    html: '<div style="text-align: left;">' +
+                        '<p><strong>Empleado:</strong> ' + $('#empleadoNombre').text() + '</p>' +
+                        '<p><strong>Tipo:</strong> ' + tipoTexto + '</p>' +
+                        '<p><strong>Fecha:</strong> ' + fecha + '</p>' +
+                        '<p><strong>Hora:</strong> ' + hora + '</p>' +
+                        '<p><strong>Justificación:</strong> ' + (justificacion || 'Sin justificación') + '</p>' +
+                        '</div>',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, registrar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#3085d6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({ title: 'Registrando...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+
+                        $.ajax({
+                            url: '@Url.Action("RegistrarHoraExcepcional", "Admin")',
+                            type: 'POST',
+                            data: {
+                                usuarioId: usuarioId,
+                                tipoRegistro: tipoRegistro,
+                                fechaHora: fechaHoraStr,
+                                justificacion: justificacion
+                            },
+                            success: function(response) {
+                                Swal.close();
+                                if (response.success) {
+                                    Swal.fire('Éxito', response.message, 'success');
+                                    $('#modalRegistrarHora').modal('hide');
+                                } else {
+                                    Swal.fire('Error', response.message || response.error, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.close();
+                                Swal.fire('Error', 'Error al registrar la hora', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

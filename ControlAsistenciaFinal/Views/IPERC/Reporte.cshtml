@@ -1,0 +1,270 @@
+﻿@model ControlAsistenciaFinal.Models.IPERCReporteViewModel
+@{
+    ViewBag.Title = "Reporte IPERC";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-chart-bar text-warning"></i> Reporte IPERC</h2>
+                <p class="text-muted">Resumen de identificación de peligros, evaluación de riesgos y controles</p>
+            </div>
+            <div>
+                <button id="btnExportarPDF" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+                <a href="@Url.Action("ExportarExcel")" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tarjetas de Resumen -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Total Registros</h6>
+                        <h2 class="mb-0">@Model.TotalRegistros</h2>
+                    </div>
+                    <i class="fas fa-database fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Riesgos Bajos</h6>
+                        <h2 class="mb-0">@Model.RiesgosBajos</h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Riesgos Medios</h6>
+                        <h2 class="mb-0">@Model.RiesgosMedios</h2>
+                    </div>
+                    <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Riesgos Altos</h6>
+                        <h2 class="mb-0">@Model.RiesgosAltos</h2>
+                    </div>
+                    <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                </div>
+                <small class="text-white-50">Muy Altos: @Model.RiesgosMuyAltos</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Gráfico de Riesgos por Nivel -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-chart-pie"></i> Distribución por Nivel de Riesgo
+            </div>
+            <div class="card-body">
+                <canvas id="graficoNiveles" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Riesgos por Puesto -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-chart-bar"></i> Riesgos por Puesto de Trabajo
+            </div>
+            <div class="card-body">
+                <canvas id="graficoPuestos" style="height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Tabla de Riesgos por Puesto -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-table"></i> Resumen por Puesto
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Puesto</th>
+                                <th>Total</th>
+                                <th>Riesgos Altos</th>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ResumenPorPuesto)
+                            {
+                                <tr>
+                                    <td>@item.Puesto</td>
+                                    <td>@item.Total</td>
+                                    <td>@item.Altos</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Riesgos por Tipo de Peligro -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-exclamation-triangle"></i> Resumen por Tipo de Peligro
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Tipo de Peligro</th>
+                                <th>Total</th>
+                                <th>Porcentaje</th>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ResumenPorPeligro)
+                            {
+                                <tr>
+                                    <td>@item.Peligro</td>
+                                    <td>@item.Total</td>
+                                    <td>@item.Porcentaje%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalle de Riesgos Altos -->
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+        <i class="fas fa-list"></i> Detalle de Riesgos Altos y Muy Altos
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="tablaRiesgosAltos">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Código</th>
+                        <th>Puesto</th>
+                        <th>Actividad</th>
+                        <th>Peligro</th>
+                        <th>Riesgo</th>
+                        <th>Nivel</th>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Detalle)
+                    {
+                        // Validación: saltar si Evaluacion es null
+                        if (item.Evaluacion == null) { continue; }
+                        if (item.Evaluacion.NivelRiesgo < 10) { continue; }
+
+                        string rowClass = item.Evaluacion.NivelRiesgo >= 17 ? "table-danger" : "table-warning";
+                        <tr class="@rowClass">
+                            <td>@item.Codigo</td>
+                            <td>@item.PuestoNombre</td>
+                            <td>@(item.Actividad != null && item.Actividad.Length > 50 ? item.Actividad.Substring(0, 50) + "..." : item.Actividad)</td>
+                            <td>@(item.Peligro != null && item.Peligro.Length > 50 ? item.Peligro.Substring(0, 50) + "..." : item.Peligro)</td>
+                            <td>@(item.Riesgo != null && item.Riesgo.Length > 50 ? item.Riesgo.Substring(0, 50) + "..." : item.Riesgo)</td>
+                            <td><span class="badge @(item.Evaluacion.NivelRiesgo >= 17 ? "bg-danger" : "bg-warning")">@item.Evaluacion.NivelRiesgo</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#tablaRiesgosAltos').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                order: [[5, 'desc']]
+            });
+
+            // Gráfico de Niveles
+            var ctxNiveles = document.getElementById('graficoNiveles').getContext('2d');
+            new Chart(ctxNiveles, {
+                type: 'pie',
+                data: {
+                    labels: ['Bajos (@Model.RiesgosBajos)', 'Medios (@Model.RiesgosMedios)', 'Altos (@Model.RiesgosAltos)', 'Muy Altos (@Model.RiesgosMuyAltos)'],
+                    datasets: [{
+                        data: [@Model.RiesgosBajos, @Model.RiesgosMedios, @Model.RiesgosAltos, @Model.RiesgosMuyAltos],
+                        backgroundColor: ['#28a745', '#ffc107', '#fd7e14', '#dc3545'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Gráfico de Puestos
+            var puestos = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.ResumenPorPuesto.Select(x => x.Puesto)));
+            var totales = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.ResumenPorPuesto.Select(x => x.Total)));
+            var altos = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.ResumenPorPuesto.Select(x => x.Altos)));
+
+            var ctxPuestos = document.getElementById('graficoPuestos').getContext('2d');
+            new Chart(ctxPuestos, {
+                type: 'bar',
+                data: {
+                    labels: puestos,
+                    datasets: [
+                        { label: 'Total Riesgos', data: totales, backgroundColor: '#007bff', borderRadius: 5 },
+                        { label: 'Riesgos Altos', data: altos, backgroundColor: '#dc3545', borderRadius: 5 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Cantidad' } } }
+                }
+            });
+        });
+
+        $('#btnExportarPDF').click(function() {
+            window.print();
+        });
+    </script>
+}

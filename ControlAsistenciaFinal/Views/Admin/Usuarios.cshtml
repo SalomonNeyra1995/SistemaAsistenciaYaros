@@ -1,0 +1,417 @@
+﻿@model System.Data.DataTable
+@{
+    ViewBag.Title = "Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Guardar valores de TempData en variables locales
+    bool mostrarModal = false;
+    string emailGenerado = "";
+    string passwordGenerado = "";
+    string nombreCompleto = "";
+    string fechaInicio = "";
+
+    if (TempData["MostrarModal"] != null)
+    {
+        mostrarModal = Convert.ToBoolean(TempData["MostrarModal"]);
+        emailGenerado = TempData["EmailGenerado"] != null ? TempData["EmailGenerado"].ToString() : "";
+        passwordGenerado = TempData["PasswordGenerado"] != null ? TempData["PasswordGenerado"].ToString() : "";
+        nombreCompleto = TempData["NombreCompleto"] != null ? TempData["NombreCompleto"].ToString() : "";
+        fechaInicio = TempData["FechaInicio"] != null ? TempData["FechaInicio"].ToString() : "";
+
+        // Limpiar TempData
+        TempData["MostrarModal"] = null;
+        TempData["EmailGenerado"] = null;
+        TempData["PasswordGenerado"] = null;
+        TempData["NombreCompleto"] = null;
+        TempData["FechaInicio"] = null;
+    }
+}
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="@Url.Action("CrearUsuario", "Admin")" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Usuario
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-list"></i> Lista de Usuarios
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered" id="tablaUsuarios">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (System.Data.DataRow row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="text-center">@row["Id"]</td>
+                            <td>@row["NombreCompleto"]</td>
+                            <td>@row["Email"]</td>
+                            <td class="text-center"><span class="badge bg-info">@row["Rol"]</span></td>
+                            <td class="text-center">
+                                @if (Convert.ToBoolean(row["Activo"]))
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a href="@Url.Action("EditarUsuario", "Admin", new { id = row["Id"] })" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <button class="btn btn-sm btn-danger btn-eliminar-usuario" data-id="@row["Id"]" data-nombre="@row["NombreCompleto"]">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA MOSTRAR CREDENCIALES -->
+@if (mostrarModal)
+{
+    <div class="modal fade" id="modalCredenciales" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header bg-success text-white" style="border-radius: 16px 16px 0 0;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i> ¡Usuario Creado Exitosamente!
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-check fa-4x text-success"></i>
+                        <p class="mt-2">El usuario ha sido registrado correctamente en el sistema.</p>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-id-card me-1"></i> Credenciales de Acceso
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="fw-bold text-primary">📧 Usuario (Email):</label>
+                                <div class="input-group mt-1">
+                                    <input type="text" id="txtEmail" class="form-control bg-light" value="@emailGenerado" readonly style="font-family: monospace;" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto('txtEmail')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold text-primary">🔒 Contraseña:</label>
+                                <div class="input-group mt-1">
+                                    <input type="text" id="txtPassword" class="form-control bg-light" value="@passwordGenerado" readonly style="font-family: monospace;" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto('txtPassword')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold text-primary">👤 Nombre Completo:</label>
+                                <div class="input-group mt-1">
+                                    <input type="text" id="txtNombre" class="form-control bg-light" value="@nombreCompleto" readonly />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto('txtNombre')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(fechaInicio))
+                            {
+                                <div class="mb-3">
+                                    <label class="fw-bold text-primary">📅 Fecha de Inicio:</label>
+                                    <div class="input-group mt-1">
+                                        <input type="text" id="txtFechaInicio" class="form-control bg-light" value="@fechaInicio" readonly />
+                                        <button class="btn btn-outline-secondary" type="button" onclick="copiarTexto('txtFechaInicio')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-3 text-center">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>¡Importante!</strong><br />
+                        Por favor, guarde estas credenciales en un lugar seguro.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="copiarTodo()">
+                        <i class="fas fa-copy"></i> Copiar Todo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR USUARIO CON REGISTROS -->
+<div class="modal fade" id="modalConfirmarEliminacion" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header bg-danger text-white" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-slash fa-4x text-danger"></i>
+                    <p class="mt-3 fs-5" id="modalUsuarioNombre">¿Está seguro de eliminar al usuario?</p>
+                </div>
+
+                <div class="alert alert-warning" id="modalAdvertencia">
+                    <i class="fas fa-info-circle"></i>
+                    Este usuario tiene <strong id="modalTotalRegistros">0</strong> registro(s) de asistencia asociados.
+                    <br /><br />
+                    <strong class="text-danger">¡ATENCIÓN!</strong> Al eliminar este usuario:
+                    <ul class="mt-2 mb-0">
+                        <li>Se eliminarán TODOS sus registros de asistencia</li>
+                        <li>Se eliminarán sus solicitudes excepcionales</li>
+                        <li>Esta acción es <strong>IRREVERSIBLE</strong></li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-question-circle"></i>
+                    ¿Desea continuar con la eliminación?
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Sí, Eliminar Usuario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        var usuarioIdAEliminar = 0;
+        var usuarioNombreAEliminar = "";
+
+        $(document).ready(function() {
+            // Inicializar DataTable
+            $('#tablaUsuarios').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+                },
+                order: [[0, 'desc']]
+            });
+
+            // Mostrar modal de credenciales automáticamente
+            @if (mostrarModal)
+            {
+                <text>
+                $('#modalCredenciales').modal('show');
+                </text>
+            }
+
+            // Botón de eliminar usuario
+            $('.btn-eliminar-usuario').click(function() {
+                var id = $(this).data('id');
+                var nombre = $(this).data('nombre');
+
+                usuarioIdAEliminar = id;
+                usuarioNombreAEliminar = nombre;
+
+                // Verificar si tiene registros de asistencia
+                $.ajax({
+                    url: '@Url.Action("VerificarRegistrosUsuario", "Admin")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.tieneRegistros) {
+                                // Tiene registros - mostrar modal de advertencia
+                                $('#modalUsuarioNombre').html('¿Está seguro de eliminar a <strong>' + nombre + '</strong>?');
+                                $('#modalTotalRegistros').text(response.totalRegistros);
+                                $('#modalConfirmarEliminacion').modal('show');
+                            } else {
+                                // No tiene registros - confirmación simple
+                                Swal.fire({
+                                    title: '¿Eliminar usuario?',
+                                    text: '¿Está seguro de eliminar a ' + nombre + '?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Sí, eliminar',
+                                    cancelButtonText: 'Cancelar'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        eliminarUsuario(id);
+                                    }
+                                });
+                            }
+                        } else {
+                            Swal.fire('Error', response.message || 'Error al verificar registros', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Error al conectar con el servidor', 'error');
+                    }
+                });
+            });
+
+            // Confirmar eliminación desde el modal
+            $('#btnConfirmarEliminar').click(function() {
+                $('#modalConfirmarEliminacion').modal('hide');
+                eliminarUsuario(usuarioIdAEliminar);
+            });
+        });
+
+        function eliminarUsuario(id) {
+            Swal.fire({
+                title: 'Eliminando...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: '@Url.Action("EliminarUsuarioConfirmado", "Admin")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.close();
+                    Swal.fire('Error', 'Error al eliminar el usuario', 'error');
+                }
+            });
+        }
+
+        // Copiar texto individual
+        function copiarTexto(id) {
+            var input = document.getElementById(id);
+            if (!input) return;
+
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+
+            var label = "";
+            if (id === 'txtEmail') label = "Usuario";
+            else if (id === 'txtPassword') label = "Contraseña";
+            else if (id === 'txtNombre') label = "Nombre Completo";
+            else if (id === 'txtFechaInicio') label = "Fecha de Inicio";
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Copiado!',
+                text: label + " copiado al portapapeles",
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        // Copiar todas las credenciales
+        function copiarTodo() {
+            var emailInput = document.getElementById('txtEmail');
+            var passwordInput = document.getElementById('txtPassword');
+            var nombreInput = document.getElementById('txtNombre');
+            var fechaInicioInput = document.getElementById('txtFechaInicio');
+
+            var email = emailInput ? emailInput.value : '';
+            var password = passwordInput ? passwordInput.value : '';
+            var nombre = nombreInput ? nombreInput.value : '';
+            var fechaInicio = fechaInicioInput ? fechaInicioInput.value : '';
+
+            var texto = "Usuario (Email): " + email + "\n" +
+                        "Contraseña: " + password + "\n" +
+                        "Nombre Completo: " + nombre;
+
+            if (fechaInicio && fechaInicio !== '') {
+                texto += "\nFecha de Inicio: " + fechaInicio;
+            }
+
+            var textarea = document.createElement('textarea');
+            textarea.value = texto;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Credenciales Copiadas!',
+                html: '<div style="text-align: left; font-family: monospace;">' + texto.replace(/\n/g, '<br>') + '</div>',
+                timer: 4000,
+                showConfirmButton: true,
+                confirmButtonText: 'Cerrar'
+            });
+        }
+    </script>
+}

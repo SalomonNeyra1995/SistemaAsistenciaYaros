@@ -1,0 +1,11 @@
+# Ignorar la base de datos local de SQL Server (los datos puros)
+*.mdf
+*.ldf
+
+# Ignorar carpetas de configuracion de usuario
+.vs/
+bin/
+obj/
+
+# Ignorar archivos de configuracion local (si los usas)
+appsettings.Development.json

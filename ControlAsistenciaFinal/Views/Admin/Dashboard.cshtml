@@ -1,0 +1,915 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Content/css/all.min.css" rel="stylesheet" />
+
+<style>
+    /* ========== RESET Y BASE RESPONSIVA ========== */
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    /* ========== ENCABEZADO RESPONSIVO ========== */
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .logo-header {
+        height: auto;
+        width: 100%;
+        max-width: 180px;
+        margin-bottom: 10px;
+    }
+
+    .header-left h2 {
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
+        margin: 0;
+        word-break: keep-all;
+    }
+
+    .header-left p {
+        font-size: clamp(0.8rem, 3vw, 1rem);
+    }
+
+    /* ========== TARJETAS ESTADÍSTICAS - GRID RESPONSIVO ========== */
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -8px;
+        margin-left: -8px;
+    }
+
+    .row > [class*="col-"] {
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+
+    /* Tarjetas responsivas */
+    .card {
+        border: none;
+        border-radius: 16px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+        min-height: 130px;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+
+    .card-body {
+        padding: clamp(0.8rem, 3vw, 1.2rem);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .card-body .d-flex {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .card-body h6 {
+        font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+        margin-bottom: 5px;
+        white-space: nowrap;
+    }
+
+    .card-body h2 {
+        font-size: clamp(1.3rem, 5vw, 2rem);
+        margin: 0;
+        font-weight: bold;
+    }
+
+    .card-body .fa-3x {
+        font-size: clamp(1.5rem, 6vw, 2.5rem);
+    }
+
+    .card-body .small {
+        font-size: clamp(0.6rem, 2vw, 0.75rem);
+        margin-top: 8px;
+        display: inline-block;
+    }
+
+    /* ========== MENÚ RÁPIDO RESPONSIVO ========== */
+    .card-header {
+        padding: clamp(0.7rem, 3vw, 1rem);
+    }
+
+    .card-header i {
+        font-size: clamp(0.9rem, 3vw, 1.1rem);
+    }
+
+    /* Grid de menú - se adapta automáticamente */
+    .row .col-md-3 {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    /* Tablet y desktop pequeños */
+    @@media (min-width: 576px) {
+        .row .col-md-3 {
+            width: 50%;
+        }
+    }
+
+    /* Desktop normal */
+    @@media (min-width: 992px) {
+        .row .col-md-3 {
+            width: 25%;
+        }
+    }
+
+    /* Pantallas grandes (curvas, 4K) */
+    @@media (min-width: 1400px) {
+        .container-fluid, .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .row .col-md-3 {
+            width: 20%; /* 5 items por fila en ultra wide */
+        }
+    }
+
+    /* Elementos de menú centrados y responsivos */
+    .row .col-md-3.text-center {
+        margin-bottom: 20px;
+    }
+
+    .row .col-md-3.text-center div,
+    .row .col-md-3.text-center a {
+        display: inline-block;
+        transition: transform 0.2s ease;
+    }
+
+    .row .col-md-3.text-center div:hover,
+    .row .col-md-3.text-center a:hover {
+        transform: scale(1.05);
+    }
+
+    .row .col-md-3.text-center i {
+        font-size: clamp(1.5rem, 6vw, 2.5rem);
+    }
+
+    .row .col-md-3.text-center h5 {
+        font-size: clamp(0.8rem, 3vw, 1rem);
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .row .col-md-3.text-center p {
+        font-size: clamp(0.65rem, 2.5vw, 0.8rem);
+        margin-bottom: 0;
+        color: #6c757d;
+    }
+
+    /* ========== MODAL RESPONSIVO ========== */
+    .modal-dialog {
+        margin: 1rem;
+    }
+
+    @@media (min-width: 576px) {
+        .modal-dialog {
+            max-width: 90%;
+            margin: 1.75rem auto;
+        }
+    }
+
+    @@media (min-width: 992px) {
+        .modal-dialog.modal-lg {
+            max-width: 800px;
+        }
+    }
+
+    @@media (min-width: 1400px) {
+        .modal-dialog.modal-lg {
+            max-width: 1000px;
+        }
+    }
+
+    .modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        padding: clamp(0.8rem, 3vw, 1rem) clamp(1rem, 4vw, 1.5rem);
+    }
+
+    .modal-header h5 {
+        font-size: clamp(1rem, 4vw, 1.25rem);
+    }
+
+    .modal-body {
+        padding: clamp(0.8rem, 3vw, 1.5rem);
+        overflow-x: auto;
+    }
+
+    /* Tablas responsivas - horizontal scroll en móvil */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #tablaDetalle {
+        min-width: 500px;
+        width: 100%;
+        font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    }
+
+    #tablaDetalle thead th {
+        padding: clamp(8px, 2vw, 12px) clamp(8px, 2vw, 15px);
+        white-space: nowrap;
+    }
+
+    #tablaDetalle tbody td {
+        padding: clamp(8px, 2vw, 12px) clamp(8px, 2vw, 15px);
+        word-break: break-word;
+    }
+
+    /* Badges responsivos */
+    .badge {
+        font-size: clamp(0.6rem, 2vw, 0.75rem);
+        padding: clamp(3px, 1vw, 6px) clamp(6px, 2vw, 10px);
+    }
+
+    /* ========== ALERTAS RESPONSIVAS ========== */
+    .alertas-container {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .alerta-card {
+        padding: clamp(0.8rem, 3vw, 1rem);
+    }
+
+    .alerta-card h6 {
+        font-size: clamp(0.85rem, 3vw, 1rem);
+    }
+
+    .alerta-card .small {
+        font-size: clamp(0.6rem, 2vw, 0.75rem);
+    }
+
+    /* Tabs responsivos */
+    .nav-tabs .nav-link {
+        padding: clamp(6px, 2vw, 10px) clamp(10px, 3vw, 20px);
+        font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+    }
+
+    /* ========== AJUSTES PARA CELULARES ========== */
+    @@media (max-width: 575.98px) {
+        /* Stack vertical para todas las columnas */
+        .row {
+            flex-direction: column;
+        }
+
+        .row > [class*="col-"] {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        /* Tarjetas toman ancho completo */
+        .card {
+            margin-bottom: 0;
+        }
+
+        /* Menú rápido: 2 columnas en móvil */
+        .row .col-md-3.text-center {
+            width: 50%;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        /* Ajuste para el contenedor del menú */
+        .card-body .row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        /* Botones del modal más grandes para touch */
+        .modal-footer .btn {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        /* Espaciado general */
+        .container, .container-fluid {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+    }
+
+    /* ========== AJUSTES PARA TABLETS ========== */
+    @@media (min-width: 576px) and (max-width: 991.98px) {
+        .row .col-md-3 {
+            width: 50%;
+        }
+
+        .row .col-md-3.text-center {
+            width: 33.33%;
+        }
+    }
+
+    /* ========== AJUSTES PARA PANTALLAS CURVAS ULTRADESKTOP ========== */
+    @@media (min-width: 1920px) {
+        body {
+            zoom: 0.9; /* Escala ligeramente el contenido */
+        }
+
+        .container, .container-fluid {
+            max-width: 1800px;
+            padding-left: 40px;
+            padding-right: 40px;
+        }
+
+        .card-body h2 {
+            font-size: 2.2rem;
+        }
+
+        .logo-header {
+            max-width: 220px;
+        }
+    }
+
+    @@media (min-width: 2560px) {
+        body {
+            zoom: 0.8;
+        }
+
+        .container, .container-fluid {
+            max-width: 2400px;
+        }
+    }
+
+    /* ========== ANIMACIONES Y MEJORAS VISUALES ========== */
+    .card, .alerta-card, button, .nav-link {
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Mejora para touch en móviles */
+    @@media (hover: none) and (pointer: coarse) {
+        .card:hover {
+            transform: none;
+        }
+
+        button, .card, .alerta-card {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:active, .card:active {
+            transform: scale(0.98);
+        }
+    }
+
+    /* Scrollbar personalizado pero responsivo */
+    .alertas-container::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    @@media (min-width: 768px) {
+        .alertas-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+    }
+</style>
+
+<!-- Encabezado con logo centrado y título debajo -->
+<!-- Encabezado con logo arriba y título abajo, alineado a la izquierda -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="header-left">
+            <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group Peru" class="logo-header" />
+            <h2><i class="fas fa-clock"></i> Control Asistencia</h2>
+            <p class="text-muted">Bienvenido, <strong>@ViewBag.Nombre</strong></p>
+        </div>
+    </div>
+</div>
+
+
+<!-- Tarjetas de estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Empleados</h6>
+                        <h2 class="mb-0">@ViewBag.TotalEmpleados</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+                <a href="@Url.Action("Usuarios", "Admin")" class="text-white text-decoration-none small">
+                    Ver todos <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta Presentes Hoy -->
+    <div class="col-md-3">
+        <div class="card text-white" style="cursor: pointer; background-color: rgb(89, 90, 89) !important;" onclick="verPresentes()">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Presentes Hoy</h6>
+                        <h2 class="mb-0">@ViewBag.PresentesHoy</h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+                <span class="text-white-50 small">Click para ver detalles</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark" style="cursor: pointer;" onclick="verTardanzas()">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Tardanzas Hoy</h6>
+                        <h2 class="mb-0">@ViewBag.TardanzasHoy</h2>
+                    </div>
+                    <i class="fas fa-clock fa-3x opacity-50"></i>
+                </div>
+                <span class="text-muted small">Click para ver detalles</span>
+            </div>
+        </div>
+    </div>
+    @*<div class="col-md-3 text-center">
+        <div onclick="window.location.href='@Url.Action("Index", "IPERC")'" style="cursor: pointer; display: inline-block;">
+            <i class="fas fa-chart-line fa-3x text-warning"></i>
+        </div>
+        <h5 class="mt-2">Matriz IPERC</h5>
+        <p>Gestionar riesgos</p>
+    </div>*@
+
+
+    <div class="col-md-3">
+        <div class="card bg-danger text-white" style="cursor: pointer;" onclick="verAusentes()">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Ausentes Hoy</h6>
+                        <h2 class="mb-0">@ViewBag.AusentesHoy</h2>
+                    </div>
+                    <i class="fas fa-user-slash fa-3x opacity-50"></i>
+                </div>
+                <span class="text-white-50 small">Click para ver detalles</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Menú rápido -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Sistema de Asistencia
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div onclick="window.location.href='@Url.Action("ControlPagos", "Admin")'" style="cursor: pointer; display: inline-block;">
+                            <i class="fas fa-coins fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="mt-2">Control de Pagos</h5>
+                        <p>Configurar pagos</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div onclick="window.location.href='@Url.Action("Reportes", "Admin")'" style="cursor: pointer; display: inline-block;">
+                            <i class="fas fa-file-alt fa-3x text-success"></i>
+                        </div>
+                        <h5 class="mt-2">Reportes</h5>
+                        <p>Ver reportes</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div onclick="window.location.href='@Url.Action("ReportePagos", "Admin")'" style="cursor: pointer; display: inline-block;">
+                            <i class="fas fa-money-bill-wave fa-3x" style="color: rgba(var(--bs-primary-rgb), 1);"></i>
+                        </div>
+                        <h5 class="mt-2">Pagos</h5>
+                        <p>Gestionar pagos</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div onclick="window.location.href='@Url.Action("GestionarPermisos", "Admin")'" style="cursor: pointer; display: inline-block;">
+                            <i class="fas fa-user-shield fa-3x text-info"></i>
+                        </div>
+                        <h5 class="mt-2">Permisos Excepcionales</h5>
+                        <p>Gestionar permisos</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <a href="@Url.Action("RecuperarUser", "Admin")" style="cursor: pointer; text-decoration: none; color: inherit; display: inline-block;">
+                            <div>
+                                <i class="fas fa-key fa-3x text-danger"></i>
+                            </div>
+                            <h5 class="mt-2">Recuperar Contraseña</h5>
+                            <p>Cambiar contraseña de usuarios</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para alertas de horas completadas -->
+<div class="modal fade" id="modalAlertasHoras" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-bell me-2"></i> Alertas de Horas Completadas
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs px-3 pt-3" id="alertasTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab">
+                            <i class="fas fa-clock"></i> No Leídas <span id="pendientesCount" class="badge bg-danger ms-1">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab">
+                            <i class="fas fa-history"></i> Historial
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-3" id="alertasTabsContent">
+                    <div class="tab-pane fade show active" id="pendientes" role="tabpanel">
+                        <div id="listaAlertasPendientes" class="alertas-container" style="max-height: 500px; overflow-y: auto;">
+                            <div class="text-center py-5 text-muted">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+                                Cargando alertas...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="historico" role="tabpanel">
+                        <div id="listaAlertasHistorico" class="alertas-container" style="max-height: 500px; overflow-y: auto;">
+                            <div class="text-center py-5 text-muted">
+                                <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+                                Cargando historial...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+                <button type="button" id="btnMarcarTodasLeidas" class="btn btn-primary">
+                    <i class="fas fa-check-double"></i> Marcar todas como leídas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles de presentes/tardanzas/ausentes -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="tablaDetalle">
+                        <thead id="theadDetalle"></thead>
+                        <tbody id="tbodyDetalle"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Toast personalizado
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        $(document).ready(function() {
+            cargarAlertasHoras();
+
+            $('#btnAlertasHoras').click(function(e) {
+                e.preventDefault();
+                $('#modalAlertasHoras').modal('show');
+            });
+        });
+
+        // ============================================
+        // ALERTAS DE HORAS COMPLETADAS
+        // ============================================
+        function cargarAlertasHoras() {
+            $.ajax({
+                url: '@Url.Action("ObtenerAlertasHoras", "Admin")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.count > 0) {
+                        $('#alertaCount').text(response.count).show();
+
+                        Toast.fire({
+                            icon: 'info',
+                            title: response.count + ' trabajador(es) han alcanzado las horas totales del mes'
+                        });
+                    } else {
+                        $('#alertaCount').hide();
+                    }
+
+                    if (response.data && response.data.length > 0) {
+                        var pendientesHtml = '';
+                        for (var i = 0; i < response.data.length; i++) {
+                            var item = response.data[i];
+                            var porcentaje = (item.HorasAlcanzadas / item.HorasObjetivo) * 100;
+                            porcentaje = Math.min(porcentaje, 100);
+
+                            pendientesHtml += '<div class="alerta-card mb-3 p-3 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3c9 100%); border-left: 5px solid #ffc107;">' +
+                                '<div class="d-flex justify-content-between align-items-start">' +
+                                    '<div class="d-flex align-items-center">' +
+                                        '<div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">' +
+                                            '<i class="fas fa-trophy fa-2x"></i>' +
+                                        '</div>' +
+                                        '<div>' +
+                                            '<h6 class="mb-1 fw-bold">' + item.NombreCompleto + '</h6>' +
+                                            '<p class="mb-1 text-muted small">' +
+                                                '<i class="fas fa-envelope me-1"></i> ' + item.Email +
+                                                '<span class="mx-2">•</span>' +
+                                                '<i class="fas fa-tag me-1"></i> ' + item.RolPago +
+                                            '</p>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<span class="badge bg-success rounded-pill">🎯 Meta alcanzada</span>' +
+                                '</div>' +
+                                '<div class="mt-3">' +
+                                    '<div class="d-flex justify-content-between mb-1">' +
+                                        '<small class="text-muted">Progreso: ' + porcentaje.toFixed(0) + '%</small>' +
+                                        '<small class="text-muted">' + item.HorasAlcanzadas + ' / ' + item.HorasObjetivo + ' hrs</small>' +
+                                    '</div>' +
+                                    '<div class="progress mb-2" style="height: 8px;">' +
+                                        '<div class="progress-bar bg-success" role="progressbar" style="width: ' + porcentaje + '%;"></div>' +
+                                    '</div>' +
+                                    '<small class="text-muted">' +
+                                        '<i class="fas fa-calendar-alt me-1"></i> Alerta generada: ' + item.FechaAlerta +
+                                    '</small>' +
+                                '</div>' +
+                                '<hr class="my-2">' +
+                                '<div class="d-flex justify-content-end">' +
+                                    '<button class="btn btn-sm btn-outline-success marcar-leida" data-id="' + item.Id + '">' +
+                                        '<i class="fas fa-check"></i> Marcar como leída' +
+                                    '</button>' +
+                                '</div>' +
+                            '</div>';
+                        }
+                        $('#listaAlertasPendientes').html(pendientesHtml);
+                        $('#pendientesCount').text(response.data.length);
+
+                        $('.marcar-leida').click(function() {
+                            var alertaId = $(this).data('id');
+                            marcarAlertaLeida(alertaId);
+                        });
+                    } else {
+                        $('#listaAlertasPendientes').html(
+                            '<div class="text-center py-5 text-muted">' +
+                                '<i class="fas fa-check-circle fa-3x text-success mb-3 d-block"></i>' +
+                                '<p>No hay alertas pendientes</p>' +
+                                '<small>Todos los facilitadores están dentro del objetivo</small>' +
+                            '</div>'
+                        );
+                        $('#pendientesCount').text(0);
+                    }
+                },
+                error: function() {
+                    $('#listaAlertasPendientes').html(
+                        '<div class="text-center py-5 text-danger">' +
+                            '<i class="fas fa-exclamation-triangle fa-3x mb-3 d-block"></i>' +
+                            '<p>Error al cargar las alertas</p>' +
+                        '</div>'
+                    );
+                }
+            });
+        }
+
+        function marcarAlertaLeida(alertaId) {
+            $.ajax({
+                url: '@Url.Action("MarcarAlertaLeida", "Admin")',
+                type: 'POST',
+                data: { alertaId: alertaId },
+                success: function(response) {
+                    if (response.success) {
+                        cargarAlertasHoras();
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Marcada!',
+                            text: 'Alerta marcada como leída',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                }
+            });
+        }
+
+        $('#btnMarcarTodasLeidas').click(function() {
+            Swal.fire({
+                title: 'Marcar todas como leídas',
+                text: '¿Está seguro de marcar todas las alertas como leídas?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, marcar todas',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("MarcarTodasAlertasLeidas", "Admin")',
+                        type: 'POST',
+                        success: function(response) {
+                            if (response.success) {
+                                cargarAlertasHoras();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Completado!',
+                                    text: 'Todas las alertas han sido marcadas como leídas',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // ============================================
+        // DETALLES DASHBOARD
+        // ============================================
+        function verPresentes() {
+            $('#modalTitle').text('Empleados Presentes Hoy');
+            $('#modalHeader').removeClass().addClass('modal-header text-white');
+            $('#modalHeader').css('background-color', 'rgb(89, 90, 89)');
+            $('#theadDetalle').html('<tr><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Comentario</th></tr>');
+            $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center">Cargando...</td></tr>');
+            $('#modalDetalle').modal('show');
+
+            $.ajax({
+                url: '@Url.Action("ObtenerDetallePresentes", "Admin")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var tbody = $('#tbodyDetalle');
+                    tbody.empty();
+                    if (data.length === 0) {
+                        tbody.html('<tr><td colspan="4" class="text-center">No hay registros</td></tr>');
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            var item = data[i];
+                            tbody.append('<tr>' +
+                                '<td>' + item.NombreCompleto + '</td>' +
+                                '<td>' + item.Email + '</td>' +
+                                '<td>' + item.HoraEntrada + '</td>' +
+                                '<td>' + (item.Comentario || '-') + '</td>' +
+                                '</tr>');
+                        }
+                    }
+                }
+            });
+        }
+
+        function verTardanzas() {
+            $('#modalTitle').text('Empleados con Tardanza Hoy');
+            $('#modalHeader').removeClass().addClass('modal-header bg-warning text-dark');
+            $('#theadDetalle').html('<tr><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Minutos Tarde</th><th>Comentario</th></tr>');
+            $('#tbodyDetalle').html('<td><td colspan="5" class="text-center">Cargando...</td></tr>');
+            $('#modalDetalle').modal('show');
+
+            $.ajax({
+                url: '@Url.Action("ObtenerDetalleTardanzas", "Admin")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var tbody = $('#tbodyDetalle');
+                    tbody.empty();
+                    if (data.length === 0) {
+                        tbody.html('<tr><td colspan="5" class="text-center">No hay tardanzas</td></tr>');
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            var item = data[i];
+                            tbody.append('<tr>' +
+                                '<td>' + item.NombreCompleto + '</td>' +
+                                '<td>' + item.Email + '</td>' +
+                                '<td>' + item.HoraEntrada + '</td>' +
+                                '<td>' + item.MinutosTarde + '</td>' +
+                                '<td>' + (item.Comentario || '-') + '</td>' +
+                                '</tr>');
+                        }
+                    }
+                }
+            });
+        }
+
+       function verAusentes() {
+    $('#modalTitle').text('Empleados Ausentes Hoy');
+    $('#modalHeader').removeClass().addClass('modal-header text-white');
+    $('#modalHeader').css('background-color', '#dc3545'); // Color rojo consistente
+    // Ahora muestra más columnas para mantener consistencia
+    $('#theadDetalle').html('\
+        <tr>\
+            <th><i class="fas fa-user me-1"></i> Nombre</th>\
+            <th><i class="fas fa-envelope me-1"></i> Email</th>\
+            <th><i class="fas fa-calendar me-1"></i> Fecha</th>\
+            <th><i class="fas fa-comment me-1"></i> Estado</th>\
+        </tr>\
+    ');
+    $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>');
+    $('#modalDetalle').modal('show');
+
+    $.ajax({
+        url: '@Url.Action("ObtenerDetalleAusentes", "Admin")',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            var tbody = $('#tbodyDetalle');
+            tbody.empty();
+            if (data.length === 0) {
+                tbody.html('\
+                    <tr>\
+                        <td colspan="4" class="text-center py-4">\
+                            <i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i>\
+                            <span>Todos los empleados están presentes hoy</span>\
+                        </td>\
+                    </tr>\
+                ');
+            } else {
+                for (var i = 0; i < data.length; i++) {
+                    var item = data[i];
+                    tbody.append('\
+                        <tr>\
+                            <td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td>\
+                            <td>' + escapeHtml(item.Email) + '</td>\
+                            <td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td>\
+                            <td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td>\
+                        </tr>\
+                    ');
+                }
+            }
+        },
+        error: function() {
+            $('#tbodyDetalle').html('\
+                <tr>\
+                    <td colspan="4" class="text-center text-danger py-4">\
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>\
+                        Error al cargar los datos\
+                    </td>\
+                </tr>\
+            ');
+        }
+    });
+}
+
+// Función auxiliar para escapar HTML y prevenir XSS
+function escapeHtml(text) {
+    if (!text) return '-';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+    </script>
+}

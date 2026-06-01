@@ -1,0 +1,624 @@
+﻿@{
+    ViewBag.Title = "Mi Jornada";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-calendar-day text-primary"></i> Mi Jornada Laboral</h2>
+                <p class="text-muted mt-2">
+                    <i class="fas fa-user-check"></i> Bienvenido, <strong class="text-primary">@ViewBag.Nombre</strong>
+                </p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-info fs-6 p-2">
+                    <i class="fas fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"))
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- COLUMNA IZQUIERDA - Botones de marcación + Resumen del Mes -->
+    <div class="col-lg-5 col-md-12 mb-4">
+        <!-- Panel de Marcación -->
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="mb-0 text-white"><i class="fas fa-hand-pointer me-2"></i> Panel de Marcación</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-entrada w-100 py-3" onclick="marcar('Entrada')">
+                            <i class="fas fa-door-open fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">ENTRADA</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-salida w-100 py-3" onclick="marcar('Salida')">
+                            <i class="fas fa-door-closed fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">SALIDA</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-almuerzo w-100 py-3" onclick="marcar('Almuerzo_Salida')">
+                            <i class="fas fa-utensils fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">SALIDA ALMUERZO</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-retorno w-100 py-3" onclick="marcar('Almuerzo_Retorno')">
+                            <i class="fas fa-utensils fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">RETORNO ALMUERZO</span>
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="form-group">
+                    <label class="fw-bold text-secondary"><i class="fas fa-comment-dots me-2"></i> Comentario (Opcional)</label>
+                    <textarea id="txtComentario" class="form-control border-0 bg-light" rows="3" placeholder="Ej: Permiso médico, salida temprano, llegada tarde justificada..."></textarea>
+                </div>
+
+                <!-- Botón de solicitud excepcional (solo si tiene permiso) -->
+                @{
+                    bool tienePermisoExcepcional = ViewBag.TienePermisoExcepcional ?? false;
+                    string tipoPermisoExcepcional = ViewBag.TipoPermisoExcepcional ?? "Todos";
+                }
+
+                @if (tienePermisoExcepcional)
+                {
+                    <hr class="my-4" />
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <button type="button" class="btn w-100 py-3" data-bs-toggle="modal" data-bs-target="#modalSolicitudExcepcional"
+                                    style="background: rgb(89, 90, 89) !important; border: none; color: white; border-radius: 16px; transition: all 0.3s ease; font-weight: 500;">
+                                <i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i>
+                                <span class="fw-bold">SOLICITAR MARCACIÓN EXCEPCIONAL</span>
+                                <small class="d-block text-white" style="opacity: 0.8;">Use esta opción si olvidó marcar</small>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Tarjeta de Resumen del Mes (con título dinámico) -->
+        <div class="card mt-4 border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-chart-simple me-2"></i>
+                    @if (ViewBag.EsPlanilla == true)
+                    {
+                        <span>Resumen del Mes</span>
+                    }
+                    else if (ViewBag.EsFacilitador == true)
+                    {
+                        <span>Resumen</span>
+                    }
+                    else
+                    {
+                        <span>Resumen del Mes</span>
+                    }
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.EsFacilitador == true)
+                {
+                    <!-- Para FACILITADORES (Facilitador 1, 2, 3) -->
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Trabajadas:</label>
+                        <h3 class="text-primary">
+                            @{
+                                double horasTrab = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                                int horasEnteras = (int)horasTrab;
+                                int minutos = (int)((horasTrab - horasEnteras) * 60);
+                                string textoHorasFormateado = horasEnteras + " horas ";
+                            }
+                            @textoHorasFormateado
+                        </h3>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Objetivo:</label>
+                        <h3 class="text-success">
+                            @{
+                                double horasObj = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                                int horasObjEnteras = (int)horasObj;
+                                int minutosObj = (int)((horasObj - horasObjEnteras) * 60);
+                                string textoObjFormateado = horasObjEnteras + " horas  " ;
+                            }
+                            @textoObjFormateado
+                        </h3>
+                    </div>
+                    <div class="progress mb-3" style="height: 25px;">
+                        @{
+                            double horasTrabProg = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                            double horasObjProg = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                            int porcentaje = horasObjProg > 0 ? (int)((horasTrabProg / horasObjProg) * 100) : 0;
+                            porcentaje = Math.Min(porcentaje, 100);
+                        }
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @porcentaje%;">
+                            @porcentaje%
+                        </div>
+                    </div>
+                }
+                else if (ViewBag.EsPlanilla == true)
+                {
+                    <!-- Para PLANILLA (Full Time y Part Time) -->
+                    <div class="text-center">
+                        <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                        <h4 class="text-muted">Días Trabajados en el Mes</h4>
+                        <h2 class="text-success">@ViewBag.DiasTrabajadosPlanilla</h2>
+                        <p class="text-muted small">Total de días que ha marcado entrada</p>
+                    </div>
+                }
+                else
+                {
+                    <!-- Para TRABAJADORES NORMALES -->
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Trabajadas:</label>
+                        <h3 class="text-primary">
+                            @{
+                                double horasTrabDef = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                                int horasEnterasDef = (int)horasTrabDef;
+                                int minutosDef = (int)((horasTrabDef - horasEnterasDef) * 60);
+                                string textoHorasFormateadoDef = horasEnterasDef + " horas y " + minutosDef + " minutos";
+                            }
+                            @textoHorasFormateadoDef
+                        </h3>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Objetivo:</label>
+                        <h3 class="text-success">
+                            @{
+                                double horasObjDef = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                                int horasObjEnterasDef = (int)horasObjDef;
+                                int minutosObjDef = (int)((horasObjDef - horasObjEnterasDef) * 60);
+                                string textoObjFormateadoDef = horasObjEnterasDef + " horas y " + minutosObjDef + " minutos";
+                            }
+                            @textoObjFormateadoDef
+                        </h3>
+                    </div>
+                    <div class="progress mb-3" style="height: 25px;">
+                        @{
+                            double horasTrabProgDef = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                            double horasObjProgDef = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                            int porcentajeDef = horasObjProgDef > 0 ? (int)((horasTrabProgDef / horasObjProgDef) * 100) : 0;
+                            porcentajeDef = Math.Min(porcentajeDef, 100);
+                        }
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @porcentajeDef%;">
+                            @porcentajeDef%
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Días trabajados: <strong>@ViewBag.DiasTrabajados</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA - Registros del día -->
+    <div class="col-lg-7 col-md-12 mb-4">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white"><i class="fas fa-list-check me-2"></i> Registros de Hoy</h5>
+                    <button type="button" id="btnRefrescar" class="btn btn-sm btn-light rounded-pill">
+                        <i class="fas fa-sync-alt me-1"></i> Refrescar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3"><i class="far fa-clock"></i> Hora</th>
+                                <th class="py-3"><i class="fas fa-tag"></i> Tipo</th>
+                                <th class="py-3"><i class="fas fa-comment"></i> Comentario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRegistros">
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-muted">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+                                    Cargando registros...
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para solicitar marcación excepcional -->
+<div class="modal fade" id="modalSolicitudExcepcional" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-clock"></i> Solicitar Marcación Excepcional</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> Puede solicitar marcación para CUALQUIER hora del día de hoy.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Registro *</label>
+                    <select id="tipoSolicitud" class="form-control">
+                        <!-- Las opciones se llenan dinámicamente según el permiso -->
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Hora *</label>
+                    <input type="time" id="horaSolicitud" class="form-control" required />
+                    <small class="text-muted">Seleccione la hora que desea registrar (cualquier hora del día de hoy)</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Justificación *</label>
+                    <textarea id="justificacionSolicitud" class="form-control" rows="3" placeholder="Explique por qué necesita registrar esta hora manualmente..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnSolicitar" class="btn btn-primary">Enviar Solicitud</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-entrada {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-entrada:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+    .btn-salida {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-salida:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+    .btn-almuerzo {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-almuerzo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+        }
+
+    .btn-retorno {
+        background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-retorno:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(23, 162, 184, 0.3);
+        }
+
+    .table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+        cursor: pointer;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 12px 15px;
+    }
+
+    .card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .badge {
+        border-radius: 50px;
+        font-weight: 500;
+    }
+
+    .progress {
+        border-radius: 25px;
+        background-color: #e9ecef;
+    }
+
+    .progress-bar {
+        border-radius: 25px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            cargarRegistrosHoy();
+            $("#btnRefrescar").click(function() {
+                cargarRegistrosHoy();
+            });
+        });
+
+        function marcar(tipo) {
+            var comentario = $('#txtComentario').val();
+            var titulo = '';
+            var mensajeConfirmacion = '';
+
+            switch(tipo) {
+                case 'Entrada':
+                    titulo = 'Registro de Entrada';
+                    mensajeConfirmacion = '¿Desea registrar su hora de ENTRADA?';
+                    break;
+                case 'Salida':
+                    titulo = 'Registro de Salida';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA?';
+                    break;
+                case 'Almuerzo_Salida':
+                    titulo = 'Registro de Salida a Almuerzo';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA A ALMUERZO?';
+                    break;
+                case 'Almuerzo_Retorno':
+                    titulo = 'Registro de Retorno de Almuerzo';
+                    mensajeConfirmacion = '¿Desea registrar su RETORNO DE ALMUERZO?';
+                    break;
+            }
+
+            Swal.fire({
+                title: titulo,
+                text: mensajeConfirmacion,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, registrar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Registrando tu marcación',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: '@Url.Action("Registrar", "Trabajador")',
+                        type: 'POST',
+                        data: { tipo: tipo, comentario: comentario },
+                        success: function(response) {
+                            Swal.close();
+                            if (response.exito) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Éxito!',
+                                    text: response.mensaje,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                $('#txtComentario').val('');
+                                cargarRegistrosHoy();
+                                setTimeout(function() { location.reload(); }, 2000);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.mensaje
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de conexión',
+                                text: 'No se pudo conectar con el servidor'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function cargarRegistrosHoy() {
+            $.ajax({
+                url: '@Url.Action("ObtenerRegistrosHoy", "Trabajador")',
+                type: 'POST',
+                dataType: 'json',
+                success: function(data) {
+                    var tbody = $("#tbodyRegistros");
+                    tbody.empty();
+
+                    if (!data || data.length === 0) {
+                        tbody.html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>No hay registros hoy</td></tr>');
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            var item = data[i];
+                            var icono = '';
+                            var badgeClass = '';
+
+                            var horaMostrar = item.Hora;
+                            if (horaMostrar && horaMostrar.length > 5) {
+                                horaMostrar = horaMostrar.substring(0, 5);
+                            }
+
+                            if (item.TipoRegistro === 'Entrada') {
+                                icono = '🟢';
+                                badgeClass = 'bg-success';
+                            } else if (item.TipoRegistro === 'Almuerzo_Salida') {
+                                icono = '🍽️';
+                                badgeClass = 'bg-warning';
+                            } else if (item.TipoRegistro === 'Almuerzo_Retorno') {
+                                icono = '🍽️';
+                                badgeClass = 'bg-info';
+                            } else if (item.TipoRegistro === 'Salida') {
+                                icono = '🔴';
+                                badgeClass = 'bg-danger';
+                            }
+
+                            tbody.append(
+                                '<tr>' +
+                                '<td class="fw-bold">' + horaMostrar + '</td>' +
+                                '<td><span class="badge ' + badgeClass + ' px-3 py-2 rounded-pill">' + icono + ' ' + item.TipoRegistro + '</span></td>' +
+                                '<td class="text-muted">' + (item.Comentario || '-') + '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+                },
+                error: function() {
+                    $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar datos</td></tr>');
+                }
+            });
+        }
+
+        var tipoPermisoGlobal = '@tipoPermisoExcepcional';
+
+        function cargarOpcionesTipoPermiso() {
+            var select = $('#tipoSolicitud');
+            select.empty();
+
+            var opciones = [];
+
+            switch(tipoPermisoGlobal) {
+                case 'Entrada':
+                    opciones = [{ value: 'Entrada', text: 'Entrada' }];
+                    break;
+                case 'Almuerzo_Salida':
+                    opciones = [{ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo' }];
+                    break;
+                case 'Almuerzo_Retorno':
+                    opciones = [{ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo' }];
+                    break;
+                case 'Salida':
+                    opciones = [{ value: 'Salida', text: 'Salida' }];
+                    break;
+                case 'Todos':
+                case 'Ambos':
+                default:
+                    opciones = [
+                        { value: 'Entrada', text: 'Entrada' },
+                        { value: 'Almuerzo_Salida', text: 'Salida a Almuerzo' },
+                        { value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo' },
+                        { value: 'Salida', text: 'Salida' }
+                    ];
+                    break;
+            }
+
+            for (var i = 0; i < opciones.length; i++) {
+                select.append('<option value="' + opciones[i].value + '">' + opciones[i].text + '</option>');
+            }
+        }
+
+        $('#btnSolicitar').click(function() {
+            var tipo = $('#tipoSolicitud').val();
+            var hora = $('#horaSolicitud').val();
+            var justificacion = $('#justificacionSolicitud').val();
+
+            if (!hora) {
+                Swal.fire('Atención', 'Seleccione la hora', 'warning');
+                return;
+            }
+            if (!justificacion) {
+                Swal.fire('Atención', 'Ingrese una justificación', 'warning');
+                return;
+            }
+
+            var hoy = new Date();
+            var fechaLocal = hoy.getFullYear() + '-' +
+                             String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
+                             String(hoy.getDate()).padStart(2, '0');
+
+            var fechaHoraStr = fechaLocal + 'T' + hora + ':00';
+
+            Swal.fire({
+                title: 'Enviar solicitud',
+                text: '¿Está seguro de enviar esta solicitud?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, enviar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Enviando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                    $.ajax({
+                        url: '@Url.Action("SolicitarMarcacionExcepcional", "Trabajador")',
+                        type: 'POST',
+                        data: { tipo: tipo, fechaHora: fechaHoraStr, justificacion: justificacion },
+                        success: function(response) {
+                            Swal.close();
+                            if (response.success) {
+                                Swal.fire('Solicitud Enviada', response.message, 'success');
+                                $('#modalSolicitudExcepcional').modal('hide');
+                                $('#horaSolicitud').val('');
+                                $('#justificacionSolicitud').val('');
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire('Error', 'Error al enviar la solicitud', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#modalSolicitudExcepcional').on('show.bs.modal', function() {
+            cargarOpcionesTipoPermiso();
+        });
+    </script>
+}

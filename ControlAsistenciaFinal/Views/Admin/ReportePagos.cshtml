@@ -1,0 +1,196 @@
+﻿@{
+    ViewBag.Title = "Reporte de Pagos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var usuarios = ViewBag.Usuarios as System.Data.DataTable;
+    var rolesPago = ViewBag.RolesPago as System.Data.DataTable;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-money-bill-wave"></i> Reporte de Pago por Horas</h2>
+        <p class="text-muted">Calcula el pago basado en horas trabajadas y rol del empleado</p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <i class="fas fa-filter"></i> Filtros de Búsqueda
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                <input type="date" id="fechaInicio" class="form-control" value="@ViewBag.FechaInicio" />
+            </div>
+            <div class="col-md-3">
+                <label><i class="fas fa-calendar-alt"></i> Fecha Fin</label>
+                <input type="date" id="fechaFin" class="form-control" value="@ViewBag.FechaFin" />
+            </div>
+            <div class="col-md-3">
+                <label><i class="fas fa-user"></i> Empleado</label>
+                <select id="usuarioId" class="form-control">
+                    <option value="">Todos los empleados</option>
+                    @if (usuarios != null)
+                    {
+                        foreach (System.Data.DataRow row in usuarios.Rows)
+                        {
+                            <option value="@row["Id"]">@row["NombreCompleto"] (@row["RolPago"])</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label><i class="fas fa-tag"></i> Rol de Pago</label>
+                <select id="rolPago" class="form-control">
+                    <option value="">Todos los roles</option>
+                    @if (rolesPago != null)
+                    {
+                        foreach (System.Data.DataRow row in rolesPago.Rows)
+                        {
+                            <option value="@row["RolPago"]">@row["RolPago"]</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <button type="button" id="btnBuscar" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Calcular Pagos
+                </button>
+                <button type="button" id="btnExportar" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Exportar a Excel
+                </button>
+                <button type="button" id="btnLimpiar" class="btn btn-secondary">
+                    <i class="fas fa-eraser"></i> Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Resultados -->
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <i class="fas fa-table"></i> Detalle de Pago por Empleado
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered" id="tablaPagos">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Empleado</th>
+                        <th>Email</th>
+                        <th>Rol de Pago</th>
+                        <th>Tarifa x Hora</th>
+                        <th>Días Trabajados</th>
+                        <th>Horas Totales</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyPagos">
+                    <tr><td colspan="7" class="text-center">Seleccione fechas y presione "Calcular Pagos"</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function() {
+        $("#btnBuscar").click(buscarReporte);
+        $("#btnExportar").click(exportarExcel);
+        $("#btnLimpiar").click(limpiarFiltros);
+    });
+
+    function buscarReporte() {
+        var fechaInicio = $("#fechaInicio").val();
+        var fechaFin = $("#fechaFin").val();
+        var usuarioId = $("#usuarioId").val();
+        var rolPago = $("#rolPago").val();
+
+        if (!fechaInicio || !fechaFin) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccione las fechas' });
+            return;
+        }
+
+        Swal.fire({ title: 'Calculando...', text: 'Procesando datos', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        $.ajax({
+            url: '@Url.Action("ObtenerReportePagos", "Admin")',
+            type: 'POST',
+            data: { fechaInicio: fechaInicio, fechaFin: fechaFin, usuarioId: usuarioId || '', rolPago: rolPago || '' },
+            dataType: 'json',
+            success: function(response) {
+                Swal.close();
+                if (response.success) {
+                    var tbody = $("#tbodyPagos");
+                    tbody.empty();
+
+                    if (response.data.length === 0) {
+                        tbody.html('<tr><td colspan="7" class="text-center">No hay datos en el período seleccionado</td></tr>');
+                    } else {
+                        for (var i = 0; i < response.data.length; i++) {
+                            var item = response.data[i];
+                            tbody.append(
+                                '<tr>' +
+                                '<td>' + item.NombreCompleto + '</td>' +
+                                '<td>' + item.Email + '</td>' +
+                                '<td><span class="badge bg-primary">' + item.RolPago + '</span></td>' +
+                                '<td class="text-end">S/ ' + parseFloat(item.TarifaHora).toFixed(2) + '</td>' +
+                                '<td class="text-center">' + item.DiasTrabajados + '</td>' +
+                                '<td class="text-end">' + parseFloat(item.TotalHoras).toFixed(2) + ' hrs</td>' +
+                                '<td class="text-end fw-bold text-success">S/ ' + parseFloat(item.MontoTotal).toFixed(2) + '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    }
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: response.error });
+                }
+            },
+            error: function() {
+                Swal.close();
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error al cargar datos' });
+            }
+        });
+    }
+
+    function exportarExcel() {
+        var fechaInicio = $("#fechaInicio").val();
+        var fechaFin = $("#fechaFin").val();
+        var usuarioId = $("#usuarioId").val();
+        var rolPago = $("#rolPago").val();
+
+        if (!fechaInicio || !fechaFin) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccione las fechas' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Generando Excel...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        var url = '@Url.Action("ExportarPagosExcelProfesional", "Admin")?fechaInicio=' + fechaInicio + '&fechaFin=' + fechaFin + '&usuarioId=' + (usuarioId || '') + '&rolPago=' + (rolPago || '');
+        window.location.href = url;
+
+        setTimeout(() => { Swal.close(); }, 3000);
+    }
+
+    function limpiarFiltros() {
+        $("#fechaInicio").val('');
+        $("#fechaFin").val('');
+        $("#usuarioId").val('');
+        $("#rolPago").val('');
+        $("#tbodyPagos").html('<tr><td colspan="7" class="text-center">Seleccione fechas y presione "Calcular Pagos"</td></tr>');
+    }
+</script>

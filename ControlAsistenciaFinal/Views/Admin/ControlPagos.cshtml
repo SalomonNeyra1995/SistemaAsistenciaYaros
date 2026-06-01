@@ -1,0 +1,216 @@
+﻿@{
+    ViewBag.Title = "Control de Pagos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-coins text-warning"></i> Control de Pagos</h2>
+        <p class="text-muted">Administre los valores de pago para facilitadores y planilla</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning text-white">
+        <i class="fas fa-table me-2" style="color: black;"></i> Configuración de Pagos por Concepto
+    </div>
+
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Concepto de Pago</th>
+                        <th>Tipo</th>
+                        <th class="bg-danger text-white">Monto Base *</th>
+                        <th>Días Base</th>
+                        <th class="bg-danger text-white">Valor Hora *</th>
+                        <th>Valor Día</th>
+                        <th>Valor Minuto</th>
+                        <th>Horas Diarias</th>
+                        <th>Horas Semana</th>
+                        <th>Horas Sábado</th>
+                        <th>Horas Mensuales</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (System.Data.DataRow row in Model.Rows)
+                    {
+                        <tr id="fila_@row["Id"]">
+                            <td class="text-center">@row["Id"]</td>
+                            <td>@row["ConceptoPago"]</td>
+                            <td><span class="badge @(row["Tipo"].ToString() == "Facilitador" ? "bg-primary" : "bg-success")">@row["Tipo"]</span></td>
+                            <td class="bg-light">
+                                <input type="number" step="0.01" class="form-control form-control-sm campo-monto-base" data-id="@row["Id"]" value="@row["MontoBase"]" style="min-width: 100px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="1" class="form-control form-control-sm campo-dias-base" data-id="@row["Id"]" value="@row["DiasBase"]" style="min-width: 80px;" />
+                            </td>
+                            <td class="bg-light">
+                                <input type="number" step="0.01" class="form-control form-control-sm campo-valor-hora" data-id="@row["Id"]" value="@row["ValorHora"]" style="min-width: 100px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" class="form-control form-control-sm campo-valor-dia" data-id="@row["Id"]" value="@row["ValorDia"]" style="min-width: 100px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" class="form-control form-control-sm campo-valor-minuto" data-id="@row["Id"]" value="@row["ValorMinuto"]" style="min-width: 80px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="1" class="form-control form-control-sm campo-horas-diarias" data-id="@row["Id"]" value="@row["HorasDiarias"]" style="min-width: 80px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="1" class="form-control form-control-sm campo-horas-semana" data-id="@row["Id"]" value="@row["HorasSemana"]" style="min-width: 80px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="1" class="form-control form-control-sm campo-horas-sabado" data-id="@row["Id"]" value="@row["HorasSabado"]" style="min-width: 80px;" />
+                            </td>
+                            <td>
+                                <input type="number" step="1" class="form-control form-control-sm campo-horas-mensuales" data-id="@row["Id"]" value="@row["HorasMensuales"]" style="min-width: 100px;" />
+                            </td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-inline-block">
+                                    <input type="checkbox" class="form-check-input campo-activo" data-id="@row["Id"]" @(Convert.ToBoolean(row["Activo"]) ? "checked" : "") />
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-success btn-guardar" data-id="@row["Id"]" data-concepto="@row["ConceptoPago"]">
+                                    <i class="fas fa-save"></i> Guardar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-light">
+        <div class="alert alert-info mb-0">
+            <i class="fas fa-info-circle"></i>
+            <strong>Campos obligatorios:</strong>
+            <span class="text-danger">Monto Base (*)</span> y
+            <span class="text-danger">Valor Hora (*)</span> son requeridos.
+            Los demás campos son opcionales; si se dejan vacíos, no se modificarán.
+        </div>
+    </div>
+</div>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+
+    .form-control-sm {
+        font-size: 13px;
+    }
+
+    .btn-guardar {
+        white-space: nowrap;
+    }
+
+    input:invalid {
+        border-color: #dc3545;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('.btn-guardar').click(function() {
+                var id = $(this).data('id');
+                var concepto = $(this).data('concepto');
+
+                // Obtener valores de los campos
+                var montoBase = $('.campo-monto-base[data-id="' + id + '"]').val();
+                var diasBase = $('.campo-dias-base[data-id="' + id + '"]').val();
+                var valorHora = $('.campo-valor-hora[data-id="' + id + '"]').val();
+                var valorDia = $('.campo-valor-dia[data-id="' + id + '"]').val();
+                var valorMinuto = $('.campo-valor-minuto[data-id="' + id + '"]').val();
+                var horasDiarias = $('.campo-horas-diarias[data-id="' + id + '"]').val();
+                var horasSemana = $('.campo-horas-semana[data-id="' + id + '"]').val();
+                var horasSabado = $('.campo-horas-sabado[data-id="' + id + '"]').val();
+                var horasMensuales = $('.campo-horas-mensuales[data-id="' + id + '"]').val();
+                var activo = $('.campo-activo[data-id="' + id + '"]').is(':checked') ? 1 : 0;
+
+                // Validar campos obligatorios
+                if (!montoBase || montoBase.trim() === '') {
+                    Swal.fire('Error', 'El campo "Monto Base" es obligatorio', 'warning');
+                    return;
+                }
+                if (!valorHora || valorHora.trim() === '') {
+                    Swal.fire('Error', 'El campo "Valor Hora" es obligatorio', 'warning');
+                    return;
+                }
+
+                // Validar que los valores numéricos sean válidos
+                if (isNaN(parseFloat(montoBase))) {
+                    Swal.fire('Error', 'El "Monto Base" debe ser un número válido', 'warning');
+                    return;
+                }
+                if (isNaN(parseFloat(valorHora))) {
+                    Swal.fire('Error', 'El "Valor Hora" debe ser un número válido', 'warning');
+                    return;
+                }
+
+                // Confirmar guardado
+                Swal.fire({
+                    title: '¿Guardar cambios?',
+                    text: '¿Está seguro de actualizar la configuración de "' + concepto + '"?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Guardando...',
+                            text: 'Por favor espere',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+
+                        $.ajax({
+                            url: '@Url.Action("GuardarConfiguracionPago", "Admin")',
+                            type: 'POST',
+                            data: {
+                                id: id,
+                                montoBase: montoBase,
+                                diasBase: diasBase || '',
+                                valorHora: valorHora,
+                                valorDia: valorDia || '',
+                                valorMinuto: valorMinuto || '',
+                                horasDiarias: horasDiarias || '',
+                                horasSemana: horasSemana || '',
+                                horasSabado: horasSabado || '',
+                                horasMensuales: horasMensuales || '',
+                                activo: activo
+                            },
+                            success: function(response) {
+                                Swal.close();
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Guardado',
+                                        text: response.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.close();
+                                Swal.fire('Error', 'Error al guardar los cambios', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

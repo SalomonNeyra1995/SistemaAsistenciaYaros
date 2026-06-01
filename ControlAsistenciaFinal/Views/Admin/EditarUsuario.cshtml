@@ -1,0 +1,235 @@
+﻿@using System.Data
+@{
+    ViewBag.Title = "Editar Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    DataRow usuario = Model.Rows[0];
+    DataTable rolesPago = ViewBag.RolesPago as DataTable;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-user-edit"></i> Editar Usuario</h2>
+        <p class="text-muted">Modifique los datos del empleado</p>
+    </div>
+</div>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <i class="fas fa-edit"></i> Datos del Usuario
+    </div>
+    <div class="card-body">
+        <form method="post" action="@Url.Action("EditarUsuario", "Admin")">
+            <input type="hidden" name="id" value="@usuario["Id"]" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo *</label>
+                        <input type="text" name="nombre" class="form-control" value="@usuario["NombreCompleto"]" required />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electrónico *</label>
+                        <input type="email" name="email" class="form-control" value="@usuario["Email"]" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Rol del Sistema *</label>
+                        <select name="rol" class="form-control" required>
+                            <option value="Admin" @(usuario["Rol"].ToString() == "Admin" ? "selected" : "")>Administrador</option>
+                            <option value="Trabajador Independiente" @(usuario["Rol"].ToString() == "Trabajador Independiente" ? "selected" : "")>Trabajador Independiente</option>
+                            <option value="Empleado" @(usuario["Rol"].ToString() == "Empleado" ? "selected" : "")>Empleado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="activo" class="form-control">
+                            <option value="true" @(Convert.ToBoolean(usuario["Activo"]) ? "selected" : "")>Activo</option>
+                            <option value="false" @(!Convert.ToBoolean(usuario["Activo"]) ? "selected" : "")>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nuevos campos: Rol de Pago y Fecha Inicio -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Rol de Pago *</label>
+                        <select name="conceptoPagoId" class="form-control" required>
+                            <option value="">Seleccione un Rol de Pago</option>
+                            @if (ViewBag.RolesPago != null)
+                            {
+                                foreach (DataRow rol in ViewBag.RolesPago.Rows)
+                                {
+                                    int rolId = Convert.ToInt32(rol["Id"]);
+                                    string rolConcepto = rol["ConceptoPago"].ToString();
+                                    int usuarioConceptoId = usuario["ConceptoPagoId"] != DBNull.Value ? Convert.ToInt32(usuario["ConceptoPagoId"]) : 0;
+
+                                    <option value="@rolId" @(usuarioConceptoId == rolId ? "selected" : "")>
+                                        @rolConcepto
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <small class="text-muted">Seleccione el tipo de pago para el empleado</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Inicio *</label>
+                        <input type="date" name="fechaInicio" class="form-control"
+                               value="@(usuario["FechaInicio"] != DBNull.Value ? Convert.ToDateTime(usuario["FechaInicio"]).ToString("yyyy-MM-dd") : "")" required />
+                        <small class="text-muted">Fecha de inicio del empleado en la empresa</small>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Celular</label>
+                        <input type="tel" name="celular" class="form-control" value="@usuario["Celular"]" maxlength="9" placeholder="999888777" />
+                        <small class="text-muted">9 dígitos (solo números)</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Banco</label>
+                        <select name="banco" class="form-control">
+                            <option value="">Seleccione un banco</option>
+                            <option value="BCP" @(usuario["Banco"] != null && usuario["Banco"].ToString() == "BCP" ? "selected" : "")>BCP</option>
+                            <option value="BBVA" @(usuario["Banco"] != null && usuario["Banco"].ToString() == "BBVA" ? "selected" : "")>BBVA</option>
+                            <option value="SCOTIABANK" @(usuario["Banco"] != null && usuario["Banco"].ToString() == "SCOTIABANK" ? "selected" : "")>SCOTIABANK</option>
+                            <option value="INTERBANK" @(usuario["Banco"] != null && usuario["Banco"].ToString() == "INTERBANK" ? "selected" : "")>INTERBANK</option>
+                            <option value="OTROS" @(usuario["Banco"] != null && usuario["Banco"].ToString() == "OTROS" ? "selected" : "")>OTROS</option>
+                        </select>
+                        <small class="text-muted">Banco para depósito</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Cuenta de Ahorros</label>
+                        <input type="text" name="cuentaAhorros" class="form-control" value="@usuario["CuentaAhorros"]" maxlength="20" placeholder="12345678901234" />
+                        <small class="text-muted">Entre 10 y 20 dígitos (solo números)</small>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <a href="@Url.Action("Usuarios", "Admin")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <i class="fas fa-qrcode"></i> Código QR del Usuario
+    </div>
+    <div class="card-body text-center">
+        @if (usuario["CodigoQR"] != DBNull.Value && !string.IsNullOrEmpty(usuario["CodigoQR"].ToString()))
+        {
+            <div id="qrCode"></div>
+            <p class="mt-2">Código QR para marcación de asistencia</p>
+            <button type="button" id="btnDescargarQR" class="btn btn-sm btn-primary">
+                <i class="fas fa-download"></i> Descargar QR
+            </button>
+        }
+        else
+        {
+            <p class="text-muted">No hay código QR generado</p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        // Función para validar solo números
+        function soloNumeros(event) {
+            var key = event.keyCode || event.which;
+            var tecla = String.fromCharCode(key);
+            var numeros = "0123456789";
+            if (numeros.indexOf(tecla) === -1 && key !== 8 && key !== 9 && key !== 13 && key !== 46) {
+                event.preventDefault();
+                return false;
+            }
+            return true;
+        }
+
+        // Validar que solo se ingresen números en el campo celular
+        var celularInput = document.querySelector('input[name="celular"]');
+        if (celularInput) {
+            celularInput.addEventListener('keypress', soloNumeros);
+            celularInput.addEventListener('input', function() {
+                if (this.value.length > 9) {
+                    this.value = this.value.substring(0, 9);
+                }
+            });
+        }
+
+        // Validar que solo se ingresen números en la cuenta de ahorros
+        var cuentaInput = document.querySelector('input[name="cuentaAhorros"]');
+        if (cuentaInput) {
+            cuentaInput.addEventListener('keypress', soloNumeros);
+            cuentaInput.addEventListener('input', function() {
+                if (this.value.length > 20) {
+                    this.value = this.value.substring(0, 20);
+                }
+            });
+        }
+
+        @if (usuario["CodigoQR"] != DBNull.Value && !string.IsNullOrEmpty(usuario["CodigoQR"].ToString()))
+        {
+            <text>
+            var codigoQR = '@usuario["CodigoQR"].ToString()';
+            var qrUrl = window.location.origin + '/Qr/Marcar?qr=' + codigoQR;
+
+            new QRCode(document.getElementById("qrCode"), {
+                text: qrUrl,
+                width: 200,
+                height: 200
+            });
+
+            $("#btnDescargarQR").click(function() {
+                window.location.href = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(qrUrl);
+            });
+            </text>
+        }
+    </script>
+}

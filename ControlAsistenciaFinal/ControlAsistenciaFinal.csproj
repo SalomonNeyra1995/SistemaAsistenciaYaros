@@ -150,6 +150,7 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\css\all.min.css" />
     <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\dataTables.min.css" />
     <Content Include="Content\fondo-login.jpg" />
     <Content Include="Content\images\fondo-login.jpg" />
     <Content Include="Content\images\Fondo_loginDef.png">
@@ -160,6 +161,8 @@
     <Content Include="Content\images\logo-yaros.png" />
     <Content Include="Content\images\Logo_Edificio.png" />
     <Content Include="Content\images\Logo_Yaros_Group_2.png" />
+    <Content Include="Content\js\dataTables.min.js" />
+    <Content Include="Content\js\sweetalert.js" />
     <Content Include="Content\Login.css" />
     <Content Include="Content\logo-yaros.png" />
     <Content Include="favicon.ico" />
@@ -221,6 +224,7 @@
     <Content Include="Views\IPERC\Index.cshtml" />
     <Content Include="Views\IPERC\Create.cshtml" />
     <Content Include="Views\IPERC\Reporte.cshtml" />
+    <Content Include="Views\Trabajador\MiJornadaMejorada.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -11,140 +11,136 @@ namespace ControlAsistenciaFinal.Controllers
     {
 
         [HttpGet]
-                    public ActionResult MiJornada()
-                    {
-                        if (Session["UsuarioId"] == null)
-                            return RedirectToAction("Login", "Account");
+        public ActionResult MiJornadaMejorada()
+        {
+            if (Session["UsuarioId"] == null)
+                return RedirectToAction("Login", "Account");
 
-                        int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+            int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
 
-                        // ============================================
-                        // FECHAS: Mes actual, pero hasta el DÍA ANTERIOR
-                        // ============================================
-                        DateTime inicioMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                        DateTime fechaHastaAnterior = DateTime.Now.AddDays(-1);  // Hasta ayer
-                        DateTime fechaActual = DateTime.Now;
+            // ============================================
+            // OBTENER DATOS DEL CICLO ACTUAL USANDO EL SP
+            // ============================================
+            DataTable dtCiclo = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerCicloActualUsuario",
+                new SqlParameter[] { new SqlParameter("@UsuarioId", usuarioId) });
 
-                        // Verificar rol del usuario
-                        string queryRol = "SELECT Rol FROM Usuarios WHERE Id = @Id";
-                        SqlParameter[] paramRol = { new SqlParameter("@Id", usuarioId) };
-                        DataTable dtRol = DatabaseHelper.ExecuteQuery(queryRol, paramRol);
-                        string rol = dtRol.Rows.Count > 0 ? dtRol.Rows[0]["Rol"].ToString() : "";
+            DateTime fechaInicioCiclo = DateTime.Now;
+            decimal horasObjetivo = 104;
+            decimal horasAcumuladas = 0;
+            decimal horasRestantes = 0;
+            decimal horasTransferidas = 0;
+            int porcentajeAvance = 0;
+            int ciclosCompletados = 0;
 
-                        // Verificar el tipo de usuario (Facilitador o Planilla)
-                        string queryConcepto = @"SELECT cp.Tipo, cp.HorasMensuales, cp.DiasBase, cp.HorasDiarias
-                                         FROM Usuarios u 
-                                         LEFT JOIN ConfiguracionPagos cp ON u.ConceptoPagoId = cp.Id 
-                                         WHERE u.Id = @Id";
-                        DataTable dtConcepto = DatabaseHelper.ExecuteQuery(queryConcepto, paramRol);
+            if (dtCiclo.Rows.Count > 0)
+            {
+                fechaInicioCiclo = Convert.ToDateTime(dtCiclo.Rows[0]["FechaInicioCiclo"]);
+                horasObjetivo = Convert.ToDecimal(dtCiclo.Rows[0]["HorasObjetivo"]);
+                horasAcumuladas = Convert.ToDecimal(dtCiclo.Rows[0]["HorasAcumuladas"]);
+                horasRestantes = Convert.ToDecimal(dtCiclo.Rows[0]["HorasRestantes"]);
+                horasTransferidas = Convert.ToDecimal(dtCiclo.Rows[0]["HorasTransferidas"]);
+                porcentajeAvance = Convert.ToInt32(dtCiclo.Rows[0]["PorcentajeAvance"]);
+                ciclosCompletados = Convert.ToInt32(dtCiclo.Rows[0]["CiclosCompletados"]);
+            }
 
-                        bool esFacilitador = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["Tipo"].ToString() == "Facilitador";
-                        bool esPlanilla = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["Tipo"].ToString() == "Planilla";
+            // ============================================
+            // VERIFICAR TIPO DE USUARIO
+            // ============================================
+            SqlParameter[] paramUsuario = { new SqlParameter("@Id", usuarioId) };
+            string queryConcepto = @"SELECT cp.Tipo, cp.HorasMensuales, cp.DiasBase, cp.HorasDiarias, cp.HorasSabado
+                     FROM Usuarios u 
+                     LEFT JOIN ConfiguracionPagos cp ON u.ConceptoPagoId = cp.Id 
+                     WHERE u.Id = @Id";
+            DataTable dtConcepto = DatabaseHelper.ExecuteQuery(queryConcepto, paramUsuario);
 
-                        // ============================================
-                        // CALCULAR HORAS TRABAJADAS EN EL MES (HASTA EL DÍA ANTERIOR)
-                        // ============================================
-                        string queryHoras = @"
-                    SELECT 
-                        ISNULL(SUM(
-                            CASE 
-                                WHEN r.TipoRegistro = 'Entrada' AND r2.TipoRegistro = 'Salida' 
-                                THEN DATEDIFF(MINUTE, r.FechaHora, r2.FechaHora) / 60.0
-                                ELSE 0 
-                            END
-                        ), 0) AS TotalHoras,
-                        COUNT(DISTINCT CAST(r.FechaHora AS DATE)) AS DiasTrabajados
-                    FROM Usuarios u
-                    LEFT JOIN RegistrosAsistencia r ON u.Id = r.UsuarioId 
-                        AND r.TipoRegistro = 'Entrada'
-                        AND CAST(r.FechaHora AS DATE) BETWEEN @FechaInicio AND @FechaFin
-                    LEFT JOIN RegistrosAsistencia r2 ON u.Id = r2.UsuarioId 
-                        AND r2.TipoRegistro = 'Salida'
-                        AND CAST(r2.FechaHora AS DATE) = CAST(r.FechaHora AS DATE)
-                    WHERE u.Id = @UsuarioId";
+            bool esFacilitador = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["Tipo"].ToString() == "Facilitador";
+            bool esPlanilla = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["Tipo"].ToString() == "Planilla";
 
-                        SqlParameter[] paramHoras = new SqlParameter[]
-                        {
-                    new SqlParameter("@UsuarioId", usuarioId),
-                    new SqlParameter("@FechaInicio", inicioMes),
-                    new SqlParameter("@FechaFin", fechaHastaAnterior)  // Hasta el día anterior
-                        };
+            // ============================================
+            // CALCULAR DÍAS TRABAJADOS EN EL CICLO ACTUAL
+            // ============================================
+                    string queryDias = @"
+            SELECT COUNT(*) AS DiasTrabajados
+            FROM (
+                SELECT CAST(FechaHora AS DATE) AS Fecha
+                FROM RegistrosAsistencia
+                WHERE UsuarioId = @UsuarioId
+                    AND CAST(FechaHora AS DATE) >= @FechaInicioCiclo
+                GROUP BY CAST(FechaHora AS DATE)
+                HAVING 
+                    SUM(CASE WHEN TipoRegistro = 'Entrada' THEN 1 ELSE 0 END) > 0
+                    AND SUM(CASE WHEN TipoRegistro = 'Salida' THEN 1 ELSE 0 END) > 0
+            ) AS DiasConEntradaYSalida";
 
-                        DataTable dtHoras = DatabaseHelper.ExecuteQuery(queryHoras, paramHoras);
+            SqlParameter[] paramDias = new SqlParameter[]
+            {
+        new SqlParameter("@UsuarioId", usuarioId),
+        new SqlParameter("@FechaInicioCiclo", fechaInicioCiclo)
+            };
+            DataTable dtDias = DatabaseHelper.ExecuteQuery(queryDias, paramDias);
+             
+            int diasTrabajados = dtDias.Rows.Count > 0 ? Convert.ToInt32(dtDias.Rows[0]["DiasTrabajados"]) : 0;
 
-                        decimal horasTrabajadas = 0;
-                        int diasTrabajados = 0;
+            // ============================================
+            // ASIGNAR VALORES AL ViewBag
+            // ============================================
+            ViewBag.HorasTrabajadas = horasAcumuladas;
+            ViewBag.HorasObjetivo = horasObjetivo;
+            ViewBag.HorasRestantes = horasRestantes;
+            ViewBag.HorasTransferidas = horasTransferidas;
+            ViewBag.DiasTrabajados = diasTrabajados;
+            ViewBag.PorcentajeAvance = porcentajeAvance;
+            ViewBag.FechaInicioCiclo = fechaInicioCiclo;
+            ViewBag.CiclosCompletados = ciclosCompletados;
 
-                        if (dtHoras.Rows.Count > 0)
-                        {
-                            horasTrabajadas = Convert.ToDecimal(dtHoras.Rows[0]["TotalHoras"]);
-                            diasTrabajados = Convert.ToInt32(dtHoras.Rows[0]["DiasTrabajados"]);
-                        }
+            // Texto del período actual
+            if (ciclosCompletados > 0 && horasTransferidas > 0)
+            {
+                ViewBag.PeriodoTexto = $"Ciclo #{ciclosCompletados + 1}: {fechaInicioCiclo:dd/MM/yyyy} - hasta completar {horasObjetivo} horas (con {horasTransferidas} horas transferidas del ciclo anterior)";
+            }
+            else
+            {
+                ViewBag.PeriodoTexto = $"Ciclo #{ciclosCompletados + 1}: {fechaInicioCiclo:dd/MM/yyyy} - hasta completar {horasObjetivo} horas";
+            }
 
-                        ViewBag.HorasTrabajadas = Math.Round(horasTrabajadas, 2);
-                        ViewBag.DiasTrabajados = diasTrabajados;
+            if (esFacilitador)
+            {
+                ViewBag.EsFacilitador = true;
+                ViewBag.EsPlanilla = false;
+            }
+            else if (esPlanilla)
+            {
+                ViewBag.EsPlanilla = true;
+                ViewBag.EsFacilitador = false;
+                ViewBag.DiasTrabajadosPlanilla = diasTrabajados;
+            }
+            else
+            {
+                ViewBag.EsFacilitador = false;
+                ViewBag.EsPlanilla = false;
+            }
 
-                        // ============================================
-                        // CALCULAR HORAS OBJETIVO DEL MES (COMPLETO)
-                        // ============================================
-                        decimal horasObjetivo = 0;
+            // ============================================
+            // VERIFICAR PERMISOS EXCEPCIONALES
+            // ============================================
+            string queryPermiso = "SELECT PermisoMarcacionExcepcional, TipoPermisoExcepcional FROM Usuarios WHERE Id = @Id";
+            DataTable dtPermiso = DatabaseHelper.ExecuteQuery(queryPermiso, paramUsuario);
 
-                        if (esFacilitador)
-                        {
-                            // Facilitador: usar HorasMensuales de ConfiguracionPagos
-                            decimal horasMensuales = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["HorasMensuales"] != DBNull.Value
-                                ? Convert.ToDecimal(dtConcepto.Rows[0]["HorasMensuales"]) : 104;
+            if (dtPermiso.Rows.Count > 0)
+            {
+                ViewBag.TienePermisoExcepcional = Convert.ToBoolean(dtPermiso.Rows[0]["PermisoMarcacionExcepcional"]);
+                ViewBag.TipoPermisoExcepcional = dtPermiso.Rows[0]["TipoPermisoExcepcional"].ToString();
+            }
+            else
+            {
+                ViewBag.TienePermisoExcepcional = false;
+                ViewBag.TipoPermisoExcepcional = "Todos";
+            }
 
-                            horasObjetivo = horasMensuales;
-                            ViewBag.EsFacilitador = true;
-                            ViewBag.EsPlanilla = false;
-                        }
-                        else if (esPlanilla)
-                        {
-                            // Planilla: usar HorasMensuales de ConfiguracionPagos
-                            decimal horasMensuales = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["HorasMensuales"] != DBNull.Value
-                                ? Convert.ToDecimal(dtConcepto.Rows[0]["HorasMensuales"]) : 192;
-
-                            horasObjetivo = horasMensuales;
-                            ViewBag.EsPlanilla = true;
-                            ViewBag.EsFacilitador = false;
-                            ViewBag.DiasTrabajadosPlanilla = diasTrabajados;
-                        }
-                        else
-                        {
-                            // Otros roles
-                            horasObjetivo = 160;
-                            ViewBag.EsFacilitador = false;
-                            ViewBag.EsPlanilla = false;
-                        }
-
-                        ViewBag.HorasObjetivo = Math.Round(horasObjetivo, 2);
-
-                        // Calcular porcentaje de avance (basado en el objetivo del mes completo)
-                        int porcentaje = horasObjetivo > 0 ? (int)((horasTrabajadas / horasObjetivo) * 100) : 0;
-                        porcentaje = Math.Min(porcentaje, 100);
-                        ViewBag.PorcentajeAvance = porcentaje;
-
-                        // ============================================
-                        // VERIFICAR PERMISOS EXCEPCIONALES
-                        // ============================================
-                        string queryPermiso = "SELECT PermisoMarcacionExcepcional, TipoPermisoExcepcional FROM Usuarios WHERE Id = @Id";
-                        DataTable dtPermiso = DatabaseHelper.ExecuteQuery(queryPermiso, paramRol);
-
-                        if (dtPermiso.Rows.Count > 0)
-                        {
-                            ViewBag.TienePermisoExcepcional = Convert.ToBoolean(dtPermiso.Rows[0]["PermisoMarcacionExcepcional"]);
-                            ViewBag.TipoPermisoExcepcional = dtPermiso.Rows[0]["TipoPermisoExcepcional"].ToString();
-                        }
-                        else
-                        {
-                            ViewBag.TienePermisoExcepcional = false;
-                            ViewBag.TipoPermisoExcepcional = "Todos";
-                        }
-
-                        ViewBag.Nombre = Session["Nombre"];
-                        return View();
-                    }
+            ViewBag.Nombre = Session["Nombre"];
+            return View();
+        }
+    
         private int CalcularDiasLaborables(DateTime fechaInicio, DateTime fechaFin)
         {
             int diasLaborables = 0;
@@ -167,11 +163,11 @@ namespace ControlAsistenciaFinal.Controllers
             try
             {
                 // Obtener la fecha de inicio del usuario (del ciclo actual)
-                string queryFechaInicio = @"
-            SELECT ISNULL(ct.FechaInicio, u.FechaInicio) AS FechaInicio
-            FROM Usuarios u
-            LEFT JOIN CiclosTrabajo ct ON u.CicloActualId = ct.Id
-            WHERE u.Id = @UsuarioId";
+                        string queryFechaInicio = @"
+                    SELECT ISNULL(ct.FechaInicio, u.FechaInicio) AS FechaInicio
+                    FROM Usuarios u
+                    LEFT JOIN CiclosTrabajo ct ON u.CicloActualId = ct.Id
+                    WHERE u.Id = @UsuarioId";
 
                 SqlParameter[] paramFecha = { new SqlParameter("@UsuarioId", usuarioId) };
                 object fechaInicioObj = DatabaseHelper.ExecuteScalar(queryFechaInicio, paramFecha);
@@ -180,29 +176,32 @@ namespace ControlAsistenciaFinal.Controllers
 
                 // Consulta para calcular horas trabajadas desde la fecha de inicio
                 string queryResumen = @"
-            SELECT 
-                COUNT(DISTINCT Fecha) AS DiasTrabajados,
-                ISNULL(SUM(HorasDia), 0) AS HorasTrabajadas
-            FROM (
                 SELECT 
-                    CAST(FechaHora AS DATE) AS Fecha,
-                    (
-                        DATEDIFF(MINUTE, 
-                            MIN(CASE WHEN TipoRegistro = 'Entrada' THEN FechaHora END),
-                            MAX(CASE WHEN TipoRegistro = 'Salida' THEN FechaHora END)
-                        ) - 
-                        ISNULL(
-                            DATEDIFF(MINUTE,
-                                MAX(CASE WHEN TipoRegistro = 'Almuerzo_Salida' THEN FechaHora END),
-                                MAX(CASE WHEN TipoRegistro = 'Almuerzo_Retorno' THEN FechaHora END)
-                            ), 0)
-                    ) / 60.0 AS HorasDia
-                FROM RegistrosAsistencia
-                WHERE UsuarioId = @UsuarioId 
-                  AND CAST(FechaHora AS DATE) >= @FechaInicio
-                GROUP BY CAST(FechaHora AS DATE)
-            ) AS HorasPorDia
-            WHERE HorasDia > 0";
+                    COUNT(DISTINCT Fecha) AS DiasTrabajados,
+                    ISNULL(SUM(HorasDia), 0) AS HorasTrabajadas
+                FROM (
+                    SELECT 
+                        CAST(FechaHora AS DATE) AS Fecha,
+                        (
+                            DATEDIFF(MINUTE, 
+                                MIN(CASE WHEN TipoRegistro = 'Entrada' THEN FechaHora END),
+                                MAX(CASE WHEN TipoRegistro = 'Salida' THEN FechaHora END)
+                            ) - 
+                            ISNULL(
+                                DATEDIFF(MINUTE,
+                                    MAX(CASE WHEN TipoRegistro = 'Almuerzo_Salida' THEN FechaHora END),
+                                    MAX(CASE WHEN TipoRegistro = 'Almuerzo_Retorno' THEN FechaHora END)
+                                ), 0)
+                        ) / 60.0 AS HorasDia
+                    FROM RegistrosAsistencia
+                    WHERE UsuarioId = @UsuarioId 
+                      AND CAST(FechaHora AS DATE) >= @FechaInicio
+                    GROUP BY CAST(FechaHora AS DATE)
+                    HAVING 
+                        SUM(CASE WHEN TipoRegistro = 'Entrada' THEN 1 ELSE 0 END) > 0
+                        AND SUM(CASE WHEN TipoRegistro = 'Salida' THEN 1 ELSE 0 END) > 0
+                ) AS HorasPorDia
+                WHERE HorasDia > 0";
 
                 SqlParameter[] parameters = new SqlParameter[]
                 {
@@ -261,12 +260,19 @@ namespace ControlAsistenciaFinal.Controllers
         {
             try
             {
-                string queryDias = @"
-            SELECT COUNT(DISTINCT CAST(FechaHora AS DATE)) AS DiasTrabajados
-            FROM RegistrosAsistencia
-            WHERE UsuarioId = @UsuarioId 
-              AND MONTH(FechaHora) = MONTH(GETDATE()) 
-              AND YEAR(FechaHora) = YEAR(GETDATE())";
+                                string queryDias = @"
+                    SELECT COUNT(*) AS DiasTrabajados
+                    FROM (
+                        SELECT CAST(FechaHora AS DATE) AS Fecha
+                        FROM RegistrosAsistencia
+                        WHERE UsuarioId = @UsuarioId 
+                          AND MONTH(FechaHora) = MONTH(GETDATE()) 
+                          AND YEAR(FechaHora) = YEAR(GETDATE())
+                        GROUP BY CAST(FechaHora AS DATE)
+                        HAVING 
+                            SUM(CASE WHEN TipoRegistro = 'Entrada' THEN 1 ELSE 0 END) > 0
+                            AND SUM(CASE WHEN TipoRegistro = 'Salida' THEN 1 ELSE 0 END) > 0
+                    ) AS DiasConEntradaYSalida";
 
                 SqlParameter[] parameters = new SqlParameter[]
                 {
@@ -292,9 +298,6 @@ namespace ControlAsistenciaFinal.Controllers
         }
 
 
-        // ============================================
-        // REGISTRAR MARCACIÓN NORMAL
-        // ============================================
         [HttpPost]
         public JsonResult Registrar(string tipo, string comentario)
         {
@@ -304,60 +307,27 @@ namespace ControlAsistenciaFinal.Controllers
                     return Json(new { exito = false, mensaje = "Sesión expirada" });
 
                 int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+                DateTime ahora = DateTime.Now;
+
+                // Primero, actualizar el ciclo del usuario (para asegurar FechaInicio correcta)
+                DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerCicloActualUsuario",
+                    new SqlParameter[] { new SqlParameter("@UsuarioId", usuarioId) });
+
+                // Luego registrar la asistencia
+                string query = @"INSERT INTO RegistrosAsistencia (UsuarioId, TipoRegistro, FechaHora, Comentario) 
+                         VALUES (@UsuarioId, @Tipo, @FechaHora, @Comentario)";
 
                 SqlParameter[] parameters = new SqlParameter[]
                 {
             new SqlParameter("@UsuarioId", usuarioId),
-            new SqlParameter("@TipoRegistro", tipo),
-            new SqlParameter("@Comentario", string.IsNullOrEmpty(comentario) ? (object)DBNull.Value : comentario)
+            new SqlParameter("@Tipo", tipo),
+            new SqlParameter("@FechaHora", ahora),
+            new SqlParameter("@Comentario", comentario ?? (object)DBNull.Value)
                 };
 
-                DataTable result = DatabaseHelper.ExecuteStoredProcedure("sp_RegistrarAsistencia", parameters);
+                DatabaseHelper.ExecuteNonQuery(query, parameters);
 
-                string mensaje = "";
-                bool exito = false;
-                bool cicloReiniciado = false;
-                decimal horasCompletadas = 0;
-
-                if (result.Rows.Count > 0)
-                {
-                    int resultado = Convert.ToInt32(result.Rows[0]["Resultado"]);
-                    mensaje = result.Rows[0]["Mensaje"].ToString();
-                    exito = (resultado == 1);
-
-                    // SI ES UNA SALIDA, VERIFICAR SI COMPLETÓ EL CICLO
-                    if (exito && tipo == "Salida")
-                    {
-                        try
-                        {
-                            DataTable cicloResult = DatabaseHelper.ExecuteStoredProcedure("sp_VerificarYReiniciarCicloPorUsuario",
-                                new SqlParameter[] { new SqlParameter("@UsuarioId", usuarioId) });
-
-                            if (cicloResult.Rows.Count > 0 && Convert.ToInt32(cicloResult.Rows[0]["CicloReiniciado"]) == 1)
-                            {
-                                cicloReiniciado = true;
-                                horasCompletadas = Convert.ToDecimal(cicloResult.Rows[0]["HorasCompletadas"]);
-                                decimal horasObjetivo = Convert.ToDecimal(cicloResult.Rows[0]["HorasObjetivo"]);
-                                mensaje += $" ¡FELICIDADES! Has completado {horasCompletadas} horas de {horasObjetivo}. Tu contador se ha reiniciado para el nuevo ciclo.";
-
-                                // Limpiar caché de sesión para que el resumen se actualice
-                                Session["HorasActualizadas"] = DateTime.Now;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine("Error al verificar ciclo: " + ex.Message);
-                        }
-                    }
-                }
-
-                return Json(new
-                {
-                    exito = exito,
-                    mensaje = mensaje,
-                    cicloReiniciado = cicloReiniciado,
-                    horasCompletadas = horasCompletadas
-                });
+                return Json(new { exito = true, mensaje = "Registro exitoso" });
             }
             catch (Exception ex)
             {
@@ -376,13 +346,20 @@ namespace ControlAsistenciaFinal.Controllers
                 int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
 
                 // Cambiar a día ANTERIOR
-                DateTime fechaAnterior = DateTime.Now.AddDays(-1);
-
+                DateTime fechaAnterior = DateTime.Now.AddDays(0);
                 string query = @"SELECT Id, TipoRegistro, FechaHora, Comentario 
-                         FROM RegistrosAsistencia 
-                         WHERE UsuarioId = @UsuarioId 
-                           AND CAST(FechaHora AS DATE) = @Fecha
-                         ORDER BY FechaHora ASC";
+                 FROM RegistrosAsistencia 
+                 WHERE UsuarioId = @UsuarioId 
+                   AND CAST(FechaHora AS DATE) = @Fecha
+                 ORDER BY 
+                     CASE TipoRegistro
+                         WHEN 'Entrada' THEN 1
+                         WHEN 'Almuerzo_Salida' THEN 2
+                         WHEN 'Almuerzo_Retorno' THEN 3
+                         WHEN 'Salida' THEN 4
+                         ELSE 5
+                     END,
+                     FechaHora ASC";
 
                 SqlParameter[] parameters = new SqlParameter[]
                 {

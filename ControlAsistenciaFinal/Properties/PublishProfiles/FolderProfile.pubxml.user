@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PublishTargetUrl>C:\Users\HP\Desktop\Escritorio\DocGuiaYamiflo\PublicadoIIS</_PublishTargetUrl>
-    <History>True|2026-06-01T03:18:54.7019752Z;True|2026-05-31T01:33:52.5890863-05:00;True|2026-05-29T15:52:50.5730838-05:00;</History>
+    <History>True|2026-06-06T06:08:39.3285481Z;True|2026-06-06T00:56:57.8912161-05:00;True|2026-06-02T16:28:01.6083155-05:00;True|2026-06-02T00:28:05.0474511-05:00;True|2026-06-01T15:46:03.3149227-05:00;True|2026-05-31T22:18:54.7019752-05:00;True|2026-05-31T01:33:52.5890863-05:00;True|2026-05-29T15:52:50.5730838-05:00;</History>
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/Antlr3.Runtime.dll">
@@ -18,10 +18,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/29/2026 11:43:59</publishTime>
     </File>
     <File Include="bin/ControlAsistenciaFinal.dll">
-      <publishTime>05/31/2026 22:18:53</publishTime>
+      <publishTime>06/06/2026 01:08:38</publishTime>
     </File>
     <File Include="bin/ControlAsistenciaFinal.pdb">
-      <publishTime>05/31/2026 22:18:53</publishTime>
+      <publishTime>06/06/2026 01:08:38</publishTime>
     </File>
     <File Include="bin/EPPlus.dll">
       <publishTime>01/30/2020 02:13:00</publishTime>
@@ -257,6 +257,9 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="Content/css/bootstrap.min.css">
       <publishTime>05/29/2026 12:43:17</publishTime>
     </File>
+    <File Include="Content/css/dataTables.min.css">
+      <publishTime>06/01/2026 14:50:58</publishTime>
+    </File>
     <File Include="Content/css/fa-brands-400.ttf">
       <publishTime>07/11/2025 16:39:22</publishTime>
     </File>
@@ -304,6 +307,12 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     </File>
     <File Include="Content/images/Logo_Yaros_Group_2.png">
       <publishTime>05/29/2026 11:45:03</publishTime>
+    </File>
+    <File Include="Content/js/dataTables.min.js">
+      <publishTime>06/01/2026 14:50:13</publishTime>
+    </File>
+    <File Include="Content/js/sweetalert.js">
+      <publishTime>06/01/2026 14:52:12</publishTime>
     </File>
     <File Include="Content/Login.css">
       <publishTime>05/28/2026 19:21:03</publishTime>
@@ -390,13 +399,13 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/31/2026 17:05:35</publishTime>
     </File>
     <File Include="Views/Admin/Dashboard.cshtml">
-      <publishTime>05/31/2026 22:14:30</publishTime>
+      <publishTime>06/02/2026 00:13:39</publishTime>
     </File>
     <File Include="Views/Admin/EditarUsuario.cshtml">
       <publishTime>05/31/2026 17:13:50</publishTime>
     </File>
     <File Include="Views/Admin/GestionarPermisos.cshtml">
-      <publishTime>05/28/2026 20:34:53</publishTime>
+      <publishTime>06/01/2026 18:00:20</publishTime>
     </File>
     <File Include="Views/Admin/GestionarSolicitudes.cshtml">
       <publishTime>05/29/2026 15:40:56</publishTime>
@@ -414,7 +423,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/30/2026 22:59:07</publishTime>
     </File>
     <File Include="Views/Admin/Usuarios.cshtml">
-      <publishTime>05/30/2026 14:25:58</publishTime>
+      <publishTime>06/01/2026 15:00:46</publishTime>
     </File>
     <File Include="Views/Home/About.cshtml">
       <publishTime>05/22/2026 19:04:45</publishTime>
@@ -444,10 +453,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/22/2026 19:04:45</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>05/31/2026 00:47:04</publishTime>
+      <publishTime>06/06/2026 00:24:45</publishTime>
     </File>
     <File Include="Views/Trabajador/MiJornada.cshtml">
-      <publishTime>05/31/2026 01:14:02</publishTime>
+      <publishTime>06/06/2026 01:08:06</publishTime>
     </File>
     <File Include="Views/Web.config">
       <publishTime>05/22/2026 20:07:43</publishTime>

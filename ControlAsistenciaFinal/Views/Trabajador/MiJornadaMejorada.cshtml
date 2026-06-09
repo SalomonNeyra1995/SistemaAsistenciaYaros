@@ -1,0 +1,1000 @@
+﻿@{
+    ViewBag.Title = "Mi Jornada";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Header con título, bienvenida y logo alineado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="h3 mb-0 fw-bold" style="color: #1d1e20;">
+                    <i class="fas fa-calendar-day me-2" style="color: #00a7eb;"></i> Mi Jornada Laboral
+                </h1>
+                <p class="text-muted mt-2 mb-0">
+                    <i></i> Bienvenido, <strong style="color: #00a7eb;">@ViewBag.Nombre</strong>
+                    @if (ViewBag.EsAdmin == true)
+                    {
+                        <span class="badge ms-2 px-3 py-1" style="background: #dc3545;">
+                            <i class="fas fa-shield-alt"></i> Administrador
+                        </span>
+                    }
+                </p>
+            </div>
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <!-- Logo -->
+                <div class="logo-container" style="position: relative;">
+                    <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group" class="img-fluid" style="height: 83px; width: auto; position: relative; right: 0;" />
+                </div>
+                <!-- RELOJ -->
+                <!-- RELOJ -->
+                <div class="clock-box-header">
+                    <div class="clock-date-header" id="currentDateHeader">@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"))</div>
+                    <div class="clock-time-header" id="currentTimeHeader">--:--:--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="col-lg-5 col-md-12 mb-4">
+        <!-- Panel de Marcación -->
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #00a7eb 0%, #00baff 50%, #00a7eb 100%);">
+                <h5 class="mb-0 text-white card-title-with-bullets">
+                    <i class="fas fa-hand-pointer me-2"></i> Panel de Marcación
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-entrada w-100 py-3" onclick="marcar('Entrada')">
+                            <i class="fas fa-door-open fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">ENTRADA</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-salida w-100 py-3" onclick="marcar('Salida')">
+                            <i class="fas fa-door-closed fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">SALIDA</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-almuerzo w-100 py-3" onclick="marcar('Almuerzo_Salida')">
+                            <i class="fas fa-utensils fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">SALIDA ALMUERZO</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-retorno w-100 py-3" onclick="marcar('Almuerzo_Retorno')">
+                            <i class="fas fa-utensils fa-2x d-block mb-2"></i>
+                            <span class="fw-bold">RETORNO ALMUERZO</span>
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="form-group">
+                    <label class="fw-bold text-secondary"><i class="fas fa-comment-dots me-2"></i> Comentario (Opcional)</label>
+                    <textarea id="txtComentario" class="form-control border-0 bg-light" rows="3" placeholder="Ej: Permiso médico, salida temprano, llegada tarde justificada..."></textarea>
+                </div>
+
+                @{
+                    bool tienePermisoExcepcional = ViewBag.TienePermisoExcepcional ?? false;
+                    string tipoPermisoExcepcional = ViewBag.TipoPermisoExcepcional ?? "Todos";
+                }
+
+                @if (tienePermisoExcepcional)
+                {
+                    <hr class="my-4" />
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <button type="button" class="btn w-100 py-3" data-bs-toggle="modal" data-bs-target="#modalSolicitudExcepcional"
+                                    style="background: #5a5a5a !important; border: none; color: white; border-radius: 16px; transition: all 0.3s ease; font-weight: 500; ">
+                                <i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i>
+                                <span class="fw-bold">SOLICITAR MARCACIÓN EXCEPCIONAL</span>
+                                <small class="d-block text-white" style="opacity: 0.8;">Use esta opción si olvidó marcar</small>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Tarjeta de Resumen -->
+        <div class="card mt-4 border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(90deg, #00baff 0%, #00a7eb 100%);">
+                <h5 class="mb-0 text-white card-title-with-bullets">
+                    <i class="fas fa-chart-simple me-2"></i>
+                    @if (ViewBag.EsPlanilla == true)
+                    {
+                        <span>Resumen del Mes</span>
+                    }
+                    else if (ViewBag.EsFacilitador == true)
+                    {
+                        <span>Resumen</span>
+                    }
+                    else
+                    {
+                        <span>Resumen del Mes</span>
+                    }
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.EsFacilitador == true)
+                {
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Trabajadas:</label>
+                        <h3 class="text-primary">
+                            @{
+                                double horasTrab = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                                int horasEnteras = (int)horasTrab;
+                                int minutos = (int)((horasTrab - horasEnteras) * 60);
+                                string textoHorasFormateado = horasEnteras + " horas ";
+                            }
+                            @textoHorasFormateado
+                        </h3>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Objetivo:</label>
+                        <h3 class="text-success">
+                            @{
+                                double horasObj = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                                int horasObjEnteras = (int)horasObj;
+                                int minutosObj = (int)((horasObj - horasObjEnteras) * 60);
+                                string textoObjFormateado = horasObjEnteras + " horas  ";
+                            }
+                            @textoObjFormateado
+                        </h3>
+                    </div>
+                    <div class="progress mb-3" style="height: 25px;">
+                        @{
+                            double horasTrabProg = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                            double horasObjProg = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                            int porcentaje = horasObjProg > 0 ? (int)((horasTrabProg / horasObjProg) * 100) : 0;
+                            porcentaje = Math.Min(porcentaje, 100);
+                        }
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @porcentaje%;">
+                            @porcentaje%
+                        </div>
+                    </div>
+                }
+                else if (ViewBag.EsPlanilla == true)
+                {
+                    <div class="text-center">
+                        <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                        <h4 class="text-muted">Días Trabajados en el Mes</h4>
+                        <h2 class="text-success">@ViewBag.DiasTrabajadosPlanilla</h2>
+                        <p class="text-muted small">Total de días que ha completado (entrada + salida)</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Trabajadas:</label>
+                        <h3 class="text-primary">
+                            @{
+                                double horasTrabDef = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                                int horasEnterasDef = (int)horasTrabDef;
+                                int minutosDef = (int)((horasTrabDef - horasEnterasDef) * 60);
+                                string textoHorasFormateadoDef = horasEnterasDef + " horas y " + minutosDef + " minutos";
+                            }
+                            @textoHorasFormateadoDef
+                        </h3>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Horas Objetivo:</label>
+                        <h3 class="text-success">
+                            @{
+                                double horasObjDef = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                                int horasObjEnterasDef = (int)horasObjDef;
+                                int minutosObjDef = (int)((horasObjDef - horasObjEnterasDef) * 60);
+                                string textoObjFormateadoDef = horasObjEnterasDef + " horas y " + minutosObjDef + " minutos";
+                            }
+                            @textoObjFormateadoDef
+                        </h3>
+                    </div>
+                    <div class="progress mb-3" style="height: 25px;">
+                        @{
+                            double horasTrabProgDef = Convert.ToDouble(ViewBag.HorasTrabajadas ?? 0);
+                            double horasObjProgDef = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
+                            int porcentajeDef = horasObjProgDef > 0 ? (int)((horasTrabProgDef / horasObjProgDef) * 100) : 0;
+                            porcentajeDef = Math.Min(porcentajeDef, 100);
+                        }
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @porcentajeDef%;">
+                            @porcentajeDef%
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Días completos en el mes: <strong>@ViewBag.DiasTrabajados</strong>
+                        <br>
+                        <small class="text-muted">* Solo se cuentan los días con entrada y salida registradas</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA -->
+    <div class="col-lg-7 col-md-12 mb-4">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #00a7eb 0%, #00baff 50%, #00a7eb 100%);">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <h5 class="mb-0 text-white card-title-with-bullets">
+                        <i class="fas fa-list-check me-2"></i> Registros de Hoy
+                    </h5>
+                    <button type="button" id="btnRefrescar" class="btn btn-sm btn-light rounded-pill">
+                        <i class="fas fa-sync-alt me-1"></i> Refrescar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3"><i class="far fa-clock"></i> Hora</th>
+                                <th class="py-3"><i class="fas fa-tag"></i> Tipo</th>
+                                <th class="py-3"><i class="fas fa-comment"></i> Comentario</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRegistros">
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-muted">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+                                    Cargando registros...
+
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalSolicitudExcepcional" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-clock"></i> Solicitar Marcación Excepcional</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> Puede solicitar marcación para CUALQUIER hora del día de hoy.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Registro *</label>
+                    <select id="tipoSolicitud" class="form-control"></select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Hora *</label>
+                    <input type="time" id="horaSolicitud" class="form-control" required />
+                    <small class="text-muted">Seleccione la hora que desea registrar (cualquier hora del día de hoy)</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Justificación *</label>
+                    <textarea id="justificacionSolicitud" class="form-control" rows="3" placeholder="Explique por qué necesita registrar esta hora manualmente..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnSolicitar" class="btn btn-primary">Enviar Solicitud</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 3 CÍRCULOS DE COLORES AL LADO IZQUIERDO DEL TÍTULO */
+    .card-title-with-bullets {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+        .card-title-with-bullets::before {
+            content: "";
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #0a0a0a;
+            box-shadow: 18px 0 0 #f3000e, 36px 0 0 #ffde00;
+            margin-right: 50px;
+            flex: 0 0 auto;
+        }
+
+    /* RELOJ EN HEADER */
+    .clock-box-header {
+        border: 2px dashed rgba(0,159,227,.45);
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff, #f1faff);
+        text-align: center;
+        padding: 8px 16px;
+        min-width: 140px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .clock-date-header {
+        color: #3e3f40;
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 4px;
+        text-transform: lowercase;
+    }
+
+    .clock-time-header {
+        color: #00a7eb;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        line-height: 1.2;
+    }
+
+    /* TEXTOS */
+    .text-primary {
+        --bs-text-opacity: 1;
+        color: #00baff !important;
+    }
+
+    .text-success {
+        --bs-text-opacity: 1;
+        color: #48a84c !important;
+    }
+
+    .text-secondary {
+        background: linear-gradient(135deg, #00baff, #00a7eb, #007beb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent !important;
+    }
+
+    /* BOTONES COLORES */
+    .btn.bg-success, .bg-success {
+        background-color: #009540 !important;
+        --bs-bg-opacity: 1;
+    }
+
+    .bg-danger {
+        --bs-bg-opacity: 1;
+        background-color: #e20613 !important;
+    }
+
+    /* BOTONES MARCACION */
+    .btn-entrada {
+        background: linear-gradient(135deg, #48a84c 0%, #50c590 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    btn-entrada:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(72, 168, 76, 0.3);
+    }
+
+    .btn-salida {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-salida:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+    .btn-almuerzo {
+        background: linear-gradient(135deg, #f7b712 0%, #f28117 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-almuerzo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+        }
+
+    .btn-retorno {
+        background: linear-gradient(135deg, #00baff 0%, #007beb 100%);
+        border: none;
+        color: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+        .btn-retorno:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(23, 162, 184, 0.3);
+        }
+
+    /* TABLA */
+    .table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+        cursor: pointer;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 12px 15px;
+    }
+
+    .card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .badge {
+        border-radius: 50px;
+        font-weight: 500;
+    }
+
+    .progress {
+        border-radius: 25px;
+        background-color: #e9ecef;
+    }
+
+    .progress-bar {
+        border-radius: 25px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+    /* LOGO RESPONSIVE */
+    @@media (min-width: 768px) {
+        .logo-container img {
+            right: 80px !important;
+        }
+    }
+
+    @@media (min-width: 992px) {
+        .logo-container img {
+            right: 120px !important;
+        }
+    }
+
+    @@media (min-width: 1200px) {
+        .logo-container img {
+            right: 180px !important;
+        }
+    }
+
+    @@media (min-width: 1400px) {
+        .logo-container img {
+            right: 249px !important;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .logo-container img {
+            right: 0 !important;
+        }
+
+        .clock-box-header {
+            min-width: 100px;
+            padding: 6px 12px;
+        }
+
+        .clock-time-header {
+            font-size: 18px;
+        }
+
+        .clock-date-header {
+            font-size: 10px;
+        }
+
+        .card-title-with-bullets::before {
+            margin-right: 40px;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // RELOJ
+        // FUNCION DEL RELOJ - Formato 24 HORAS
+        function updateClockHeader() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDateHeader').textContent = now.toLocaleDateString('es-PE', options);
+
+            // Formato 24 horas sin AM/PM
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('currentTimeHeader').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        updateClockHeader();
+        setInterval(updateClockHeader, 1000);
+
+        // VARIABLES GLOBALES
+        var esAdmin = @((ViewBag.EsAdmin ?? false).ToString().ToLower());
+        var registrosActuales = [];
+        var cargaEnProceso = false;
+        var timeoutCarga = null;
+        var cacheRegistros = {
+            datos: null,
+            timestamp: 0,
+            tiempoVida: 30000
+        };
+
+        $(document).ready(function() {
+            cargarRegistrosHoy();
+            $("#btnRefrescar").click(function() {
+                cacheRegistros.datos = null;
+                cacheRegistros.timestamp = 0;
+                cargarRegistrosHoy(true);
+            });
+        });
+
+        function existeRegistro(tipo) {
+            return registrosActuales.some(function(registro) {
+                return registro.TipoRegistro === tipo;
+            });
+        }
+
+        function validarOrdenMarcacion(tipo) {
+            var tieneEntrada = existeRegistro('Entrada');
+            var tieneSalida = existeRegistro('Salida');
+            var tieneSalidaAlmuerzo = existeRegistro('Almuerzo_Salida');
+            var tieneRetornoAlmuerzo = existeRegistro('Almuerzo_Retorno');
+
+            if (tieneSalida && tipo !== 'Entrada') {
+                return {
+                    valido: false,
+                    mensaje: '❌ No puede registrar ' + obtenerNombreTipo(tipo) + ' porque ya ha registrado su SALIDA definitiva del día.\n\nEl horario laboral ha finalizado para hoy.'
+                };
+            }
+
+            switch(tipo) {
+                case 'Entrada':
+                    if (tieneEntrada) {
+                        return {
+                            valido: false,
+                            mensaje: '⚠️ Ya tiene registrada su ENTRADA hoy.\n\nSi necesita modificar este registro, contacte al administrador.'
+                        };
+                    }
+                    break;
+                case 'Salida':
+                    if (!tieneEntrada) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA porque no ha registrado ENTRADA hoy.\n\nPor favor, primero registre su hora de entrada.'
+                        };
+                    }
+                    if (tieneSalidaAlmuerzo && !tieneRetornoAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA definitiva porque aún no ha registrado su RETORNO DE ALMUERZO.\n\nPrimero registre su retorno de almuerzo.'
+                        };
+                    }
+                    break;
+                case 'Almuerzo_Salida':
+                    if (!tieneEntrada) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA A ALMUERZO porque no ha registrado ENTRADA hoy.\n\nPor favor, primero registre su hora de entrada.'
+                        };
+                    }
+                    if (tieneSalida) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA A ALMUERZO porque ya ha registrado su SALIDA definitiva.\n\nEl horario laboral ya finalizó.'
+                        };
+                    }
+                    if (tieneSalidaAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '⚠️ Ya tiene registrada su SALIDA A ALMUERZO hoy.\n\nAhora debe registrar su RETORNO DE ALMUERZO.'
+                        };
+                    }
+                    break;
+                case 'Almuerzo_Retorno':
+                    if (!tieneSalidaAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar RETORNO DE ALMUERZO porque no ha registrado SALIDA A ALMUERZO.\n\nPrimero registre su salida a almuerzo.'
+                        };
+                    }
+                    if (tieneRetornoAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '⚠️ Ya tiene registrado su RETORNO DE ALMUERZO hoy.\n\nSolo puede registrar un retorno de almuerzo por día.'
+                        };
+                    }
+                    if (tieneSalida) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar RETORNO DE ALMUERZO porque ya ha registrado su SALIDA definitiva.\n\nEl horario laboral ya finalizó.'
+                        };
+                    }
+                    break;
+            }
+            return { valido: true, mensaje: '' };
+        }
+
+        function obtenerNombreTipo(tipo) {
+            switch(tipo) {
+                case 'Entrada': return 'ENTRADA';
+                case 'Salida': return 'SALIDA';
+                case 'Almuerzo_Salida': return 'SALIDA A ALMUERZO';
+                case 'Almuerzo_Retorno': return 'RETORNO DE ALMUERZO';
+                default: return tipo;
+            }
+        }
+
+        function marcar(tipo) {
+            if (!esAdmin) {
+                var validacion = validarOrdenMarcacion(tipo);
+                if (!validacion.valido) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '⚠️ Orden de marcación incorrecto',
+                        html: `<div style="text-align: left;">
+                            <p>${validacion.mensaje.replace(/\n/g, '<br>')}</p>
+                            <hr>
+                            <p class="text-muted">Si consideras que esto es un error, por favor comunícate con el área administrativa.</p>
+                        </div>`,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#3085d6',
+                        showCancelButton: false
+                    });
+                    return;
+                }
+            }
+
+            var comentario = $('#txtComentario').val();
+            var titulo = '';
+            var mensajeConfirmacion = '';
+
+            switch(tipo) {
+                case 'Entrada':
+                    titulo = 'Registro de Entrada';
+                    mensajeConfirmacion = '¿Desea registrar su hora de ENTRADA?';
+                    break;
+                case 'Salida':
+                    titulo = 'Registro de Salida';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA definitiva? Una vez registrada, no podrá marcar más entradas, almuerzos o retornos hoy.\n\n✅';
+                    break;
+                case 'Almuerzo_Salida':
+                    titulo = 'Registro de Salida a Almuerzo';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA A ALMUERZO? Deberá registrar su retorno después.';
+                    break;
+                case 'Almuerzo_Retorno':
+                    titulo = 'Registro de Retorno de Almuerzo';
+                    mensajeConfirmacion = '¿Desea registrar su RETORNO DE ALMUERZO?';
+                    break;
+            }
+
+            Swal.fire({
+                title: titulo,
+                text: mensajeConfirmacion,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, registrar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Registrando su marcación',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: '@Url.Action("Registrar", "Trabajador")',
+                        type: 'POST',
+                        data: { tipo: tipo, comentario: comentario },
+                        success: function(response) {
+                            Swal.close();
+                            if (response.exito) {
+                                cacheRegistros.datos = null;
+                                cacheRegistros.timestamp = 0;
+                                var mensajeExtra = '';
+                                if (tipo === 'Salida') {
+                                    mensajeExtra = '<br><br>🏁 Este día ya cuenta como DÍA TRABAJADO en el resumen del mes.';
+                                } else if (tipo === 'Almuerzo_Salida') {
+                                    mensajeExtra = '<br><br>🍽️ No olvide registrar su RETORNO DE ALMUERZO cuando regrese.';
+                                }
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Registro Exitoso!',
+                                    html: `✅ ${response.mensaje}<br><br>⏰ Hora: ${new Date().toLocaleTimeString()}${mensajeExtra}`,
+                                    timer: 2500,
+                                    showConfirmButton: false
+                                });
+                                $('#txtComentario').val('');
+                                cargarRegistrosHoy(true);
+                                setTimeout(function() { location.reload(); }, 2500);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.mensaje
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de conexión',
+                                text: 'No se pudo conectar con el servidor'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function renderizarTabla(data) {
+            var tbody = $("#tbodyRegistros");
+            if (!data || data.length === 0) {
+                tbody.html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>No hay registros hoy<\/td>\\n</tr>');
+                registrosActuales = [];
+                return;
+            }
+            data.sort(function (a, b) {
+                return a.Hora.localeCompare(b.Hora);
+            });
+            var filas = [];
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var icono = '';
+                var badgeClass = '';
+                var horaMostrar = item.Hora;
+                if (horaMostrar && horaMostrar.length > 5) {
+                    horaMostrar = horaMostrar.substring(0, 5);
+                }
+                if (item.TipoRegistro === 'Entrada') {
+                    icono = '';
+                    badgeClass = 'bg-success';
+                } else if (item.TipoRegistro === 'Almuerzo_Salida') {
+                    icono = '';
+                    badgeClass = 'bg-warning';
+                } else if (item.TipoRegistro === 'Almuerzo_Retorno') {
+                    icono = '';
+                    badgeClass = 'bg-info';
+                } else if (item.TipoRegistro === 'Salida') {
+                    icono = '';
+                    badgeClass = 'bg-danger';
+                }
+                filas.push(
+                    '<tr>' +
+                    '<td class="fw-bold">' + horaMostrar + '<\/td>' +
+                    '<td><span class="badge ' + badgeClass + ' px-3 py-2 rounded-pill">' + icono + ' ' + item.TipoRegistro + '<\/span><\/td>' +
+                    '<td class="text-muted">' + (item.Comentario || '-') + '<\/td>' +
+                    '<\/tr>'
+                );
+            }
+            tbody.html(filas.join(''));
+            registrosActuales = data;
+        }
+
+        function cargarRegistrosHoy(forzarRecarga = false) {
+            var ahora = new Date().getTime();
+            if (!forzarRecarga && cacheRegistros.datos && (ahora - cacheRegistros.timestamp) < cacheRegistros.tiempoVida) {
+                renderizarTabla(cacheRegistros.datos);
+                return;
+            }
+            if (cargaEnProceso) return;
+            cargaEnProceso = true;
+            if (!cacheRegistros.datos) {
+                $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>Cargando registros...<\/td>\\n</tr>');
+            }
+            if (timeoutCarga) clearTimeout(timeoutCarga);
+            timeoutCarga = setTimeout(function() {
+                $.ajax({
+                    url: '@Url.Action("ObtenerRegistrosHoy", "Trabajador")',
+                    type: 'POST',
+                    dataType: 'json',
+                    timeout: 10000,
+                    success: function(data) {
+                        cacheRegistros.datos = data || [];
+                        cacheRegistros.timestamp = new Date().getTime();
+                        renderizarTabla(cacheRegistros.datos);
+                        cargaEnProceso = false;
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al cargar registros:", status, error);
+                        if (status === "timeout") {
+                            $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-warning"><i class="fas fa-clock fa-2x mb-2 d-block"></i>Tiempo de espera agotado. Intente refrescar.<\/td>\\n</tr>');
+                        } else {
+                            $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar datos<\/td>\\n</tr>');
+                        }
+                        cargaEnProceso = false;
+                    }
+                });
+            }, 10);
+        }
+
+        var tipoPermisoGlobal = '@tipoPermisoExcepcional';
+
+        function cargarOpcionesTipoPermiso() {
+            var select = $('#tipoSolicitud');
+            select.empty();
+            var tieneEntrada = registrosActuales.some(function(r) { return r.TipoRegistro === 'Entrada'; });
+            var tieneSalida = registrosActuales.some(function(r) { return r.TipoRegistro === 'Salida'; });
+            var tieneSalidaAlmuerzo = registrosActuales.some(function(r) { return r.TipoRegistro === 'Almuerzo_Salida'; });
+            var tieneRetornoAlmuerzo = registrosActuales.some(function(r) { return r.TipoRegistro === 'Almuerzo_Retorno'; });
+            var opciones = [];
+
+            switch(tipoPermisoGlobal) {
+                case 'Entrada':
+                    if (!tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada', habilitado: true });
+                    } else if (tieneEntrada) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada (ya registrada)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada (no disponible - ya tiene salida)', habilitado: false });
+                    }
+                    break;
+                case 'Almuerzo_Salida':
+                    if (!tieneSalidaAlmuerzo && tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo', habilitado: true });
+                    } else if (tieneSalidaAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (ya registrada)', habilitado: false });
+                    } else if (!tieneEntrada) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (requiere entrada primero)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (no disponible - ya tiene salida)', habilitado: false });
+                    }
+                    break;
+                case 'Almuerzo_Retorno':
+                    if (!tieneRetornoAlmuerzo && tieneSalidaAlmuerzo && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo', habilitado: true });
+                    } else if (tieneRetornoAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (ya registrado)', habilitado: false });
+                    } else if (!tieneSalidaAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (requiere salida a almuerzo primero)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (no disponible - ya tiene salida)', habilitado: false });
+                    }
+                    break;
+                case 'Salida':
+                    if (!tieneSalida && tieneEntrada && (!tieneSalidaAlmuerzo || tieneRetornoAlmuerzo)) {
+                        opciones.push({ value: 'Salida', text: 'Salida', habilitado: true });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Salida', text: 'Salida (ya registrada)', habilitado: false });
+                    } else if (!tieneEntrada) {
+                        opciones.push({ value: 'Salida', text: 'Salida (requiere entrada primero)', habilitado: false });
+                    } else if (tieneSalidaAlmuerzo && !tieneRetornoAlmuerzo) {
+                        opciones.push({ value: 'Salida', text: 'Salida (complete retorno de almuerzo primero)', habilitado: false });
+                    }
+                    break;
+                default:
+                    if (!tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada', habilitado: true });
+                    }
+                    if (!tieneSalidaAlmuerzo && tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo', habilitado: true });
+                    }
+                    if (!tieneRetornoAlmuerzo && tieneSalidaAlmuerzo && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo', habilitado: true });
+                    }
+                    if (!tieneSalida && tieneEntrada && (!tieneSalidaAlmuerzo || tieneRetornoAlmuerzo)) {
+                        opciones.push({ value: 'Salida', text: 'Salida', habilitado: true });
+                    }
+                    break;
+            }
+
+            for (var i = 0; i < opciones.length; i++) {
+                if (opciones[i].habilitado) {
+                    select.append('<option value="' + opciones[i].value + '">' + opciones[i].text + '</option>');
+                }
+            }
+
+            if (select.children().length === 0) {
+                select.append('<option value="" disabled>No hay opciones disponibles en este momento</option>');
+                $('#btnSolicitar').prop('disabled', true);
+            } else {
+                $('#btnSolicitar').prop('disabled', false);
+            }
+        }
+
+        $('#btnSolicitar').click(function() {
+            var tipo = $('#tipoSolicitud').val();
+            var hora = $('#horaSolicitud').val();
+            var justificacion = $('#justificacionSolicitud').val();
+
+            if (!hora) {
+                Swal.fire('Atención', 'Seleccione la hora', 'warning');
+                return;
+            }
+            if (!justificacion) {
+                Swal.fire('Atención', 'Ingrese una justificación', 'warning');
+                return;
+            }
+            if (!tipo) {
+                Swal.fire('Atención', 'No hay opciones disponibles', 'warning');
+                return;
+            }
+
+            var hoy = new Date();
+            var fechaLocal = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0') + '-' + String(hoy.getDate()).padStart(2, '0');
+            var fechaHoraStr = fechaLocal + 'T' + hora + ':00';
+
+            Swal.fire({
+                title: 'Enviar solicitud',
+                text: '¿Está seguro de enviar esta solicitud?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, enviar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Enviando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    $.ajax({
+                        url: '@Url.Action("SolicitarMarcacionExcepcional", "Trabajador")',
+                        type: 'POST',
+                        data: { tipo: tipo, fechaHora: fechaHoraStr, justificacion: justificacion },
+                        success: function(response) {
+                            Swal.close();
+                            if (response.success) {
+                                Swal.fire('Solicitud Enviada', response.message, 'success');
+                                $('#modalSolicitudExcepcional').modal('hide');
+                                $('#horaSolicitud').val('');
+                                $('#justificacionSolicitud').val('');
+                                cacheRegistros.datos = null;
+                                cargarRegistrosHoy(true);
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire('Error', 'Error al enviar la solicitud', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#modalSolicitudExcepcional').on('show.bs.modal', function() {
+            cargarOpcionesTipoPermiso();
+        });
+    </script>
+}

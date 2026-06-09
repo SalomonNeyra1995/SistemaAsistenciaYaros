@@ -5,6 +5,14 @@
 <link href="~/Content/css/all.min.css" rel="stylesheet" />
 
 <style>
+    /* ========== CONTENEDOR PRINCIPAL PARA LIMITAR ANCHO EN PANTALLAS GRANDES ========== */
+    /* Este contenedor envuelve todo el contenido para que no se estire en pantallas grandes */
+    .responsive-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
     /* ========== RESET Y BASE RESPONSIVA ========== */
     * {
         box-sizing: border-box;
@@ -14,6 +22,16 @@
         overflow-x: hidden;
         width: 100%;
         max-width: 100vw;
+        background: #f0f2f5;
+    }
+
+    /* Asegurar que el layout original se mantenga */
+    .container-fluid, .container {
+        width: 100%;
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-right: auto;
+        margin-left: auto;
     }
 
     /* ========== ENCABEZADO RESPONSIVO ========== */
@@ -27,12 +45,12 @@
     .logo-header {
         height: auto;
         width: 100%;
-        max-width: 180px;
+        max-width: 230px;
         margin-bottom: 10px;
     }
 
     .header-left h2 {
-        font-size: clamp(1.2rem, 4vw, 1.8rem);
+        font-size: clamp(1.2rem, 1vw, 1.8rem);
         margin: 0;
         word-break: keep-all;
     }
@@ -49,10 +67,10 @@
         margin-left: -8px;
     }
 
-    .row > [class*="col-"] {
-        padding-right: 8px;
-        padding-left: 8px;
-    }
+        .row > [class*="col-"] {
+            padding-right: 8px;
+            padding-left: 8px;
+        }
 
     /* Tarjetas responsivas */
     .card {
@@ -63,10 +81,10 @@
         min-height: 130px;
     }
 
-    .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-    }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
 
     .card-body {
         padding: clamp(0.8rem, 3vw, 1.2rem);
@@ -75,41 +93,41 @@
         height: 100%;
     }
 
-    .card-body .d-flex {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
+        .card-body .d-flex {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-    .card-body h6 {
-        font-size: clamp(0.7rem, 2.5vw, 0.9rem);
-        margin-bottom: 5px;
-        white-space: nowrap;
-    }
+        .card-body h6 {
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+            margin-bottom: 5px;
+            white-space: nowrap;
+        }
 
-    .card-body h2 {
-        font-size: clamp(1.3rem, 5vw, 2rem);
-        margin: 0;
-        font-weight: bold;
-    }
+        .card-body h2 {
+            font-size: clamp(1.3rem, 5vw, 2rem);
+            margin: 0;
+            font-weight: bold;
+        }
 
-    .card-body .fa-3x {
-        font-size: clamp(1.5rem, 6vw, 2.5rem);
-    }
+        .card-body .fa-3x {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+        }
 
-    .card-body .small {
-        font-size: clamp(0.6rem, 2vw, 0.75rem);
-        margin-top: 8px;
-        display: inline-block;
-    }
+        .card-body .small {
+            font-size: clamp(0.6rem, 2vw, 0.75rem);
+            margin-top: 8px;
+            display: inline-block;
+        }
 
     /* ========== MENÚ RÁPIDO RESPONSIVO ========== */
     .card-header {
         padding: clamp(0.7rem, 3vw, 1rem);
     }
 
-    .card-header i {
-        font-size: clamp(0.9rem, 3vw, 1.1rem);
-    }
+        .card-header i {
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+        }
 
     /* Grid de menú - se adapta automáticamente */
     .row .col-md-3 {
@@ -131,15 +149,27 @@
         }
     }
 
-    /* Pantallas grandes (curvas, 4K) */
+    /* Pantallas grandes (curvas, 4K) - SOLO limitamos el ancho del contenedor, no cambiamos diseño */
     @@media (min-width: 1400px) {
-        .container-fluid, .container {
-            max-width: 1600px;
+        .responsive-container {
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .row .col-md-3 {
-            width: 20%; /* 5 items por fila en ultra wide */
+            width: 25%;
+        }
+    }
+
+    /* Pantallas ultra grandes (1920px+) - mantenemos el diseño centrado */
+    @@media (min-width: 1920px) {
+        .responsive-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .row .col-md-3 {
+            width: 25%;
         }
     }
 
@@ -148,33 +178,33 @@
         margin-bottom: 20px;
     }
 
-    .row .col-md-3.text-center div,
-    .row .col-md-3.text-center a {
-        display: inline-block;
-        transition: transform 0.2s ease;
-    }
+        .row .col-md-3.text-center div,
+        .row .col-md-3.text-center a {
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
 
-    .row .col-md-3.text-center div:hover,
-    .row .col-md-3.text-center a:hover {
-        transform: scale(1.05);
-    }
+            .row .col-md-3.text-center div:hover,
+            .row .col-md-3.text-center a:hover {
+                transform: scale(1.05);
+            }
 
-    .row .col-md-3.text-center i {
-        font-size: clamp(1.5rem, 6vw, 2.5rem);
-    }
+        .row .col-md-3.text-center i {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+        }
 
-    .row .col-md-3.text-center h5 {
-        font-size: clamp(0.8rem, 3vw, 1rem);
-        margin-top: 10px;
-        margin-bottom: 5px;
-        font-weight: 600;
-    }
+        .row .col-md-3.text-center h5 {
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
 
-    .row .col-md-3.text-center p {
-        font-size: clamp(0.65rem, 2.5vw, 0.8rem);
-        margin-bottom: 0;
-        color: #6c757d;
-    }
+        .row .col-md-3.text-center p {
+            font-size: clamp(0.65rem, 2.5vw, 0.8rem);
+            margin-bottom: 0;
+            color: #6c757d;
+        }
 
     /* ========== MODAL RESPONSIVO ========== */
     .modal-dialog {
@@ -196,7 +226,7 @@
 
     @@media (min-width: 1400px) {
         .modal-dialog.modal-lg {
-            max-width: 1000px;
+            max-width: 900px;
         }
     }
 
@@ -209,9 +239,9 @@
         padding: clamp(0.8rem, 3vw, 1rem) clamp(1rem, 4vw, 1.5rem);
     }
 
-    .modal-header h5 {
-        font-size: clamp(1rem, 4vw, 1.25rem);
-    }
+        .modal-header h5 {
+            font-size: clamp(1rem, 4vw, 1.25rem);
+        }
 
     .modal-body {
         padding: clamp(0.8rem, 3vw, 1.5rem);
@@ -230,15 +260,15 @@
         font-size: clamp(0.7rem, 2.5vw, 0.9rem);
     }
 
-    #tablaDetalle thead th {
-        padding: clamp(8px, 2vw, 12px) clamp(8px, 2vw, 15px);
-        white-space: nowrap;
-    }
+        #tablaDetalle thead th {
+            padding: clamp(8px, 2vw, 12px) clamp(8px, 2vw, 15px);
+            white-space: nowrap;
+        }
 
-    #tablaDetalle tbody td {
-        padding: clamp(8px, 2vw, 12px) clamp(8px, 2vw, 15px);
-        word-break: break-word;
-    }
+        #tablaDetalle tbody td {
+            padding: clamp(8px, 2vw, 12px) clamp(8px, 2vw, 15px);
+            word-break: break-word;
+        }
 
     /* Badges responsivos */
     .badge {
@@ -256,13 +286,13 @@
         padding: clamp(0.8rem, 3vw, 1rem);
     }
 
-    .alerta-card h6 {
-        font-size: clamp(0.85rem, 3vw, 1rem);
-    }
+        .alerta-card h6 {
+            font-size: clamp(0.85rem, 3vw, 1rem);
+        }
 
-    .alerta-card .small {
-        font-size: clamp(0.6rem, 2vw, 0.75rem);
-    }
+        .alerta-card .small {
+            font-size: clamp(0.6rem, 2vw, 0.75rem);
+        }
 
     /* Tabs responsivos */
     .nav-tabs .nav-link {
@@ -277,36 +307,31 @@
             flex-direction: column;
         }
 
-        .row > [class*="col-"] {
-            width: 100%;
-            margin-bottom: 12px;
-        }
-
+            .row > [class*="col-"] {
+                width: 100%;
+                margin-bottom: 12px;
+            }
         /* Tarjetas toman ancho completo */
         .card {
             margin-bottom: 0;
         }
-
         /* Menú rápido: 2 columnas en móvil */
         .row .col-md-3.text-center {
             width: 50%;
             display: inline-block;
             vertical-align: top;
         }
-
         /* Ajuste para el contenedor del menú */
         .card-body .row {
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
         }
-
         /* Botones del modal más grandes para touch */
         .modal-footer .btn {
             padding: 8px 12px;
             font-size: 0.8rem;
         }
-
         /* Espaciado general */
         .container, .container-fluid {
             padding-left: 12px;
@@ -320,40 +345,9 @@
             width: 50%;
         }
 
-        .row .col-md-3.text-center {
-            width: 33.33%;
-        }
-    }
-
-    /* ========== AJUSTES PARA PANTALLAS CURVAS ULTRADESKTOP ========== */
-    @@media (min-width: 1920px) {
-        body {
-            zoom: 0.9; /* Escala ligeramente el contenido */
-        }
-
-        .container, .container-fluid {
-            max-width: 1800px;
-            padding-left: 40px;
-            padding-right: 40px;
-        }
-
-        .card-body h2 {
-            font-size: 2.2rem;
-        }
-
-        .logo-header {
-            max-width: 220px;
-        }
-    }
-
-    @@media (min-width: 2560px) {
-        body {
-            zoom: 0.8;
-        }
-
-        .container, .container-fluid {
-            max-width: 2400px;
-        }
+            .row .col-md-3.text-center {
+                width: 33.33%;
+            }
     }
 
     /* ========== ANIMACIONES Y MEJORAS VISUALES ========== */
@@ -372,9 +366,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        button:active, .card:active {
-            transform: scale(0.98);
-        }
+            button:active, .card:active {
+                transform: scale(0.98);
+            }
     }
 
     /* Scrollbar personalizado pero responsivo */
@@ -391,138 +385,132 @@
     }
 </style>
 
-<!-- Encabezado con logo centrado y título debajo -->
-<!-- Encabezado con logo arriba y título abajo, alineado a la izquierda -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="header-left">
-            <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group Peru" class="logo-header" />
-            <h2><i class="fas fa-clock"></i> Control Asistencia</h2>
-            <p class="text-muted">Bienvenido, <strong>@ViewBag.Nombre</strong></p>
-        </div>
-    </div>
-</div>
-
-
-<!-- Tarjetas de estadísticas -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Total Empleados</h6>
-                        <h2 class="mb-0">@ViewBag.TotalEmpleados</h2>
-                    </div>
-                    <i class="fas fa-users fa-3x opacity-50"></i>
-                </div>
-                <a href="@Url.Action("Usuarios", "Admin")" class="text-white text-decoration-none small">
-                    Ver todos <i class="fas fa-arrow-right"></i>
-                </a>
+<!-- CONTENEDOR RESPONSIVO - Solo limita el ancho en pantallas grandes, NO cambia el diseño -->
+<div class="responsive-container">
+    <!-- Encabezado con logo centrado y título debajo -->
+    <!-- Encabezado con logo arriba y título abajo, alineado a la izquierda -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="header-left">
+                <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group Peru" class="logo-header" />
+                <h2><i class="fas fa-clock"></i> Control Asistencia</h2>
+                <p class="text-muted">Bienvenido, <strong>@ViewBag.Nombre</strong></p>
             </div>
         </div>
     </div>
 
-    <!-- Tarjeta Presentes Hoy -->
-    <div class="col-md-3">
-        <div class="card text-white" style="cursor: pointer; background-color: rgb(89, 90, 89) !important;" onclick="verPresentes()">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Presentes Hoy</h6>
-                        <h2 class="mb-0">@ViewBag.PresentesHoy</h2>
-                    </div>
-                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
-                </div>
-                <span class="text-white-50 small">Click para ver detalles</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark" style="cursor: pointer;" onclick="verTardanzas()">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Tardanzas Hoy</h6>
-                        <h2 class="mb-0">@ViewBag.TardanzasHoy</h2>
-                    </div>
-                    <i class="fas fa-clock fa-3x opacity-50"></i>
-                </div>
-                <span class="text-muted small">Click para ver detalles</span>
-            </div>
-        </div>
-    </div>
-    @*<div class="col-md-3 text-center">
-        <div onclick="window.location.href='@Url.Action("Index", "IPERC")'" style="cursor: pointer; display: inline-block;">
-            <i class="fas fa-chart-line fa-3x text-warning"></i>
-        </div>
-        <h5 class="mt-2">Matriz IPERC</h5>
-        <p>Gestionar riesgos</p>
-    </div>*@
-
-
-    <div class="col-md-3">
-        <div class="card bg-danger text-white" style="cursor: pointer;" onclick="verAusentes()">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title">Ausentes Hoy</h6>
-                        <h2 class="mb-0">@ViewBag.AusentesHoy</h2>
-                    </div>
-                    <i class="fas fa-user-slash fa-3x opacity-50"></i>
-                </div>
-                <span class="text-white-50 small">Click para ver detalles</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Menú rápido -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-info-circle"></i> Sistema de Asistencia
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 text-center">
-                        <div onclick="window.location.href='@Url.Action("ControlPagos", "Admin")'" style="cursor: pointer; display: inline-block;">
-                            <i class="fas fa-coins fa-3x text-warning"></i>
-                        </div>
-                        <h5 class="mt-2">Control de Pagos</h5>
-                        <p>Configurar pagos</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div onclick="window.location.href='@Url.Action("Reportes", "Admin")'" style="cursor: pointer; display: inline-block;">
-                            <i class="fas fa-file-alt fa-3x text-success"></i>
-                        </div>
-                        <h5 class="mt-2">Reportes</h5>
-                        <p>Ver reportes</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div onclick="window.location.href='@Url.Action("ReportePagos", "Admin")'" style="cursor: pointer; display: inline-block;">
-                            <i class="fas fa-money-bill-wave fa-3x" style="color: rgba(var(--bs-primary-rgb), 1);"></i>
-                        </div>
-                        <h5 class="mt-2">Pagos</h5>
-                        <p>Gestionar pagos</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <div onclick="window.location.href='@Url.Action("GestionarPermisos", "Admin")'" style="cursor: pointer; display: inline-block;">
-                            <i class="fas fa-user-shield fa-3x text-info"></i>
-                        </div>
-                        <h5 class="mt-2">Permisos Excepcionales</h5>
-                        <p>Gestionar permisos</p>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <a href="@Url.Action("RecuperarUser", "Admin")" style="cursor: pointer; text-decoration: none; color: inherit; display: inline-block;">
+    <!-- Tarjetas de estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="@Url.Action("Usuarios", "Admin")" style="text-decoration: none; display: block;">
+                <div class="card bg-primary text-white" style="cursor: pointer;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <i class="fas fa-key fa-3x text-danger"></i>
+                                <h5 class="card-title">Total Empleados</h5>
+                                <h2 class="mb-0">@ViewBag.TotalEmpleados</h2>
                             </div>
-                            <h5 class="mt-2">Recuperar Contraseña</h5>
-                            <p>Cambiar contraseña de usuarios</p>
-                        </a>
+                            <i class="fas fa-users fa-3x opacity-50"></i>
+                        </div>
+                        <span class="text-white-50 small">Ver todos <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta Presentes Hoy -->
+        <div class="col-md-3">
+            <div class="card text-white" style="cursor: pointer; background-color: rgb(89, 90, 89) !important;" onclick="verPresentes()">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Presentes Hoy</h5>
+                            <h2 class="mb-0">@ViewBag.PresentesHoy</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                    <span class="text-white-50 small">Click para ver detalles</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark" style="cursor: pointer;" onclick="verTardanzas()">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Tardanzas Hoy</h5>
+                            <h2 class="mb-0">@ViewBag.TardanzasHoy</h2>
+                        </div>
+                        <i class="fas fa-clock fa-3x opacity-50"></i>
+                    </div>
+                    <span class="text-muted small">Click para ver detalles</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white" style="cursor: pointer;" onclick="verAusentes()">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Ausentes Hoy</h5>
+                            <h2 class="mb-0">@ViewBag.AusentesHoy</h2>
+                        </div>
+                        <i class="fas fa-user-slash fa-3x opacity-50"></i>
+                    </div>
+                    <span class="text-white-50 small">Click para ver detalles</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menú rápido -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i> Sistema de Asistencia
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div onclick="window.location.href='@Url.Action("ControlPagos", "Admin")'" style="cursor: pointer; display: inline-block;">
+                                <i class="fas fa-coins fa-3x text-warning"></i>
+                            </div>
+                            <h5 class="mt-2">Control de Pagos</h5>
+                            <p>Configurar pagos</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div onclick="window.location.href='@Url.Action("Reportes", "Admin")'" style="cursor: pointer; display: inline-block;">
+                                <i class="fas fa-file-alt fa-3x text-success"></i>
+                            </div>
+                            <h5 class="mt-2">Reportes</h5>
+                            <p>Ver reportes</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div onclick="window.location.href='@Url.Action("ReportePagos", "Admin")'" style="cursor: pointer; display: inline-block;">
+                                <i class="fas fa-money-bill-wave fa-3x" style="color: rgba(var(--bs-primary-rgb), 1);"></i>
+                            </div>
+                            <h5 class="mt-2">Pagos</h5>
+                            <p>Gestionar pagos</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div onclick="window.location.href='@Url.Action("GestionarPermisos", "Admin")'" style="cursor: pointer; display: inline-block;">
+                                <i class="fas fa-user-shield fa-3x text-info"></i>
+                            </div>
+                            <h5 class="mt-2">Permisos Excepcionales</h5>
+                            <p>Gestionar permisos</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <a href="@Url.Action("RecuperarUser", "Admin")" style="cursor: pointer; text-decoration: none; color: inherit; display: inline-block;">
+                                <div>
+                                    <i class="fas fa-key fa-3x text-danger"></i>
+                                </div>
+                                <h5 class="mt-2">Recuperar Contraseña</h5>
+                                <p>Cambiar contraseña de usuarios</p>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -814,7 +802,7 @@
             $('#modalTitle').text('Empleados con Tardanza Hoy');
             $('#modalHeader').removeClass().addClass('modal-header bg-warning text-dark');
             $('#theadDetalle').html('<tr><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Minutos Tarde</th><th>Comentario</th></tr>');
-            $('#tbodyDetalle').html('<td><td colspan="5" class="text-center">Cargando...</td></tr>');
+            $('#tbodyDetalle').html('<tr><td colspan="5" class="text-center">Cargando...</td></tr>');
             $('#modalDetalle').modal('show');
 
             $.ajax({
@@ -842,74 +830,72 @@
             });
         }
 
-       function verAusentes() {
-    $('#modalTitle').text('Empleados Ausentes Hoy');
-    $('#modalHeader').removeClass().addClass('modal-header text-white');
-    $('#modalHeader').css('background-color', '#dc3545'); // Color rojo consistente
-    // Ahora muestra más columnas para mantener consistencia
-    $('#theadDetalle').html('\
-        <tr>\
-            <th><i class="fas fa-user me-1"></i> Nombre</th>\
-            <th><i class="fas fa-envelope me-1"></i> Email</th>\
-            <th><i class="fas fa-calendar me-1"></i> Fecha</th>\
-            <th><i class="fas fa-comment me-1"></i> Estado</th>\
-        </tr>\
-    ');
-    $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>');
-    $('#modalDetalle').modal('show');
+        function verAusentes() {
+            $('#modalTitle').text('Empleados Ausentes Hoy');
+            $('#modalHeader').removeClass().addClass('modal-header text-white');
+            $('#modalHeader').css('background-color', '#dc3545');
+            $('#theadDetalle').html('\
+                <tr>\
+                    <th><i class="fas fa-user me-1"></i> Nombre</th>\
+                    <th><i class="fas fa-envelope me-1"></i> Email</th>\
+                    <th><i class="fas fa-calendar me-1"></i> Fecha</th>\
+                    <th><i class="fas fa-comment me-1"></i> Estado</th>\
+                </tr>\
+            ');
+            $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>');
+            $('#modalDetalle').modal('show');
 
-    $.ajax({
-        url: '@Url.Action("ObtenerDetalleAusentes", "Admin")',
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            var tbody = $('#tbodyDetalle');
-            tbody.empty();
-            if (data.length === 0) {
-                tbody.html('\
-                    <tr>\
-                        <td colspan="4" class="text-center py-4">\
-                            <i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i>\
-                            <span>Todos los empleados están presentes hoy</span>\
-                        </td>\
-                    </tr>\
-                ');
-            } else {
-                for (var i = 0; i < data.length; i++) {
-                    var item = data[i];
-                    tbody.append('\
+            $.ajax({
+                url: '@Url.Action("ObtenerDetalleAusentes", "Admin")',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var tbody = $('#tbodyDetalle');
+                    tbody.empty();
+                    if (data.length === 0) {
+                        tbody.html('\
+                            <tr>\
+                                <td colspan="4" class="text-center py-4">\
+                                    <i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i>\
+                                    <span>Todos los empleados están presentes hoy</span>\
+                                 </td>\
+                            </tr>\
+                        ');
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            var item = data[i];
+                            tbody.append('\
+                                <tr>\
+                                    <td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td>\
+                                    <td>' + escapeHtml(item.Email) + '</td>\
+                                    <td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td>\
+                                    <td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td>\
+                                </tr>\
+                            ');
+                        }
+                    }
+                },
+                error: function() {
+                    $('#tbodyDetalle').html('\
                         <tr>\
-                            <td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td>\
-                            <td>' + escapeHtml(item.Email) + '</td>\
-                            <td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td>\
-                            <td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td>\
+                            <td colspan="4" class="text-center text-danger py-4">\
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>\
+                                Error al cargar los datos\
+                             </td>\
                         </tr>\
                     ');
                 }
-            }
-        },
-        error: function() {
-            $('#tbodyDetalle').html('\
-                <tr>\
-                    <td colspan="4" class="text-center text-danger py-4">\
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>\
-                        Error al cargar los datos\
-                    </td>\
-                </tr>\
-            ');
+            });
         }
-    });
-}
 
-// Función auxiliar para escapar HTML y prevenir XSS
-function escapeHtml(text) {
-    if (!text) return '-';
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+        function escapeHtml(text) {
+            if (!text) return '-';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
     </script>
 }

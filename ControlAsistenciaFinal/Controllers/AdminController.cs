@@ -395,67 +395,104 @@ namespace ControlAsistenciaFinal.Controllers
                     }
 
 
+                [HttpPost]
+                public ActionResult EditarUsuario(int id, string nombre, string email, string rol, bool activo,
+                                   string celular, string banco, string cuentaAhorros,
+                                   int conceptoPagoId, DateTime fechaInicio)
+                {
+                    if (Session["Rol"] == null || Session["Rol"].ToString() != "Admin")
+                        return RedirectToAction("Login", "Account");
 
-                    [HttpPost]
-                    public ActionResult EditarUsuario(int id, string nombre, string email, string rol, bool activo,
-                                               string celular, string banco, string cuentaAhorros,
-                                               int conceptoPagoId, DateTime fechaInicio)
+                    // Primero obtener la fecha de inicio actual del usuario
+                    string queryGetFechaInicio = "SELECT FechaInicio FROM Usuarios WHERE Id = @Id";
+                    SqlParameter[] paramFechaInicio = new SqlParameter[] { new SqlParameter("@Id", id) };
+                    DataTable usuarioData = DatabaseHelper.ExecuteQuery(queryGetFechaInicio, paramFechaInicio);
+
+                    DateTime fechaInicioActual = DateTime.Now;
+                    bool fechaInicioCambio = false;
+
+                    if (usuarioData.Rows.Count > 0)
                     {
-                        if (Session["Rol"] == null || Session["Rol"].ToString() != "Admin")
-                            return RedirectToAction("Login", "Account");
-
-                        // Primero obtener la descripción del ConceptoPago seleccionado
-                        string queryGetConcepto = "SELECT ConceptoPago FROM ConfiguracionPagos WHERE Id = @Id";
-                        SqlParameter[] paramConcepto = new SqlParameter[] { new SqlParameter("@Id", conceptoPagoId) };
-                        DataTable conceptoData = DatabaseHelper.ExecuteQuery(queryGetConcepto, paramConcepto);
-
-                        string rolPagoDescripcion = "";
-                        if (conceptoData.Rows.Count > 0)
-                        {
-                            rolPagoDescripcion = conceptoData.Rows[0]["ConceptoPago"].ToString();
-                        }
-
-                        string query = @"UPDATE Usuarios 
-                                 SET NombreCompleto = @Nombre, 
-                                     Email = @Email, 
-                                     Rol = @Rol, 
-                                     Activo = @Activo,
-                                     Celular = @Celular,
-                                     Banco = @Banco,
-                                     CuentaAhorros = @CuentaAhorros,
-                                     ConceptoPagoId = @ConceptoPagoId,
-                                     RolPago = @RolPago,
-                                     FechaInicio = @FechaInicio
-                                 WHERE Id = @Id";
-
-                        SqlParameter[] parameters = new SqlParameter[]
-                        {
-                    new SqlParameter("@Id", id),
-                    new SqlParameter("@Nombre", nombre),
-                    new SqlParameter("@Email", email),
-                    new SqlParameter("@Rol", rol),
-                    new SqlParameter("@Activo", activo),
-                    new SqlParameter("@Celular", string.IsNullOrEmpty(celular) ? (object)DBNull.Value : celular),
-                    new SqlParameter("@Banco", string.IsNullOrEmpty(banco) ? (object)DBNull.Value : banco),
-                    new SqlParameter("@CuentaAhorros", string.IsNullOrEmpty(cuentaAhorros) ? (object)DBNull.Value : cuentaAhorros),
-                    new SqlParameter("@ConceptoPagoId", conceptoPagoId),
-                    new SqlParameter("@RolPago", rolPagoDescripcion),
-                    new SqlParameter("@FechaInicio", fechaInicio)
-                        };
-
-                        try
-                        {
-                            DatabaseHelper.ExecuteNonQuery(query, parameters);
-                            TempData["Mensaje"] = "Usuario actualizado correctamente";
-                        }
-                        catch (Exception ex)
-                        {
-                            TempData["Error"] = "Error al actualizar el usuario: " + ex.Message;
-                        }
-
-                        return RedirectToAction("Usuarios");
+                        fechaInicioActual = Convert.ToDateTime(usuarioData.Rows[0]["FechaInicio"]);
+                        // Verificar si la fecha de inicio ha cambiado
+                        fechaInicioCambio = fechaInicioActual.Date != fechaInicio.Date;
                     }
 
+                    // Primero obtener la descripción del ConceptoPago seleccionado
+                    string queryGetConcepto = "SELECT ConceptoPago FROM ConfiguracionPagos WHERE Id = @Id";
+                    SqlParameter[] paramConcepto = new SqlParameter[] { new SqlParameter("@Id", conceptoPagoId) };
+                    DataTable conceptoData = DatabaseHelper.ExecuteQuery(queryGetConcepto, paramConcepto);
+
+                    string rolPagoDescripcion = "";
+                    if (conceptoData.Rows.Count > 0)
+                    {
+                        rolPagoDescripcion = conceptoData.Rows[0]["ConceptoPago"].ToString();
+                    }
+
+                    string query = @"UPDATE Usuarios 
+                     SET NombreCompleto = @Nombre, 
+                         Email = @Email, 
+                         Rol = @Rol, 
+                         Activo = @Activo,
+                         Celular = @Celular,
+                         Banco = @Banco,
+                         CuentaAhorros = @CuentaAhorros,
+                         ConceptoPagoId = @ConceptoPagoId,
+                         RolPago = @RolPago,
+                         FechaInicio = @FechaInicio
+                     WHERE Id = @Id";
+
+                    SqlParameter[] parameters = new SqlParameter[]
+                    {
+                new SqlParameter("@Id", id),
+                new SqlParameter("@Nombre", nombre),
+                new SqlParameter("@Email", email),
+                new SqlParameter("@Rol", rol),
+                new SqlParameter("@Activo", activo),
+                new SqlParameter("@Celular", string.IsNullOrEmpty(celular) ? (object)DBNull.Value : celular),
+                new SqlParameter("@Banco", string.IsNullOrEmpty(banco) ? (object)DBNull.Value : banco),
+                new SqlParameter("@CuentaAhorros", string.IsNullOrEmpty(cuentaAhorros) ? (object)DBNull.Value : cuentaAhorros),
+                new SqlParameter("@ConceptoPagoId", conceptoPagoId),
+                new SqlParameter("@RolPago", rolPagoDescripcion),
+                new SqlParameter("@FechaInicio", fechaInicio)
+                    };
+
+                    try
+                    {
+                        // Ejecutar la actualización principal del usuario
+                        DatabaseHelper.ExecuteNonQuery(query, parameters);
+
+                        // Si la fecha de inicio cambió, ejecutar la actualización de reinicio
+                        if (fechaInicioCambio)
+                        {
+                            string queryResetCiclo = @"UPDATE Usuarios 
+                                              SET 
+                                                  HorasExcedentesAcumuladas = 0,
+                                                  UltimaFechaProcesada = NULL,
+                                                  UltimoCalculo = NULL,
+                                                  CiclosCompletados = NULL
+                                              WHERE Id = @Id";
+
+                            SqlParameter[] resetParams = new SqlParameter[]
+                            {
+                        new SqlParameter("@Id", id)
+                            };
+
+                            DatabaseHelper.ExecuteNonQuery(queryResetCiclo, resetParams);
+                            TempData["Mensaje"] = "Usuario actualizado correctamente. Se ha reiniciado el ciclo de horas por cambio de fecha de inicio.";
+                        }
+                        else
+                        {
+                            TempData["Mensaje"] = "Usuario actualizado correctamente";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Error"] = "Error al actualizar el usuario: " + ex.Message;
+                    }
+
+                    return RedirectToAction("Usuarios");
+                }
 
 
         [HttpPost]
@@ -648,7 +685,8 @@ namespace ControlAsistenciaFinal.Controllers
                 return RedirectToAction("Login", "Account");
 
             string query = @"SELECT Id, NombreCompleto, Email, Rol, PermisoMarcacionExcepcional, TipoPermisoExcepcional 
-                             FROM Usuarios WHERE Rol = 'Trabajador' ORDER BY NombreCompleto";
+                             FROM Usuarios  WHERE Rol != 'Admin' 
+                            ORDER BY NombreCompleto";
             DataTable usuarios = DatabaseHelper.ExecuteQuery(query, null);
             return View(usuarios);
         }
@@ -1221,7 +1259,7 @@ namespace ControlAsistenciaFinal.Controllers
                                        ORDER BY Tipo, ConceptoPago";
             ViewBag.ConceptosPago = DatabaseHelper.ExecuteQuery(queryConceptos, null);
 
-            string queryUsuarios = "SELECT Id, NombreCompleto, RolPago FROM Usuarios WHERE Activo = 1 ORDER BY NombreCompleto";
+            string queryUsuarios = "SELECT Id, NombreCompleto, RolPago FROM Usuarios WHERE  NombreCompleto !='admin'and  Activo = 1 ORDER BY NombreCompleto";
             ViewBag.Usuarios = DatabaseHelper.ExecuteQuery(queryUsuarios, null);
 
             string queryRoles = "SELECT DISTINCT RolPago FROM Usuarios WHERE Activo = 1 AND RolPago IS NOT NULL ORDER BY RolPago";
@@ -1866,7 +1904,7 @@ namespace ControlAsistenciaFinal.Controllers
                     hojaResumen.Column(9).Width = 18;
 
                     // ============================================
-                    // HOJA 3: ESTADÍSTICAS
+                    // HOJA 3: ESTADÍSTICAS - CÁLCULO CORREGIDO DE AUSENCIAS
                     // ============================================
                     var hojaEstadisticas = package.Workbook.Worksheets.Add("Estadísticas");
 
@@ -1875,18 +1913,141 @@ namespace ControlAsistenciaFinal.Controllers
                     int totalAusentes = 0;
                     decimal totalHoras = 0;
 
+                    // ============================================
+                    // CONTAR REGISTROS, TARDANZAS Y HORAS
+                    // ============================================
                     foreach (DataRow dr in reporteHoras.Rows)
                     {
                         if (dr["Fecha"] != null && !string.IsNullOrEmpty(dr["Fecha"].ToString()))
                         {
                             totalRegistros++;
                             string estado = dr["EstadoDia"].ToString();
-                            if (estado == "Tardanza") totalTardanzas++;
-                            if (estado == "Ausente") totalAusentes++;
+
+                            // Contar tardanzas
+                            if (estado == "Tardanza")
+                            {
+                                totalTardanzas++;
+                            }
+
+                            // Contar horas trabajadas
                             if (dr["HorasTrabajadasDia"] != DBNull.Value)
+                            {
                                 totalHoras += Convert.ToDecimal(dr["HorasTrabajadasDia"]);
+                            }
                         }
                     }
+
+                    // ============================================
+                    // CALCULAR AUSENCIAS: DÍAS ESPERADOS - DÍAS TRABAJADOS
+                    // ============================================
+
+                    // Diccionario para almacenar días laborables y sábados por usuario
+                    Dictionary<int, int> dictDiasLaborables = new Dictionary<int, int>();
+                    Dictionary<int, int> dictDiasSabado = new Dictionary<int, int>();
+                    Dictionary<int, string> dictConceptoPago = new Dictionary<int, string>();
+
+                    // Obtener los días en el período
+                    int totalDiasLaborablesPeriodo = 0;
+                    int totalDiasSabadoPeriodo = 0;
+
+                    for (DateTime fechaActual = fechaInicio; fechaActual <= fechaFin; fechaActual = fechaActual.AddDays(1))
+                    {
+                        if ((int)fechaActual.DayOfWeek >= 1 && (int)fechaActual.DayOfWeek <= 5) // Lunes a Viernes
+                        {
+                            totalDiasLaborablesPeriodo++;
+                        }
+                        else if ((int)fechaActual.DayOfWeek == 6) // Sábado
+                        {
+                            totalDiasSabadoPeriodo++;
+                        }
+                    }
+
+                    // Obtener el concepto de pago y calcular días esperados por cada usuario
+                    foreach (DataRow dr in resumenHoras.Rows)
+                    {
+                        int idUsuarioActual = Convert.ToInt32(dr["UsuarioId"]);
+                        string conceptoPago = dr["ConceptoPago"] != DBNull.Value ? dr["ConceptoPago"].ToString() : "";
+
+                        if (!dictConceptoPago.ContainsKey(idUsuarioActual))
+                        {
+                            dictConceptoPago[idUsuarioActual] = conceptoPago;
+
+                            int esperadosLaborables = 0;
+                            int esperadosSabado = 0;
+
+                            switch (conceptoPago)
+                            {
+                                case "Facilitador 1":
+                                case "Facilitador 2":
+                                case "Facilitador 3":
+                                    // Trabajan Lunes a Sábado
+                                    esperadosLaborables = totalDiasLaborablesPeriodo;
+                                    esperadosSabado = totalDiasSabadoPeriodo;
+                                    break;
+                                case "Planilla Full Time":
+                                    // Trabajan Lunes a Viernes
+                                    esperadosLaborables = totalDiasLaborablesPeriodo;
+                                    esperadosSabado = 0;
+                                    break;
+                                case "Planilla Part Time":
+                                    // Trabajan Lunes a Viernes
+                                    esperadosLaborables = totalDiasLaborablesPeriodo;
+                                    esperadosSabado = 0;
+                                    break;
+                                default:
+                                    // Por defecto Lunes a Viernes
+                                    esperadosLaborables = totalDiasLaborablesPeriodo;
+                                    esperadosSabado = 0;
+                                    break;
+                            }
+
+                            dictDiasLaborables[idUsuarioActual] = esperadosLaborables;
+                            dictDiasSabado[idUsuarioActual] = esperadosSabado;
+                        }
+                    }
+
+                    // Calcular días trabajados por usuario (días que NO son ausentes)
+                    Dictionary<int, int> dictDiasTrabajados = new Dictionary<int, int>();
+
+                    foreach (DataRow dr in reporteHoras.Rows)
+                    {
+                        if (dr["Fecha"] != null && !string.IsNullOrEmpty(dr["Fecha"].ToString()))
+                        {
+                            string estado = dr["EstadoDia"].ToString();
+                            int idUsuarioActual = Convert.ToInt32(dr["UsuarioId"]);
+
+                            // Si NO es Ausente, cuenta como día trabajado
+                            if (estado != "Ausente")
+                            {
+                                if (!dictDiasTrabajados.ContainsKey(idUsuarioActual))
+                                {
+                                    dictDiasTrabajados[idUsuarioActual] = 0;
+                                }
+
+                                dictDiasTrabajados[idUsuarioActual]++;
+                            }
+                        }
+                    }
+
+                    // Calcular ausencias totales
+                    foreach (var usuario in dictConceptoPago)
+                    {
+                        int idUsuarioActual = usuario.Key;
+                        int diasLaborablesEsperados = dictDiasLaborables.ContainsKey(idUsuarioActual) ? dictDiasLaborables[idUsuarioActual] : totalDiasLaborablesPeriodo;
+                        int diasSabadoEsperados = dictDiasSabado.ContainsKey(idUsuarioActual) ? dictDiasSabado[idUsuarioActual] : 0;
+                        int totalDiasEsperados = diasLaborablesEsperados + diasSabadoEsperados;
+                        int totalDiasTrabajados = dictDiasTrabajados.ContainsKey(idUsuarioActual) ? dictDiasTrabajados[idUsuarioActual] : 0;
+
+                        int ausenciasDelUsuario = totalDiasEsperados - totalDiasTrabajados;
+                        if (ausenciasDelUsuario > 0)
+                        {
+                            totalAusentes += ausenciasDelUsuario;
+                        }
+                    }
+
+                    // ============================================
+                    // CREAR LA HOJA DE ESTADÍSTICAS
+                    // ============================================
 
                     int ultimaColumnaEstadisticas = 12;
                     hojaEstadisticas.Row(1).Height = 35;
@@ -1907,7 +2068,7 @@ namespace ControlAsistenciaFinal.Controllers
                         var logoImageIzqEst = new FileInfo(logoIzquierdoPath);
                         var pictureIzqEst = hojaEstadisticas.Drawings.AddPicture("LogoIzquierdoEstadisticas", logoImageIzqEst);
                         pictureIzqEst.SetPosition(0, 5, 0, 40);
-                        pictureIzqEst.SetSize(150, 42); 
+                        pictureIzqEst.SetSize(150, 42);
                     }
 
                     if (System.IO.File.Exists(logoDerechoPath))
@@ -1972,19 +2133,7 @@ namespace ControlAsistenciaFinal.Controllers
                     hojaEstadisticas.Cells[6, 2].Style.Font.Size = 11;
                     hojaEstadisticas.Cells[6, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
                     hojaEstadisticas.Cells[6, 2].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-
-                    hojaEstadisticas.Cells[7, 1].Value = "Total Horas Trabajadas";
-                    hojaEstadisticas.Cells[7, 1].Style.Font.Bold = true;
-                    hojaEstadisticas.Cells[7, 1].Style.Font.Size = 11;
-                    hojaEstadisticas.Cells[7, 1].Style.Font.Color.SetColor(Color.Black);
-                    hojaEstadisticas.Cells[7, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    hojaEstadisticas.Cells[7, 1].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(146, 208, 80));
-                    hojaEstadisticas.Cells[7, 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                    hojaEstadisticas.Cells[7, 2].Value = totalHoras;
-                    hojaEstadisticas.Cells[7, 2].Style.Font.Size = 11;
-                    hojaEstadisticas.Cells[7, 2].Style.Numberformat.Format = "0.00";
-                    hojaEstadisticas.Cells[7, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                    hojaEstadisticas.Cells[7, 2].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+ 
 
                     hojaEstadisticas.Column(1).Width = 28;
                     hojaEstadisticas.Column(2).Width = 18;
@@ -2000,15 +2149,14 @@ namespace ControlAsistenciaFinal.Controllers
                     serie2.Header = "Total de Tardanzas";
                     var serie3 = chart.Series.Add(hojaEstadisticas.Cells["B6"], hojaEstadisticas.Cells["A6"]);
                     serie3.Header = "Total de Ausencias";
-                    var serie4 = chart.Series.Add(hojaEstadisticas.Cells["B7"], hojaEstadisticas.Cells["A7"]);
-                    serie4.Header = "Total Horas Trabajadas";
+                  
 
                     try
                     {
                         serie1.Fill.Color = Color.FromArgb(255, 192, 0);
                         serie2.Fill.Color = Color.FromArgb(192, 0, 0);
                         serie3.Fill.Color = Color.FromArgb(191, 191, 191);
-                        serie4.Fill.Color = Color.FromArgb(146, 208, 80);
+                      
                     }
                     catch (Exception) { }
 
@@ -2749,19 +2897,9 @@ namespace ControlAsistenciaFinal.Controllers
                         hoja.Cells["F4"].Value = diasLaborables;
                         hoja.Cells["F4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                        if (tipoPagoEmpleado == "Facilitador")
-                        {
-                            hoja.Cells["E5"].Value = "Tarifa por Hora:";
-                            hoja.Cells["F5"].Value = tarifaHora;
-                            hoja.Cells["F5"].Style.Numberformat.Format = "0.00";
-                        }
-                        else
-                        {
-                            decimal valorDia = montoTotalEmpleado / (diasTrabajadosEmpleado > 0 ? diasTrabajadosEmpleado : 1);
-                            hoja.Cells["E5"].Value = "Valor por Día:";
-                            hoja.Cells["F5"].Value = valorDia;
-                            hoja.Cells["F5"].Style.Numberformat.Format = "0.00";
-                        }
+                        hoja.Cells["E5"].Value = "Valor por Día:";
+                        hoja.Cells["F5"].Value = tarifaHora;
+                        hoja.Cells["F5"].Style.Numberformat.Format = "0.00"; 
                         hoja.Cells["E5"].Style.Font.Bold = true;
                         hoja.Cells["E5"].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         hoja.Cells["E5"].Style.Fill.BackgroundColor.SetColor(colorFondoInfo);
@@ -2823,7 +2961,7 @@ namespace ControlAsistenciaFinal.Controllers
                                 hoja.Cells[filaTabla, 5].Value = registro["HoraSalida"]?.ToString() ?? "-";
                                 hoja.Cells[filaTabla, 6].Value = registro["SalidaAlmuerzo"]?.ToString() ?? "-";
                                 hoja.Cells[filaTabla, 7].Value = registro["RetornoAlmuerzo"]?.ToString() ?? "-";
-                                hoja.Cells[filaTabla, 8].Value = horas;
+                                hoja.Cells[filaTabla, 8].Value = horas ;
                                 hoja.Cells[filaTabla, 9].Value = montoDia;
 
                                 hoja.Cells[filaTabla, 8].Style.Numberformat.Format = "0.00";
@@ -2865,30 +3003,30 @@ namespace ControlAsistenciaFinal.Controllers
                         }
 
                         // Totales
-                        hoja.Cells[filaTabla + 1, 7].Value = "TOTALES:";
-                        hoja.Cells[filaTabla + 1, 7].Style.Font.Bold = true;
-                        hoja.Cells[filaTabla + 1, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        hoja.Cells[filaTabla + 1, 7].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(146, 208, 80));
-                        hoja.Cells[filaTabla + 1, 7].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        hoja.Cells[filaTabla + 1, 7].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        hoja.Cells[filaTabla + 1, 7].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //hoja.Cells[filaTabla + 1, 7].Value = "TOTALES:";
+                        //hoja.Cells[filaTabla + 1, 7].Style.Font.Bold = true;
+                        //hoja.Cells[filaTabla + 1, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        //hoja.Cells[filaTabla + 1, 7].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(146, 208, 80));
+                        //hoja.Cells[filaTabla + 1, 7].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        //hoja.Cells[filaTabla + 1, 7].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        //hoja.Cells[filaTabla + 1, 7].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                        hoja.Cells[filaTabla + 1, 8].Value = totalHorasHoja;
-                        hoja.Cells[filaTabla + 1, 8].Style.Numberformat.Format = "0.00";
-                        hoja.Cells[filaTabla + 1, 8].Style.Font.Bold = true;
-                        hoja.Cells[filaTabla + 1, 8].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        hoja.Cells[filaTabla + 1, 8].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        hoja.Cells[filaTabla + 1, 8].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //hoja.Cells[filaTabla + 1, 8].Value = totalHorasHoja;
+                        //hoja.Cells[filaTabla + 1, 8].Style.Numberformat.Format = "0.00";
+                        //hoja.Cells[filaTabla + 1, 8].Style.Font.Bold = true;
+                        //hoja.Cells[filaTabla + 1, 8].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        //hoja.Cells[filaTabla + 1, 8].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        //hoja.Cells[filaTabla + 1, 8].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                        hoja.Cells[filaTabla + 1, 9].Value = totalMontoHoja;
-                        hoja.Cells[filaTabla + 1, 9].Style.Numberformat.Format = "0.00";
-                        hoja.Cells[filaTabla + 1, 9].Style.Font.Bold = true;
-                        hoja.Cells[filaTabla + 1, 9].Style.Font.Color.SetColor(Color.Green);
-                        hoja.Cells[filaTabla + 1, 9].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        hoja.Cells[filaTabla + 1, 9].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        hoja.Cells[filaTabla + 1, 9].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        //hoja.Cells[filaTabla + 1, 9].Value = totalMontoHoja;
+                        //hoja.Cells[filaTabla + 1, 9].Style.Numberformat.Format = "0.00";
+                        //hoja.Cells[filaTabla + 1, 9].Style.Font.Bold = true;
+                        //hoja.Cells[filaTabla + 1, 9].Style.Font.Color.SetColor(Color.Green);
+                        //hoja.Cells[filaTabla + 1, 9].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        //hoja.Cells[filaTabla + 1, 9].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        //hoja.Cells[filaTabla + 1, 9].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                         // Resumen de pago
-                        int filaResumen = filaTabla + 3;
+                        int filaResumen = filaTabla + 1;
 
                         hoja.Cells[filaResumen, 1, filaResumen, 5].Merge = true;
                         hoja.Cells[filaResumen, 1, filaResumen, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -2907,7 +3045,7 @@ namespace ControlAsistenciaFinal.Controllers
                         hoja.Cells[filaDatosResumen, 1].Style.Font.Bold = true;
                         hoja.Cells[filaDatosResumen, 1, filaDatosResumen, 4].Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                        hoja.Cells[filaDatosResumen, 5].Value = totalHorasHoja;
+                        hoja.Cells[filaDatosResumen, 5].Value = totalHorasGeneral;
                         hoja.Cells[filaDatosResumen, 5].Style.Numberformat.Format = "0.00";
                         hoja.Cells[filaDatosResumen, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
@@ -2920,9 +3058,7 @@ namespace ControlAsistenciaFinal.Controllers
                         hoja.Cells[filaDatosResumen + 1, 5].Value = diasConRegistros;
                         hoja.Cells[filaDatosResumen + 1, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                        // Tarifa o Valor por Día
-                        if (tipoPagoEmpleado == "Facilitador")
-                        {
+                       
                             hoja.Cells[filaDatosResumen + 2, 1, filaDatosResumen + 2, 4].Merge = true;
                             hoja.Cells[filaDatosResumen + 2, 1].Value = "Tarifa por Hora:";
                             hoja.Cells[filaDatosResumen + 2, 1].Style.Font.Bold = true;
@@ -2931,19 +3067,7 @@ namespace ControlAsistenciaFinal.Controllers
                             hoja.Cells[filaDatosResumen + 2, 5].Value = tarifaHora;
                             hoja.Cells[filaDatosResumen + 2, 5].Style.Numberformat.Format = "0.00";
                             hoja.Cells[filaDatosResumen + 2, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        }
-                        else
-                        {
-                            decimal valorDiaCalculado = montoTotalEmpleado / (diasConRegistros > 0 ? diasConRegistros : 1);
-                            hoja.Cells[filaDatosResumen + 2, 1, filaDatosResumen + 2, 4].Merge = true;
-                            hoja.Cells[filaDatosResumen + 2, 1].Value = "Valor por Día:";
-                            hoja.Cells[filaDatosResumen + 2, 1].Style.Font.Bold = true;
-                            hoja.Cells[filaDatosResumen + 2, 1, filaDatosResumen + 2, 4].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-
-                            hoja.Cells[filaDatosResumen + 2, 5].Value = valorDiaCalculado;
-                            hoja.Cells[filaDatosResumen + 2, 5].Style.Numberformat.Format = "0.00";
-                            hoja.Cells[filaDatosResumen + 2, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        }
+                      
 
                         // MONTO TOTAL A PAGAR
                         hoja.Cells[filaDatosResumen + 3, 1, filaDatosResumen + 3, 4].Merge = true;

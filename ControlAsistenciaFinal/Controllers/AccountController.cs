@@ -48,7 +48,7 @@ namespace ControlAsistenciaFinal.Controllers
                     if (row["Rol"].ToString() == "Admin")
                         return RedirectToAction("Dashboard", "Admin");
                     else
-                        return RedirectToAction("MiJornada", "Trabajador");
+                        return RedirectToAction("MiJornadaMejorada", "Trabajador"); 
                 }
 
                 ViewBag.Error = "Correo o contraseña incorrectos";

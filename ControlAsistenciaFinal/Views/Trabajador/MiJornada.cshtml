@@ -3,23 +3,39 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<!-- Header con título, bienvenida y logo alineado -->
+<!-- Header con título, bienvenida y logo alineado - RESPONSIVE -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h2><i class="fas fa-calendar-day text-primary"></i> Mi Jornada Laboral</h2>
-                <p class="text-muted mt-2">
-                    <i class="fas fa-user-check"></i> Bienvenido, <strong class="text-primary">@ViewBag.Nombre</strong>
+                <h1 class="h3 mb-0 fw-bold" style="color: #1898cc;">
+                    <i class="fas fa-calendar-day me-2"></i> Mi Jornada Laboral
+                </h1>
+                <p class="text-muted mt-2 mb-0">
+                    <i class="fas fa-user-check"></i> Bienvenido, <strong style="color: #00a7eb;">@ViewBag.Nombre</strong>
+                    @if (ViewBag.EsAdmin == true)
+                    {
+                        <span class="badge ms-2 px-3 py-1" style="background: #dc3545;">
+                            <i class="fas fa-shield-alt"></i> Administrador
+                        </span>
+                    }
                 </p>
             </div>
-            <div class="text-end">
-                <span class="badge bg-info fs-6 p-2">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <!-- Logo responsive - se ajusta a diferentes pantallas -->
+                <div class="logo-container" style="position: relative;">
+                    <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group" class="img-fluid" style="height: 50px; width: auto; position: relative; right: 0;" />
+                </div>
+                <span class="badge bg-custom-info fs-6 p-2">
                     <i class="fas fa-calendar-alt"></i> @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"))
                 </span>
             </div>
         </div>
     </div>
 </div>
+
+
 
 <div class="row">
     <!-- COLUMNA IZQUIERDA - Botones de marcación + Resumen del Mes -->
@@ -87,7 +103,7 @@
             </div>
         </div>
 
-        <!-- Tarjeta de Resumen del Mes (con título dinámico) -->
+        <!-- Tarjeta de Resumen del Mes -->
         <div class="card mt-4 border-0 shadow-lg">
             <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <h5 class="mb-0 text-white">
@@ -109,7 +125,6 @@
             <div class="card-body">
                 @if (ViewBag.EsFacilitador == true)
                 {
-                    <!-- Para FACILITADORES (Facilitador 1, 2, 3) -->
                     <div class="mb-3">
                         <label class="text-muted">Horas Trabajadas:</label>
                         <h3 class="text-primary">
@@ -129,7 +144,7 @@
                                 double horasObj = Convert.ToDouble(ViewBag.HorasObjetivo ?? 160);
                                 int horasObjEnteras = (int)horasObj;
                                 int minutosObj = (int)((horasObj - horasObjEnteras) * 60);
-                                string textoObjFormateado = horasObjEnteras + " horas  " ;
+                                string textoObjFormateado = horasObjEnteras + " horas  ";
                             }
                             @textoObjFormateado
                         </h3>
@@ -148,17 +163,15 @@
                 }
                 else if (ViewBag.EsPlanilla == true)
                 {
-                    <!-- Para PLANILLA (Full Time y Part Time) -->
                     <div class="text-center">
                         <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
                         <h4 class="text-muted">Días Trabajados en el Mes</h4>
                         <h2 class="text-success">@ViewBag.DiasTrabajadosPlanilla</h2>
-                        <p class="text-muted small">Total de días que ha marcado entrada</p>
+                        <p class="text-muted small">Total de días que ha completado (entrada + salida)</p>
                     </div>
                 }
                 else
                 {
-                    <!-- Para TRABAJADORES NORMALES -->
                     <div class="mb-3">
                         <label class="text-muted">Horas Trabajadas:</label>
                         <h3 class="text-primary">
@@ -195,7 +208,10 @@
                         </div>
                     </div>
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> Días trabajados: <strong>@ViewBag.DiasTrabajados</strong>
+                        <i class="fas fa-info-circle"></i>
+                        Días completos en el mes: <strong>@ViewBag.DiasTrabajados</strong>
+                        <br>
+                        <small class="text-muted">* Solo se cuentan los días con entrada y salida registradas</small>
                     </div>
                 }
             </div>
@@ -228,7 +244,7 @@
                                 <td colspan="3" class="text-center py-5 text-muted">
                                     <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
                                     Cargando registros...
-
+                                    \n
                             </tr>
                         </tbody>
                     </table>
@@ -252,9 +268,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Tipo de Registro *</label>
-                    <select id="tipoSolicitud" class="form-control">
-                        <!-- Las opciones se llenan dinámicamente según el permiso -->
-                    </select>
+                    <select id="tipoSolicitud" class="form-control"></select>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Hora *</label>
@@ -275,6 +289,47 @@
 </div>
 
 <style>
+
+    /* Estilos responsivos para el logo */
+    @@media (min-width: 768px) {
+        .logo-container img {
+            right: 80px !important;
+        }
+    }
+
+    @@media (min-width: 992px) {
+        .logo-container img {
+            right: 120px !important;
+        }
+    }
+
+    @@media (min-width: 1200px) {
+        .logo-container img {
+            right: 180px !important;
+        }
+    }
+
+    /* En lugar de sobrescribir .bg-info, crea tu propia clase */
+    .bg-custom-info {
+        background-color: #1d1e20 !important;
+        color: white;
+    }
+
+    @@media (min-width: 1400px) {
+        .logo-container img {
+            right: 249px !important;
+        }
+    }
+
+    /* Para pantallas pequeñas, el logo no se desplaza */
+    @@media (max-width: 767px) {
+        .logo-container img {
+            right: 0 !important;
+        }
+    }
+
+
+    /* Tus estilos existentes */
     .btn-entrada {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         border: none;
@@ -384,14 +439,142 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Tus scripts existentes se mantienen igual
+        var esAdmin = @((ViewBag.EsAdmin ?? false).ToString().ToLower());
+        var registrosActuales = [];
+        var cargaEnProceso = false;
+        var timeoutCarga = null;
+        var cacheRegistros = {
+            datos: null,
+            timestamp: 0,
+            tiempoVida: 30000
+        };
+
         $(document).ready(function() {
             cargarRegistrosHoy();
             $("#btnRefrescar").click(function() {
-                cargarRegistrosHoy();
+                cacheRegistros.datos = null;
+                cacheRegistros.timestamp = 0;
+                cargarRegistrosHoy(true);
             });
         });
 
+        function existeRegistro(tipo) {
+            return registrosActuales.some(function(registro) {
+                return registro.TipoRegistro === tipo;
+            });
+        }
+
+        function validarOrdenMarcacion(tipo) {
+            var tieneEntrada = existeRegistro('Entrada');
+            var tieneSalida = existeRegistro('Salida');
+            var tieneSalidaAlmuerzo = existeRegistro('Almuerzo_Salida');
+            var tieneRetornoAlmuerzo = existeRegistro('Almuerzo_Retorno');
+
+            if (tieneSalida && tipo !== 'Entrada') {
+                return {
+                    valido: false,
+                    mensaje: '❌ No puede registrar ' + obtenerNombreTipo(tipo) + ' porque ya ha registrado su SALIDA definitiva del día.\n\nEl horario laboral ha finalizado para hoy.'
+                };
+            }
+
+            switch(tipo) {
+                case 'Entrada':
+                    if (tieneEntrada) {
+                        return {
+                            valido: false,
+                            mensaje: '⚠️ Ya tiene registrada su ENTRADA hoy.\n\nSi necesita modificar este registro, contacte al administrador.'
+                        };
+                    }
+                    break;
+                case 'Salida':
+                    if (!tieneEntrada) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA porque no ha registrado ENTRADA hoy.\n\nPor favor, primero registre su hora de entrada.'
+                        };
+                    }
+                    if (tieneSalidaAlmuerzo && !tieneRetornoAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA definitiva porque aún no ha registrado su RETORNO DE ALMUERZO.\n\nPrimero registre su retorno de almuerzo.'
+                        };
+                    }
+                    break;
+                case 'Almuerzo_Salida':
+                    if (!tieneEntrada) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA A ALMUERZO porque no ha registrado ENTRADA hoy.\n\nPor favor, primero registre su hora de entrada.'
+                        };
+                    }
+                    if (tieneSalida) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar SALIDA A ALMUERZO porque ya ha registrado su SALIDA definitiva.\n\nEl horario laboral ya finalizó.'
+                        };
+                    }
+                    if (tieneSalidaAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '⚠️ Ya tiene registrada su SALIDA A ALMUERZO hoy.\n\nAhora debe registrar su RETORNO DE ALMUERZO.'
+                        };
+                    }
+                    break;
+                case 'Almuerzo_Retorno':
+                    if (!tieneSalidaAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar RETORNO DE ALMUERZO porque no ha registrado SALIDA A ALMUERZO.\n\nPrimero registre su salida a almuerzo.'
+                        };
+                    }
+                    if (tieneRetornoAlmuerzo) {
+                        return {
+                            valido: false,
+                            mensaje: '⚠️ Ya tiene registrado su RETORNO DE ALMUERZO hoy.\n\nSolo puede registrar un retorno de almuerzo por día.'
+                        };
+                    }
+                    if (tieneSalida) {
+                        return {
+                            valido: false,
+                            mensaje: '❌ No puede registrar RETORNO DE ALMUERZO porque ya ha registrado su SALIDA definitiva.\n\nEl horario laboral ya finalizó.'
+                        };
+                    }
+                    break;
+            }
+            return { valido: true, mensaje: '' };
+        }
+
+        function obtenerNombreTipo(tipo) {
+            switch(tipo) {
+                case 'Entrada': return 'ENTRADA';
+                case 'Salida': return 'SALIDA';
+                case 'Almuerzo_Salida': return 'SALIDA A ALMUERZO';
+                case 'Almuerzo_Retorno': return 'RETORNO DE ALMUERZO';
+                default: return tipo;
+            }
+        }
+
         function marcar(tipo) {
+            if (!esAdmin) {
+                var validacion = validarOrdenMarcacion(tipo);
+                if (!validacion.valido) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '⚠️ Orden de marcación incorrecto',
+                        html: `<div style="text-align: left;">
+                            <p>${validacion.mensaje.replace(/\n/g, '<br>')}</p>
+                            <hr>
+                            <p class="text-muted">Si consideras que esto es un error, por favor comunícate con el área administrativa.</p>
+                        </div>`,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#3085d6',
+                        showCancelButton: false
+                    });
+                    return;
+                }
+            }
+
             var comentario = $('#txtComentario').val();
             var titulo = '';
             var mensajeConfirmacion = '';
@@ -403,11 +586,11 @@
                     break;
                 case 'Salida':
                     titulo = 'Registro de Salida';
-                    mensajeConfirmacion = '¿Desea registrar su SALIDA?';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA definitiva? Una vez registrada, no podrá marcar más entradas, almuerzos o retornos hoy.\n\n✅';
                     break;
                 case 'Almuerzo_Salida':
                     titulo = 'Registro de Salida a Almuerzo';
-                    mensajeConfirmacion = '¿Desea registrar su SALIDA A ALMUERZO?';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA A ALMUERZO? Deberá registrar su retorno después.';
                     break;
                 case 'Almuerzo_Retorno':
                     titulo = 'Registro de Retorno de Almuerzo';
@@ -428,7 +611,7 @@
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Procesando...',
-                        text: 'Registrando tu marcación',
+                        text: 'Registrando su marcación',
                         allowOutsideClick: false,
                         didOpen: () => { Swal.showLoading(); }
                     });
@@ -440,16 +623,24 @@
                         success: function(response) {
                             Swal.close();
                             if (response.exito) {
+                                cacheRegistros.datos = null;
+                                cacheRegistros.timestamp = 0;
+                                var mensajeExtra = '';
+                                if (tipo === 'Salida') {
+                                    mensajeExtra = '<br><br>🏁 Este día ya cuenta como DÍA TRABAJADO en el resumen del mes.';
+                                } else if (tipo === 'Almuerzo_Salida') {
+                                    mensajeExtra = '<br><br>🍽️ No olvide registrar su RETORNO DE ALMUERZO cuando regrese.';
+                                }
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '¡Éxito!',
-                                    text: response.mensaje,
-                                    timer: 2000,
+                                    title: '¡Registro Exitoso!',
+                                    html: `✅ ${response.mensaje}<br><br>⏰ Hora: ${new Date().toLocaleTimeString()}${mensajeExtra}`,
+                                    timer: 2500,
                                     showConfirmButton: false
                                 });
                                 $('#txtComentario').val('');
-                                cargarRegistrosHoy();
-                                setTimeout(function() { location.reload(); }, 2000);
+                                cargarRegistrosHoy(true);
+                                setTimeout(function() { location.reload(); }, 2500);
                             } else {
                                 Swal.fire({
                                     icon: 'error',
@@ -471,56 +662,85 @@
             });
         }
 
-        function cargarRegistrosHoy() {
-            $.ajax({
-                url: '@Url.Action("ObtenerRegistrosHoy", "Trabajador")',
-                type: 'POST',
-                dataType: 'json',
-                success: function(data) {
-                    var tbody = $("#tbodyRegistros");
-                    tbody.empty();
-
-                    if (!data || data.length === 0) {
-                        tbody.html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>No hay registros hoy</td></tr>');
-                    } else {
-                        for (var i = 0; i < data.length; i++) {
-                            var item = data[i];
-                            var icono = '';
-                            var badgeClass = '';
-
-                            var horaMostrar = item.Hora;
-                            if (horaMostrar && horaMostrar.length > 5) {
-                                horaMostrar = horaMostrar.substring(0, 5);
-                            }
-
-                            if (item.TipoRegistro === 'Entrada') {
-                                icono = '🟢';
-                                badgeClass = 'bg-success';
-                            } else if (item.TipoRegistro === 'Almuerzo_Salida') {
-                                icono = '🍽️';
-                                badgeClass = 'bg-warning';
-                            } else if (item.TipoRegistro === 'Almuerzo_Retorno') {
-                                icono = '🍽️';
-                                badgeClass = 'bg-info';
-                            } else if (item.TipoRegistro === 'Salida') {
-                                icono = '🔴';
-                                badgeClass = 'bg-danger';
-                            }
-
-                            tbody.append(
-                                '<tr>' +
-                                '<td class="fw-bold">' + horaMostrar + '</td>' +
-                                '<td><span class="badge ' + badgeClass + ' px-3 py-2 rounded-pill">' + icono + ' ' + item.TipoRegistro + '</span></td>' +
-                                '<td class="text-muted">' + (item.Comentario || '-') + '</td>' +
-                                '</tr>'
-                            );
-                        }
-                    }
-                },
-                error: function() {
-                    $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar datos</td></tr>');
-                }
+        function renderizarTabla(data) {
+            var tbody = $("#tbodyRegistros");
+            if (!data || data.length === 0) {
+                tbody.html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>No hay registros hoy<\/td>\\n</tr>');
+                registrosActuales = [];
+                return;
+            }
+            data.sort(function(a, b) {
+                return a.Hora.localeCompare(b.Hora);
             });
+            var filas = [];
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var icono = '';
+                var badgeClass = '';
+                var horaMostrar = item.Hora;
+                if (horaMostrar && horaMostrar.length > 5) {
+                    horaMostrar = horaMostrar.substring(0, 5);
+                }
+                if (item.TipoRegistro === 'Entrada') {
+                    icono = '🟢';
+                    badgeClass = 'bg-success';
+                } else if (item.TipoRegistro === 'Almuerzo_Salida') {
+                    icono = '🍽️';
+                    badgeClass = 'bg-warning';
+                } else if (item.TipoRegistro === 'Almuerzo_Retorno') {
+                    icono = '🍽️';
+                    badgeClass = 'bg-info';
+                } else if (item.TipoRegistro === 'Salida') {
+                    icono = '🔴';
+                    badgeClass = 'bg-danger';
+                }
+                filas.push(
+                    '<tr>' +
+                    '<td class="fw-bold">' + horaMostrar + '<\/td>' +
+                    '<td><span class="badge ' + badgeClass + ' px-3 py-2 rounded-pill">' + icono + ' ' + item.TipoRegistro + '<\/span><\/td>' +
+                    '<td class="text-muted">' + (item.Comentario || '-') + '<\/td>' +
+                    '<\/tr>'
+                );
+            }
+            tbody.html(filas.join(''));
+            registrosActuales = data;
+        }
+
+        function cargarRegistrosHoy(forzarRecarga = false) {
+            var ahora = new Date().getTime();
+            if (!forzarRecarga && cacheRegistros.datos && (ahora - cacheRegistros.timestamp) < cacheRegistros.tiempoVida) {
+                renderizarTabla(cacheRegistros.datos);
+                return;
+            }
+            if (cargaEnProceso) return;
+            cargaEnProceso = true;
+            if (!cacheRegistros.datos) {
+                $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>Cargando registros...<\/td>\\n</tr>');
+            }
+            if (timeoutCarga) clearTimeout(timeoutCarga);
+            timeoutCarga = setTimeout(function() {
+                $.ajax({
+                    url: '@Url.Action("ObtenerRegistrosHoy", "Trabajador")',
+                    type: 'POST',
+                    dataType: 'json',
+                    timeout: 10000,
+                    success: function(data) {
+                        cacheRegistros.datos = data || [];
+                        cacheRegistros.timestamp = new Date().getTime();
+                        renderizarTabla(cacheRegistros.datos);
+                        cargaEnProceso = false;
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al cargar registros:", status, error);
+                        if (status === "timeout") {
+                            $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-warning"><i class="fas fa-clock fa-2x mb-2 d-block"></i>Tiempo de espera agotado. Intente refrescar.<\/td>\\n</tr>');
+                        } else {
+                            $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar datos<\/td>\\n</tr>');
+                        }
+                        cargaEnProceso = false;
+                    }
+                });
+            }, 10);
         }
 
         var tipoPermisoGlobal = '@tipoPermisoExcepcional';
@@ -528,36 +748,114 @@
         function cargarOpcionesTipoPermiso() {
             var select = $('#tipoSolicitud');
             select.empty();
-
+            var tieneEntrada = registrosActuales.some(function(r) { return r.TipoRegistro === 'Entrada'; });
+            var tieneSalida = registrosActuales.some(function(r) { return r.TipoRegistro === 'Salida'; });
+            var tieneSalidaAlmuerzo = registrosActuales.some(function(r) { return r.TipoRegistro === 'Almuerzo_Salida'; });
+            var tieneRetornoAlmuerzo = registrosActuales.some(function(r) { return r.TipoRegistro === 'Almuerzo_Retorno'; });
             var opciones = [];
 
             switch(tipoPermisoGlobal) {
                 case 'Entrada':
-                    opciones = [{ value: 'Entrada', text: 'Entrada' }];
+                    if (!tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada', habilitado: true });
+                    } else if (tieneEntrada) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada (ya registrada)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada (no disponible - ya tiene salida)', habilitado: false });
+                    }
                     break;
                 case 'Almuerzo_Salida':
-                    opciones = [{ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo' }];
+                    if (!tieneSalidaAlmuerzo && tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo', habilitado: true });
+                    } else if (tieneSalidaAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (ya registrada)', habilitado: false });
+                    } else if (!tieneEntrada) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (requiere entrada primero)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (no disponible - ya tiene salida)', habilitado: false });
+                    }
                     break;
                 case 'Almuerzo_Retorno':
-                    opciones = [{ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo' }];
+                    if (!tieneRetornoAlmuerzo && tieneSalidaAlmuerzo && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo', habilitado: true });
+                    } else if (tieneRetornoAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (ya registrado)', habilitado: false });
+                    } else if (!tieneSalidaAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (requiere salida a almuerzo primero)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (no disponible - ya tiene salida)', habilitado: false });
+                    }
                     break;
                 case 'Salida':
-                    opciones = [{ value: 'Salida', text: 'Salida' }];
+                    if (!tieneSalida && tieneEntrada && (!tieneSalidaAlmuerzo || tieneRetornoAlmuerzo)) {
+                        opciones.push({ value: 'Salida', text: 'Salida', habilitado: true });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Salida', text: 'Salida (ya registrada)', habilitado: false });
+                    } else if (!tieneEntrada) {
+                        opciones.push({ value: 'Salida', text: 'Salida (requiere entrada primero)', habilitado: false });
+                    } else if (tieneSalidaAlmuerzo && !tieneRetornoAlmuerzo) {
+                        opciones.push({ value: 'Salida', text: 'Salida (complete retorno de almuerzo primero)', habilitado: false });
+                    }
                     break;
                 case 'Todos':
                 case 'Ambos':
                 default:
-                    opciones = [
-                        { value: 'Entrada', text: 'Entrada' },
-                        { value: 'Almuerzo_Salida', text: 'Salida a Almuerzo' },
-                        { value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo' },
-                        { value: 'Salida', text: 'Salida' }
-                    ];
+                    if (!tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada', habilitado: true });
+                    } else if (tieneEntrada) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada (ya registrada hoy)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Entrada', text: 'Entrada (no disponible - ya tiene salida)', habilitado: false });
+                    } else {
+                        opciones.push({ value: 'Entrada', text: 'Entrada', habilitado: true });
+                    }
+                    if (!tieneSalidaAlmuerzo && tieneEntrada && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo', habilitado: true });
+                    } else if (tieneSalidaAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (ya registrada)', habilitado: false });
+                    } else if (!tieneEntrada) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (requiere entrada)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo (no disponible - ya tiene salida)', habilitado: false });
+                    } else {
+                        opciones.push({ value: 'Almuerzo_Salida', text: 'Salida a Almuerzo', habilitado: true });
+                    }
+                    if (!tieneRetornoAlmuerzo && tieneSalidaAlmuerzo && !tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo', habilitado: true });
+                    } else if (tieneRetornoAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (ya registrado)', habilitado: false });
+                    } else if (!tieneSalidaAlmuerzo) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (requiere salida a almuerzo)', habilitado: false });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo (no disponible - ya tiene salida)', habilitado: false });
+                    } else {
+                        opciones.push({ value: 'Almuerzo_Retorno', text: 'Retorno de Almuerzo', habilitado: true });
+                    }
+                    if (!tieneSalida && tieneEntrada && (!tieneSalidaAlmuerzo || tieneRetornoAlmuerzo)) {
+                        opciones.push({ value: 'Salida', text: 'Salida', habilitado: true });
+                    } else if (tieneSalida) {
+                        opciones.push({ value: 'Salida', text: 'Salida (ya registrada)', habilitado: false });
+                    } else if (!tieneEntrada) {
+                        opciones.push({ value: 'Salida', text: 'Salida (requiere entrada)', habilitado: false });
+                    } else if (tieneSalidaAlmuerzo && !tieneRetornoAlmuerzo) {
+                        opciones.push({ value: 'Salida', text: 'Salida (complete retorno de almuerzo)', habilitado: false });
+                    } else {
+                        opciones.push({ value: 'Salida', text: 'Salida', habilitado: true });
+                    }
                     break;
             }
 
             for (var i = 0; i < opciones.length; i++) {
-                select.append('<option value="' + opciones[i].value + '">' + opciones[i].text + '</option>');
+                if (opciones[i].habilitado) {
+                    select.append('<option value="' + opciones[i].value + '">' + opciones[i].text + '</option>');
+                }
+            }
+
+            if (select.children().length === 0) {
+                select.append('<option value="" disabled>No hay opciones disponibles en este momento</option>');
+                $('#btnSolicitar').prop('disabled', true);
+            } else {
+                $('#btnSolicitar').prop('disabled', false);
             }
         }
 
@@ -574,12 +872,13 @@
                 Swal.fire('Atención', 'Ingrese una justificación', 'warning');
                 return;
             }
+            if (!tipo) {
+                Swal.fire('Atención', 'No hay opciones disponibles', 'warning');
+                return;
+            }
 
             var hoy = new Date();
-            var fechaLocal = hoy.getFullYear() + '-' +
-                             String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
-                             String(hoy.getDate()).padStart(2, '0');
-
+            var fechaLocal = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0') + '-' + String(hoy.getDate()).padStart(2, '0');
             var fechaHoraStr = fechaLocal + 'T' + hora + ':00';
 
             Swal.fire({
@@ -592,7 +891,6 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({ title: 'Enviando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
                     $.ajax({
                         url: '@Url.Action("SolicitarMarcacionExcepcional", "Trabajador")',
                         type: 'POST',
@@ -604,6 +902,8 @@
                                 $('#modalSolicitudExcepcional').modal('hide');
                                 $('#horaSolicitud').val('');
                                 $('#justificacionSolicitud').val('');
+                                cacheRegistros.datos = null;
+                                cargarRegistrosHoy(true);
                             } else {
                                 Swal.fire('Error', response.message, 'error');
                             }

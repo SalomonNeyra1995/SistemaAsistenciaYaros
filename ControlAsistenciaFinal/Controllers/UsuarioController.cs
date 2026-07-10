@@ -27,8 +27,8 @@ namespace ControlAsistenciaFinal.Controllers
         {
             string passwordHash = SecurityHelper.HashPassword(password);
 
-            string query = @"INSERT INTO Usuarios (NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo)
-                             VALUES (@Nombre, @Email, @Password, @Rol, @Horas, 1);
+            string query = @"INSERT INTO Usuarios (NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo,password)
+                             VALUES (@Nombre, @Email, @Password, @Rol, @Horas, 1 ,ContraInvertida);
                              SELECT SCOPE_IDENTITY();";
 
             SqlParameter[] parameters = new SqlParameter[]

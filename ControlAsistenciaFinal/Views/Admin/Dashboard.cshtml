@@ -502,6 +502,18 @@
                             <h5 class="mt-2">Permisos Excepcionales</h5>
                             <p>Gestionar permisos</p>
                         </div>
+                        <!-- ============================================ -->
+                        <!-- NUEVO: Reporte de Tardanzas -->
+                        <!-- ============================================ -->
+                        <div class="col-md-3 text-center">
+                            <div onclick="window.location.href='@Url.Action("ReporteTardanzas", "Admin")'" style="cursor: pointer; display: inline-block;  ">
+                                <i class="fas fa-clock fa-3x" style="color: rgb(89, 90, 89) !important;"></i>
+                            </div>
+                            <h5 class="mt-2">Reporte de Tardanzas</h5>
+                            <p>Ver reporte de tardanzas</p>
+                        </div>
+
+
                         <div class="col-md-3 text-center">
                             <a href="@Url.Action("RecuperarUser", "Admin")" style="cursor: pointer; text-decoration: none; color: inherit; display: inline-block;">
                                 <div>
@@ -518,55 +530,70 @@
     </div>
 </div>
 
-<!-- Modal para alertas de horas completadas -->
-<div class="modal fade" id="modalAlertasHoras" tabindex="-1" data-bs-backdrop="static">
+<!-- Modal para alertas de horas completadas - VERSIÓN MEJORADA -->
+<div class="modal fade" id="modalAlertasHoras" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
-            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <h5 class="modal-title text-white">
-                    <i class="fas fa-bell me-2"></i> Alertas de Horas Completadas
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-bottom: none; padding: 1rem 1.5rem;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-white bg-opacity-25 p-2 me-3">
+                        <i class="fas fa-bell text-white fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0">Alertas de Horas Completadas</h5>
+                        <small class="text-white-50">Usuarios que alcanzaron su meta mensual</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body p-0">
-                <ul class="nav nav-tabs px-3 pt-3" id="alertasTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab">
-                            <i class="fas fa-clock"></i> No Leídas <span id="pendientesCount" class="badge bg-danger ms-1">0</span>
+                <!-- Tabs modernos -->
+                <ul class="nav nav-tabs px-4 pt-3" id="alertasTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                    <li class="nav-item me-3" role="presentation">
+                        <button class="nav-link active fw-semibold" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab" style="border: none; color: #6c757d; padding: 0.75rem 0;">
+                            <i class="fas fa-bell me-2"></i>
+                            No Leídas
+                            <span id="pendientesCount" class="badge bg-danger rounded-pill ms-2" style="font-size: 0.7rem;">0</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab">
-                            <i class="fas fa-history"></i> Historial
+                        <button class="nav-link fw-semibold" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico" type="button" role="tab" style="border: none; color: #6c757d; padding: 0.75rem 0;">
+                            <i class="fas fa-history me-2"></i>
+                            Historial
                         </button>
                     </li>
                 </ul>
 
-                <div class="tab-content p-3" id="alertasTabsContent">
-                    <div class="tab-pane fade show active" id="pendientes" role="tabpanel">
-                        <div id="listaAlertasPendientes" class="alertas-container" style="max-height: 500px; overflow-y: auto;">
+                <div class="tab-content" id="alertasTabsContent">
+                    <!-- Tab de alertas pendientes -->
+                    <div class="tab-pane fade show active p-3" id="pendientes" role="tabpanel">
+                        <div id="listaAlertasPendientes" class="alertas-container" style="max-height: 550px; overflow-y: auto;">
                             <div class="text-center py-5 text-muted">
                                 <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
-                                Cargando alertas...
+                                <p class="mb-0">Cargando alertas...</p>
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="historico" role="tabpanel">
-                        <div id="listaAlertasHistorico" class="alertas-container" style="max-height: 500px; overflow-y: auto;">
+
+                    <!-- Tab de historial -->
+                    <div class="tab-pane fade p-3" id="historico" role="tabpanel">
+                        <div id="listaAlertasHistorico" class="alertas-container" style="max-height: 550px; overflow-y: auto;">
                             <div class="text-center py-5 text-muted">
                                 <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
-                                Cargando historial...
+                                <p class="mb-0">Cargando historial...</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cerrar
+
+            <div class="modal-footer bg-light" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cerrar
                 </button>
                 <button type="button" id="btnMarcarTodasLeidas" class="btn btn-primary">
-                    <i class="fas fa-check-double"></i> Marcar todas como leídas
+                    <i class="fas fa-check-double me-1"></i> Marcar todas como leídas
                 </button>
             </div>
         </div>
@@ -593,184 +620,327 @@
     </div>
 </div>
 
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
 
-    <script>
+    @section Scripts {
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script>
         // Toast personalizado
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 5000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer);
-                toast.addEventListener('mouseleave', Swal.resumeTimer);
-            }
+            timerProgressBar: true
         });
 
         $(document).ready(function() {
-            cargarAlertasHoras();
+            console.log("Document ready");
+            // Verificar si existe el botón de alertas
+            if ($('#btnAlertasHoras').length === 0) {
+                console.log("Botón de alertas no encontrado, agregando...");
+                $('body').append(`
+                    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+                        <a href="#" id="btnAlertasHoras" class="btn btn-light rounded-circle shadow-lg" style="width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; text-decoration: none; position: relative;">
+                            <i class="fas fa-bell fa-2x" style="color: #ffc107;"></i>
+                            <span id="alertaCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.7rem; min-width: 22px;">0</span>
+                        </a>
+                    </div>
+                `);
+            }
 
-            $('#btnAlertasHoras').click(function(e) {
+            // Cargar alertas
+            cargarAlertas();
+
+            // Evento campana
+            $(document).on('click', '#btnAlertasHoras', function(e) {
                 e.preventDefault();
+                console.log("Abriendo modal de alertas");
                 $('#modalAlertasHoras').modal('show');
+                cargarAlertas();
+            });
+
+            // Evento marcar todas
+            $(document).on('click', '#btnMarcarTodasLeidas', function() {
+                marcarTodasLeidas();
             });
         });
 
-        // ============================================
-        // ALERTAS DE HORAS COMPLETADAS
-        // ============================================
-        function cargarAlertasHoras() {
+        function cargarAlertas() {
+            console.log("Cargando alertas...");
+
+            // Cargar pendientes (no leídas)
             $.ajax({
-                url: '@Url.Action("ObtenerAlertasHoras", "Admin")',
+                url: '/Trabajador/ObtenerAlertasHorasJson',
                 type: 'GET',
+                data: { soloNoLeidas: true },
                 dataType: 'json',
                 success: function(response) {
-                    if (response.success && response.count > 0) {
-                        $('#alertaCount').text(response.count).show();
+                    console.log("Pendientes response:", response);
+                    if (response.success) {
+                        if (response.data && response.data.length > 0) {
+                            mostrarAlertasPendientes(response.data);
+                            $('#pendientesCount').text(response.data.length);
+                            $('#alertaCount').text(response.data.length).show();
 
-                        Toast.fire({
-                            icon: 'info',
-                            title: response.count + ' trabajador(es) han alcanzado las horas totales del mes'
-                        });
-                    } else {
-                        $('#alertaCount').hide();
-                    }
-
-                    if (response.data && response.data.length > 0) {
-                        var pendientesHtml = '';
-                        for (var i = 0; i < response.data.length; i++) {
-                            var item = response.data[i];
-                            var porcentaje = (item.HorasAlcanzadas / item.HorasObjetivo) * 100;
-                            porcentaje = Math.min(porcentaje, 100);
-
-                            pendientesHtml += '<div class="alerta-card mb-3 p-3 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3c9 100%); border-left: 5px solid #ffc107;">' +
-                                '<div class="d-flex justify-content-between align-items-start">' +
-                                    '<div class="d-flex align-items-center">' +
-                                        '<div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">' +
-                                            '<i class="fas fa-trophy fa-2x"></i>' +
-                                        '</div>' +
-                                        '<div>' +
-                                            '<h6 class="mb-1 fw-bold">' + item.NombreCompleto + '</h6>' +
-                                            '<p class="mb-1 text-muted small">' +
-                                                '<i class="fas fa-envelope me-1"></i> ' + item.Email +
-                                                '<span class="mx-2">•</span>' +
-                                                '<i class="fas fa-tag me-1"></i> ' + item.RolPago +
-                                            '</p>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<span class="badge bg-success rounded-pill">🎯 Meta alcanzada</span>' +
-                                '</div>' +
-                                '<div class="mt-3">' +
-                                    '<div class="d-flex justify-content-between mb-1">' +
-                                        '<small class="text-muted">Progreso: ' + porcentaje.toFixed(0) + '%</small>' +
-                                        '<small class="text-muted">' + item.HorasAlcanzadas + ' / ' + item.HorasObjetivo + ' hrs</small>' +
-                                    '</div>' +
-                                    '<div class="progress mb-2" style="height: 8px;">' +
-                                        '<div class="progress-bar bg-success" role="progressbar" style="width: ' + porcentaje + '%;"></div>' +
-                                    '</div>' +
-                                    '<small class="text-muted">' +
-                                        '<i class="fas fa-calendar-alt me-1"></i> Alerta generada: ' + item.FechaAlerta +
-                                    '</small>' +
-                                '</div>' +
-                                '<hr class="my-2">' +
-                                '<div class="d-flex justify-content-end">' +
-                                    '<button class="btn btn-sm btn-outline-success marcar-leida" data-id="' + item.Id + '">' +
-                                        '<i class="fas fa-check"></i> Marcar como leída' +
-                                    '</button>' +
-                                '</div>' +
-                            '</div>';
+                            // Mostrar notificación
+                            Toast.fire({
+                                icon: 'info',
+                                title: response.data.length + ' trabajador(es) alcanzaron su meta',
+                                timer: 8000
+                            });
+                        } else {
+                            $('#listaAlertasPendientes').html(`
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fas fa-check-circle fa-4x text-success mb-3 d-block"></i>
+                                    <h6 class="fw-bold">¡Todo en orden!</h6>
+                                    <p class="mb-0">No hay alertas pendientes</p>
+                                </div>
+                            `);
+                            $('#pendientesCount').text(0);
+                            $('#alertaCount').hide();
                         }
-                        $('#listaAlertasPendientes').html(pendientesHtml);
-                        $('#pendientesCount').text(response.data.length);
-
-                        $('.marcar-leida').click(function() {
-                            var alertaId = $(this).data('id');
-                            marcarAlertaLeida(alertaId);
-                        });
                     } else {
-                        $('#listaAlertasPendientes').html(
-                            '<div class="text-center py-5 text-muted">' +
-                                '<i class="fas fa-check-circle fa-3x text-success mb-3 d-block"></i>' +
-                                '<p>No hay alertas pendientes</p>' +
-                                '<small>Todos los facilitadores están dentro del objetivo</small>' +
-                            '</div>'
-                        );
-                        $('#pendientesCount').text(0);
+                        mostrarError('pendientes');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error, xhr.responseText);
+                    mostrarError('pendientes');
+                }
+            });
+
+            // Cargar historial (todas)
+            $.ajax({
+                url: '/Trabajador/ObtenerAlertasHorasJson',
+                type: 'GET',
+                data: { soloNoLeidas: false },
+                dataType: 'json',
+                success: function(response) {
+                    console.log("Historial response:", response);
+                    if (response.success && response.data && response.data.length > 0) {
+                        mostrarAlertasHistorial(response.data);
+                    } else {
+                        $('#listaAlertasHistorico').html(`
+                            <div class="text-center py-5 text-muted">
+                                <i class="fas fa-history fa-4x mb-3 d-block"></i>
+                                <h6 class="fw-bold">Sin historial</h6>
+                                <p class="mb-0">No hay alertas registradas</p>
+                            </div>
+                        `);
                     }
                 },
                 error: function() {
-                    $('#listaAlertasPendientes').html(
-                        '<div class="text-center py-5 text-danger">' +
-                            '<i class="fas fa-exclamation-triangle fa-3x mb-3 d-block"></i>' +
-                            '<p>Error al cargar las alertas</p>' +
-                        '</div>'
-                    );
+                    $('#listaAlertasHistorico').html(`
+                        <div class="text-center py-5 text-danger">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-2 d-block"></i>
+                            <p>Error al cargar historial</p>
+                        </div>
+                    `);
                 }
             });
         }
 
-        function marcarAlertaLeida(alertaId) {
-            $.ajax({
-                url: '@Url.Action("MarcarAlertaLeida", "Admin")',
-                type: 'POST',
-                data: { alertaId: alertaId },
-                success: function(response) {
-                    if (response.success) {
-                        cargarAlertasHoras();
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Marcada!',
-                            text: 'Alerta marcada como leída',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                    }
-                }
+        function mostrarAlertasPendientes(alertas) {
+            var html = '';
+            for (var i = 0; i < alertas.length; i++) {
+                var item = alertas[i];
+                var porcentaje = (item.HorasAlcanzadas / item.HorasObjetivo) * 100;
+
+                html += `
+                    <div class="alerta-card mb-3 p-3 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3c9 100%); border-left: 5px solid #ffc107;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 55px; height: 55px;">
+                                    <i class="fas fa-trophy fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">${escapeHtml(item.NombreCompleto)}</h6>
+                                    <p class="mb-0 text-muted small">
+                                        <i class="fas fa-envelope me-1"></i> ${escapeHtml(item.Email)}
+                                    </p>
+                                    <p class="mb-0 text-muted small">
+                                        <i class="fas fa-tag me-1"></i> ${escapeHtml(item.RolPago)}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="badge bg-success rounded-pill px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i> Meta alcanzada
+                            </span>
+                        </div>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">Progreso: ${porcentaje.toFixed(0)}%</small>
+                                <small class="text-muted fw-bold">${item.HorasAlcanzadas} / ${item.HorasObjetivo} hrs</small>
+                            </div>
+                            <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: ${porcentaje}%; border-radius: 10px;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> ${item.FechaAlerta}
+                                </small>
+                                <button class="btn btn-sm btn-success marcar-leida-btn" data-id="${item.Id}">
+                                    <i class="fas fa-check me-1"></i> Marcar como leída
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            $('#listaAlertasPendientes').html(html);
+
+            // Eventos para botones de marcar leída
+            $('.marcar-leida-btn').off('click').on('click', function() {
+                var id = $(this).data('id');
+                marcarLeida(id);
             });
         }
 
-        $('#btnMarcarTodasLeidas').click(function() {
+        function mostrarAlertasHistorial(alertas) {
+            var html = '';
+            for (var i = 0; i < alertas.length; i++) {
+                var item = alertas[i];
+                var estaLeida = item.Leido === true || item.Leido === 1;
+
+                html += `
+                    <div class="alerta-card mb-3 p-3 rounded-3 ${estaLeida ? 'bg-light' : 'bg-white'}" style="border-left: 5px solid ${estaLeida ? '#6c757d' : '#ffc107'};">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle ${estaLeida ? 'bg-secondary' : 'bg-warning'} text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fas ${estaLeida ? 'fa-check' : 'fa-trophy'} fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">${escapeHtml(item.NombreCompleto)}</h6>
+                                    <p class="mb-0 text-muted small">
+                                        <i class="fas fa-envelope me-1"></i> ${escapeHtml(item.Email)}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="badge ${estaLeida ? 'bg-secondary' : 'bg-success'} rounded-pill">
+                                <i class="fas ${estaLeida ? 'fa-check-circle' : 'fa-trophy'} me-1"></i>
+                                ${estaLeida ? 'Leída' : 'Meta alcanzada'}
+                            </span>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i> ${item.FechaAlerta}
+                            </small>
+                            <div class="mt-1">
+                                <small class="text-muted">Horas: ${item.HorasAlcanzadas} / ${item.HorasObjetivo}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            $('#listaAlertasHistorico').html(html);
+        }
+
+        function marcarLeida(alertaId) {
             Swal.fire({
-                title: 'Marcar todas como leídas',
-                text: '¿Está seguro de marcar todas las alertas como leídas?',
+                title: '¿Marcar como leída?',
+                text: 'Esta alerta se moverá al historial',
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Sí, marcar todas',
-                cancelButtonText: 'Cancelar'
+                confirmButtonText: 'Sí, marcar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: '@Url.Action("MarcarTodasAlertasLeidas", "Admin")',
+                        url: '/Trabajador/MarcarAlertaLeida',
                         type: 'POST',
+                        data: { alertaId: alertaId },
                         success: function(response) {
                             if (response.success) {
-                                cargarAlertasHoras();
-                                Swal.fire({
+                                Toast.fire({
                                     icon: 'success',
-                                    title: '¡Completado!',
-                                    text: 'Todas las alertas han sido marcadas como leídas',
-                                    timer: 2000,
-                                    showConfirmButton: false
+                                    title: 'Alerta marcada como leída'
                                 });
+                                cargarAlertas();
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
                             }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudo marcar la alerta', 'error');
                         }
                     });
                 }
             });
-        });
+        }
 
-        // ============================================
-        // DETALLES DASHBOARD
-        // ============================================
+        function marcarTodasLeidas() {
+            Swal.fire({
+                title: 'Marcar todas como leídas',
+                text: '¿Está seguro de marcar TODAS las alertas como leídas?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, marcar todas',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Trabajador/MarcarTodasAlertasLeidas',
+                        type: 'POST',
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Completado!',
+                                    text: `Se marcaron ${response.count} alertas como leídas`,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                cargarAlertas();
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudo completar la acción', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function mostrarError(tab) {
+            if (tab === 'pendientes') {
+                $('#listaAlertasPendientes').html(`
+                    <div class="text-center py-5 text-danger">
+                        <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block"></i>
+                        <h6 class="fw-bold">Error al cargar las alertas</h6>
+                        <p class="mb-0">Por favor, intente nuevamente</p>
+                        <button class="btn btn-primary btn-sm mt-3" onclick="cargarAlertas()">
+                            <i class="fas fa-sync-alt me-1"></i> Reintentar
+                        </button>
+                    </div>
+                `);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '-';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Funciones existentes de presentes/tardanzas/ausentes
         function verPresentes() {
             $('#modalTitle').text('Empleados Presentes Hoy');
             $('#modalHeader').removeClass().addClass('modal-header text-white');
             $('#modalHeader').css('background-color', 'rgb(89, 90, 89)');
-            $('#theadDetalle').html('<tr><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Comentario</th></tr>');
+            $('#theadDetalle').html('<table><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Comentario</th></tr>');
             $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center">Cargando...</td></tr>');
             $('#modalDetalle').modal('show');
 
@@ -786,12 +956,7 @@
                     } else {
                         for (var i = 0; i < data.length; i++) {
                             var item = data[i];
-                            tbody.append('<tr>' +
-                                '<td>' + item.NombreCompleto + '</td>' +
-                                '<td>' + item.Email + '</td>' +
-                                '<td>' + item.HoraEntrada + '</td>' +
-                                '<td>' + (item.Comentario || '-') + '</td>' +
-                                '</tr>');
+                            tbody.append('<tr><td>' + escapeHtml(item.NombreCompleto) + '</td><td>' + escapeHtml(item.Email) + '</td><td>' + item.HoraEntrada + '</td><td>' + (item.Comentario || '-') + '</td></tr>');
                         }
                     }
                 }
@@ -817,13 +982,7 @@
                     } else {
                         for (var i = 0; i < data.length; i++) {
                             var item = data[i];
-                            tbody.append('<tr>' +
-                                '<td>' + item.NombreCompleto + '</td>' +
-                                '<td>' + item.Email + '</td>' +
-                                '<td>' + item.HoraEntrada + '</td>' +
-                                '<td>' + item.MinutosTarde + '</td>' +
-                                '<td>' + (item.Comentario || '-') + '</td>' +
-                                '</tr>');
+                            tbody.append('<tr><td>' + escapeHtml(item.NombreCompleto) + '</td><td>' + escapeHtml(item.Email) + '</td><td>' + item.HoraEntrada + '</td><td>' + item.MinutosTarde + '</td><td>' + (item.Comentario || '-') + '</td></tr>');
                         }
                     }
                 }
@@ -834,14 +993,7 @@
             $('#modalTitle').text('Empleados Ausentes Hoy');
             $('#modalHeader').removeClass().addClass('modal-header text-white');
             $('#modalHeader').css('background-color', '#dc3545');
-            $('#theadDetalle').html('\
-                <tr>\
-                    <th><i class="fas fa-user me-1"></i> Nombre</th>\
-                    <th><i class="fas fa-envelope me-1"></i> Email</th>\
-                    <th><i class="fas fa-calendar me-1"></i> Fecha</th>\
-                    <th><i class="fas fa-comment me-1"></i> Estado</th>\
-                </tr>\
-            ');
+            $('#theadDetalle').html('<tr><th><i class="fas fa-user me-1"></i> Nombre</th><th><i class="fas fa-envelope me-1"></i> Email</th><th><i class="fas fa-calendar me-1"></i> Fecha</th><th><i class="fas fa-comment me-1"></i> Estado</th></tr>');
             $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>');
             $('#modalDetalle').modal('show');
 
@@ -853,49 +1005,19 @@
                     var tbody = $('#tbodyDetalle');
                     tbody.empty();
                     if (data.length === 0) {
-                        tbody.html('\
-                            <tr>\
-                                <td colspan="4" class="text-center py-4">\
-                                    <i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i>\
-                                    <span>Todos los empleados están presentes hoy</span>\
-                                 </td>\
-                            </tr>\
-                        ');
+                        tbody.html('<tr><td colspan="4" class="text-center py-4"><i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i><span>Todos los empleados están presentes hoy</span></td></tr>');
                     } else {
                         for (var i = 0; i < data.length; i++) {
                             var item = data[i];
-                            tbody.append('\
-                                <tr>\
-                                    <td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td>\
-                                    <td>' + escapeHtml(item.Email) + '</td>\
-                                    <td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td>\
-                                    <td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td>\
-                                </tr>\
-                            ');
+                            tbody.append('<tr><td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td><td>' + escapeHtml(item.Email) + '</td><td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td><td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td></tr>');
                         }
                     }
                 },
                 error: function() {
-                    $('#tbodyDetalle').html('\
-                        <tr>\
-                            <td colspan="4" class="text-center text-danger py-4">\
-                                <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>\
-                                Error al cargar los datos\
-                             </td>\
-                        </tr>\
-                    ');
+                    $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar los datos</td></tr>');
                 }
             });
         }
-
-        function escapeHtml(text) {
-            if (!text) return '-';
-            return text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-    </script>
-}
+        </script>
+    }
+ 

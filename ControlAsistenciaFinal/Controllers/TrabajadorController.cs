@@ -56,30 +56,66 @@ namespace ControlAsistenciaFinal.Controllers
             bool esFacilitador = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["Tipo"].ToString() == "Facilitador";
             bool esPlanilla = dtConcepto.Rows.Count > 0 && dtConcepto.Rows[0]["Tipo"].ToString() == "Planilla";
 
+       
             // ============================================
-            // CALCULAR DÍAS TRABAJADOS EN EL CICLO ACTUAL
+            // CALCULAR DÍAS TRABAJADOS - SEGÚN TIPO DE USUARIO
             // ============================================
-                    string queryDias = @"
+            int diasTrabajados = 0;
+
+            if (esPlanilla)
+            {
+                // Para Planilla: contar días del mes actual (lunes a sábado, excluyendo domingos)
+                DateTime inicioMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                DateTime finMes = inicioMes.AddMonths(1).AddDays(-1);
+
+              string queryDiasPlanilla = @"
             SELECT COUNT(*) AS DiasTrabajados
             FROM (
                 SELECT CAST(FechaHora AS DATE) AS Fecha
                 FROM RegistrosAsistencia
                 WHERE UsuarioId = @UsuarioId
-                    AND CAST(FechaHora AS DATE) >= @FechaInicioCiclo
+                    AND CAST(FechaHora AS DATE) >= @FechaInicio
+                    AND CAST(FechaHora AS DATE) <= @FechaFin
+                    AND DATEPART(dw, CAST(FechaHora AS DATE)) NOT IN (1) -- Excluye domingos
                 GROUP BY CAST(FechaHora AS DATE)
                 HAVING 
                     SUM(CASE WHEN TipoRegistro = 'Entrada' THEN 1 ELSE 0 END) > 0
                     AND SUM(CASE WHEN TipoRegistro = 'Salida' THEN 1 ELSE 0 END) > 0
+                    -- Asegurar que la salida tiene una hora válida (no NULL)
+                    AND MAX(CASE WHEN TipoRegistro = 'Salida' THEN CAST(FechaHora AS TIME) END) IS NOT NULL
             ) AS DiasConEntradaYSalida";
 
-            SqlParameter[] paramDias = new SqlParameter[]
-            {
+                SqlParameter[] paramDiasPlanilla = new SqlParameter[]
+                {
         new SqlParameter("@UsuarioId", usuarioId),
-        new SqlParameter("@FechaInicioCiclo", fechaInicioCiclo)
-            };
-            DataTable dtDias = DatabaseHelper.ExecuteQuery(queryDias, paramDias);
-             
-            int diasTrabajados = dtDias.Rows.Count > 0 ? Convert.ToInt32(dtDias.Rows[0]["DiasTrabajados"]) : 0;
+        new SqlParameter("@FechaInicio", inicioMes),
+        new SqlParameter("@FechaFin", finMes)
+                };
+
+                DataTable dtDiasPlanilla = DatabaseHelper.ExecuteQuery(queryDiasPlanilla, paramDiasPlanilla);
+                diasTrabajados = dtDiasPlanilla.Rows.Count > 0 ? Convert.ToInt32(dtDiasPlanilla.Rows[0]["DiasTrabajados"]) : 0;
+            }
+            else
+            {
+            // Para Facilitador y otros: contar días desde el inicio del ciclo
+                        string queryDias = @"
+            SET DATEFIRST 1;
+            SELECT COUNT(DISTINCT CAST(FechaHora AS DATE)) AS DiasTrabajados
+            FROM RegistrosAsistencia
+            WHERE UsuarioId = @UsuarioId
+                AND CAST(FechaHora AS DATE) >= @FechaInicioCiclo
+                AND DATEPART(dw, CAST(FechaHora AS DATE)) BETWEEN 1 AND 6
+                AND TipoRegistro = 'Entrada'";
+
+                        SqlParameter[] paramDias = new SqlParameter[]
+                        {
+                new SqlParameter("@UsuarioId", usuarioId),
+                new SqlParameter("@FechaInicioCiclo", fechaInicioCiclo)
+                        };
+
+                DataTable dtDias = DatabaseHelper.ExecuteQuery(queryDias, paramDias);
+                diasTrabajados = dtDias.Rows.Count > 0 ? Convert.ToInt32(dtDias.Rows[0]["DiasTrabajados"]) : 0;
+            }
 
             // ============================================
             // ASIGNAR VALORES AL ViewBag
@@ -140,7 +176,37 @@ namespace ControlAsistenciaFinal.Controllers
             ViewBag.Nombre = Session["Nombre"];
             return View();
         }
-    
+
+        // ============================================
+        // MÉTODO AUXILIAR PARA CONTAR DÍAS TRABAJADOS (LUNES A SÁBADO)
+        // ============================================
+        private int ContarDiasTrabajados(int usuarioId, DateTime fechaInicio, DateTime fechaFin)
+        {
+            string query = @"
+    SELECT COUNT(*) AS DiasTrabajados
+    FROM (
+        SELECT CAST(FechaHora AS DATE) AS Fecha
+        FROM RegistrosAsistencia
+        WHERE UsuarioId = @UsuarioId
+            AND CAST(FechaHora AS DATE) >= @FechaInicio
+            AND CAST(FechaHora AS DATE) <= @FechaFin
+            AND DATEPART(dw, CAST(FechaHora AS DATE)) NOT IN (1) -- Excluye domingos (1 = Domingo)
+        GROUP BY CAST(FechaHora AS DATE)
+        HAVING 
+            SUM(CASE WHEN TipoRegistro = 'Entrada' THEN 1 ELSE 0 END) > 0
+            AND SUM(CASE WHEN TipoRegistro = 'Salida' THEN 1 ELSE 0 END) > 0
+    ) AS DiasConEntradaYSalida";
+
+            SqlParameter[] parameters = new SqlParameter[]
+            {
+        new SqlParameter("@UsuarioId", usuarioId),
+        new SqlParameter("@FechaInicio", fechaInicio),
+        new SqlParameter("@FechaFin", fechaFin)
+            };
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+            return dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["DiasTrabajados"]) : 0;
+        }
         private int CalcularDiasLaborables(DateTime fechaInicio, DateTime fechaFin)
         {
             int diasLaborables = 0;
@@ -298,6 +364,119 @@ namespace ControlAsistenciaFinal.Controllers
         }
 
 
+        [HttpGet]
+        public JsonResult ObtenerAlertasHorasJson(bool soloNoLeidas = true)
+        {
+            try
+            {
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@SoloNoLeidas", soloNoLeidas)
+                };
+
+                DataTable resultado = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerAlertasHoras", parameters);
+
+                var alertas = new List<object>();
+
+                if (resultado != null && resultado.Rows.Count > 0)
+                {
+                    foreach (DataRow row in resultado.Rows)
+                    {
+                        var alerta = new
+                        {
+                            Id = Convert.ToInt32(row["Id"]),
+                            UsuarioId = Convert.ToInt32(row["UsuarioId"]),
+                            NombreCompleto = row["NombreCompleto"]?.ToString() ?? "",
+                            Email = row["Email"]?.ToString() ?? "",
+                            RolPago = row["RolPago"]?.ToString() ?? "",
+                            Mes = Convert.ToInt32(row["Mes"]),
+                            Anio = Convert.ToInt32(row["Anio"]),
+                            HorasAlcanzadas = Convert.ToDecimal(row["HorasAlcanzadas"]),
+                            HorasObjetivo = Convert.ToDecimal(row["HorasObjetivo"]),
+                            FechaAlerta = Convert.ToDateTime(row["FechaAlerta"]).ToString("dd/MM/yyyy HH:mm"),
+                            Leido = Convert.ToBoolean(row["Leido"]),
+                            Estado = row["Estado"]?.ToString() ?? "",
+                            TipoAlerta = row["TipoAlerta"]?.ToString() ?? ""
+                        };
+                        alertas.Add(alerta);
+                    }
+                }
+
+                return Json(new { success = true, data = alertas, count = alertas.Count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error en ObtenerAlertasHorasJson: " + ex.Message);
+                return Json(new { success = false, message = ex.Message, data = new List<object>(), count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+        [HttpGet]
+        public JsonResult ObtenerConteoAlertasNoLeidas()
+        {
+            try
+            {
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@SoloNoLeidas", true)
+                };
+
+                DataTable resultado = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerAlertasHoras", parameters);
+                int count = resultado?.Rows.Count ?? 0;
+
+                return Json(new { success = true, count = count }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message, count = 0 }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult MarcarAlertaLeida(int alertaId)
+        {
+            try
+            {
+                string query = "UPDATE AlertasHoras SET Leido = 1 WHERE Id = @AlertaId";
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@AlertaId", alertaId)
+                };
+
+                int filasAfectadas = DatabaseHelper.ExecuteNonQuery(query, parameters);
+
+                if (filasAfectadas > 0)
+                {
+                    return Json(new { success = true });
+                }
+
+                return Json(new { success = false, message = "Alerta no encontrada" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpPost]
+        public JsonResult MarcarTodasAlertasLeidas()
+        {
+            try
+            {
+                string query = "UPDATE AlertasHoras SET Leido = 1 WHERE Leido = 0";
+                int filasAfectadas = DatabaseHelper.ExecuteNonQuery(query, null);
+
+                return Json(new { success = true, count = filasAfectadas });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
         [HttpPost]
         public JsonResult Registrar(string tipo, string comentario)
         {
@@ -309,11 +488,11 @@ namespace ControlAsistenciaFinal.Controllers
                 int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
                 DateTime ahora = DateTime.Now;
 
-                // Primero, actualizar el ciclo del usuario (para asegurar FechaInicio correcta)
+                // Primero, actualizar el ciclo del usuario
                 DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerCicloActualUsuario",
                     new SqlParameter[] { new SqlParameter("@UsuarioId", usuarioId) });
 
-                // Luego registrar la asistencia
+                // Registrar la asistencia
                 string query = @"INSERT INTO RegistrosAsistencia (UsuarioId, TipoRegistro, FechaHora, Comentario) 
                          VALUES (@UsuarioId, @Tipo, @FechaHora, @Comentario)";
 
@@ -327,6 +506,42 @@ namespace ControlAsistenciaFinal.Controllers
 
                 DatabaseHelper.ExecuteNonQuery(query, parameters);
 
+                // ============================================
+                // SI ES SALIDA, ELIMINAR LA ALERTA DE SALIDA PENDIENTE
+                // ============================================
+                // En el método Registrar, cuando tipo == "Salida"
+                if (tipo == "Salida")
+                {
+                    // Marcar la alerta como aceptada automáticamente
+                    string updateAlerta = @"
+        UPDATE AlertasSalidaPendiente 
+        SET Estado = 'Aceptada', FechaAlerta = GETDATE() 
+        WHERE UsuarioId = @UsuarioId AND Fecha = @Fecha";
+
+                    SqlParameter[] paramUpdate = new SqlParameter[]
+                    {
+        new SqlParameter("@UsuarioId", usuarioId),
+        new SqlParameter("@Fecha", ahora.Date)
+                    };
+
+                    try
+                    {
+                        DatabaseHelper.ExecuteNonQuery(updateAlerta, paramUpdate);
+                    }
+                    catch { }
+
+                    // También eliminar por si existe con otro estado
+                    string deleteAlerta = @"
+        DELETE FROM AlertasSalidaPendiente 
+        WHERE UsuarioId = @UsuarioId AND Fecha = @Fecha AND Estado = 'Pendiente'";
+
+                    try
+                    {
+                        DatabaseHelper.ExecuteNonQuery(deleteAlerta, paramUpdate);
+                    }
+                    catch { }
+                }
+
                 return Json(new { exito = true, mensaje = "Registro exitoso" });
             }
             catch (Exception ex)
@@ -338,33 +553,45 @@ namespace ControlAsistenciaFinal.Controllers
         // ============================================
         // OBTENER REGISTROS DE HOY
         // ============================================
+        // ============================================
+        // OBTENER REGISTROS DE HOY - OPTIMIZADO
+        // ============================================
         [HttpPost]
         public JsonResult ObtenerRegistrosHoy()
         {
             try
             {
-                int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+                if (Session["UsuarioId"] == null)
+                    return Json(new { error = "Sesión expirada" });
 
-                // Cambiar a día ANTERIOR
-                DateTime fechaAnterior = DateTime.Now.AddDays(0);
-                string query = @"SELECT Id, TipoRegistro, FechaHora, Comentario 
-                 FROM RegistrosAsistencia 
-                 WHERE UsuarioId = @UsuarioId 
-                   AND CAST(FechaHora AS DATE) = @Fecha
-                 ORDER BY 
-                     CASE TipoRegistro
-                         WHEN 'Entrada' THEN 1
-                         WHEN 'Almuerzo_Salida' THEN 2
-                         WHEN 'Almuerzo_Retorno' THEN 3
-                         WHEN 'Salida' THEN 4
-                         ELSE 5
-                     END,
-                     FechaHora ASC";
+                int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+                DateTime fecha = DateTime.Now.Date;
+
+                // Consulta optimizada sin CONVERT en WHERE
+                string query = @"
+        SELECT Id, TipoRegistro, 
+               CONVERT(TIME, FechaHora) AS Hora,
+               CONVERT(VARCHAR(5), FechaHora, 108) AS HoraStr,
+               Comentario
+        FROM RegistrosAsistencia 
+        WHERE UsuarioId = @UsuarioId 
+          AND FechaHora >= @FechaInicio 
+          AND FechaHora < @FechaFin
+        ORDER BY 
+            CASE TipoRegistro
+                WHEN 'Entrada' THEN 1
+                WHEN 'Almuerzo_Salida' THEN 2
+                WHEN 'Almuerzo_Retorno' THEN 3
+                WHEN 'Salida' THEN 4
+                ELSE 5
+            END,
+            FechaHora ASC";
 
                 SqlParameter[] parameters = new SqlParameter[]
                 {
             new SqlParameter("@UsuarioId", usuarioId),
-            new SqlParameter("@Fecha", fechaAnterior.Date)
+            new SqlParameter("@FechaInicio", fecha),
+            new SqlParameter("@FechaFin", fecha.AddDays(1))
                 };
 
                 DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
@@ -372,14 +599,11 @@ namespace ControlAsistenciaFinal.Controllers
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    DateTime fechaHora = Convert.ToDateTime(row["FechaHora"]);
-
                     registros.Add(new
                     {
                         Id = row["Id"],
                         TipoRegistro = row["TipoRegistro"].ToString(),
-                        FechaHora = fechaHora,
-                        Hora = fechaHora.ToString("HH:mm"),
+                        Hora = row["HoraStr"].ToString(),
                         Comentario = row["Comentario"]?.ToString()
                     });
                 }
@@ -391,6 +615,66 @@ namespace ControlAsistenciaFinal.Controllers
                 return Json(new { error = ex.Message });
             }
         }
+
+
+        [HttpPost]
+        public JsonResult ObtenerTardanzasMes()
+        {
+            try
+            {
+                if (Session["UsuarioId"] == null)
+                    return Json(new { success = false, message = "Sesión expirada" });
+
+                int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+
+                // Ejecutar el stored procedure
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId)
+                };
+
+                DataTable resultado = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerTardanzasMes", parameters);
+
+                var tardanzas = new List<object>();
+                int totalTardanzas = 0;
+
+                if (resultado != null && resultado.Rows.Count > 0)
+                {
+                    foreach (DataRow row in resultado.Rows)
+                    {
+                        int minutosTardanza = Convert.ToInt32(row["MinutosTardanza"]);
+                        if (minutosTardanza > 0)
+                        {
+                            totalTardanzas++;
+
+                            tardanzas.Add(new
+                            {
+                                Fecha = row["Fecha"].ToString(),
+                                HoraIngreso = row["HoraIngreso"].ToString(),  // <-- HORA DE INGRESO
+                                HoraLimite = row["HoraLimite"].ToString(),    // <-- HORA LÍMITE
+                                MinutosTardanza = minutosTardanza,
+                                TipoJornada = row["TipoJornada"].ToString(),
+                                TurnoDescripcion = row["TurnoDescripcion"].ToString(),
+                                NivelTardanza = row["NivelTardanza"].ToString()
+                            });
+                        }
+                    }
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    data = tardanzas,
+                    total = totalTardanzas
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error en ObtenerTardanzasMes: " + ex.Message);
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // ============================================
         // SOLICITAR MARCACIÓN EXCEPCIONAL
         // ============================================
@@ -500,6 +784,249 @@ namespace ControlAsistenciaFinal.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+
+        // ============================================
+        // OBTENER ALERTA DE SALIDA PENDIENTE - CON DEPURACIÓN
+        // ============================================
+        [HttpGet]
+        public JsonResult ObtenerAlertaSalidaPendiente()
+        {
+            try
+            {
+                if (Session["UsuarioId"] == null)
+                    return Json(new { success = false, message = "Sesión expirada" }, JsonRequestBehavior.AllowGet);
+
+                int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+
+                // ============================================
+                // BUSCAR CUALQUIER FECHA DONDE FALTE SALIDA
+                // ============================================
+                string query = @"
+        WITH FechasConEntrada AS (
+            SELECT DISTINCT CAST(FechaHora AS DATE) AS Fecha
+            FROM RegistrosAsistencia
+            WHERE UsuarioId = @UsuarioId
+              AND TipoRegistro = 'Entrada'
+              AND DATEPART(dw, CAST(FechaHora AS DATE)) NOT IN (1) -- Excluye domingos
+        ),
+        FechasSinSalida AS (
+            SELECT 
+                f.Fecha,
+                (SELECT TOP 1 FORMAT(r.FechaHora, 'HH:mm')
+                 FROM RegistrosAsistencia r
+                 WHERE r.UsuarioId = @UsuarioId
+                   AND r.TipoRegistro = 'Entrada'
+                   AND CAST(r.FechaHora AS DATE) = f.Fecha
+                 ORDER BY r.FechaHora ASC) AS HoraEntrada,
+                (SELECT COUNT(*)
+                 FROM RegistrosAsistencia r
+                 WHERE r.UsuarioId = @UsuarioId
+                   AND r.TipoRegistro = 'Salida'
+                   AND CAST(r.FechaHora AS DATE) = f.Fecha) AS TieneSalida
+            FROM FechasConEntrada f
+        )
+        SELECT TOP 1 
+            Fecha,
+            HoraEntrada,
+            TieneSalida,
+            CASE DATEPART(dw, Fecha)
+                WHEN 1 THEN 'Domingo'
+                WHEN 2 THEN 'Lunes'
+                WHEN 3 THEN 'Martes'
+                WHEN 4 THEN 'Miércoles'
+                WHEN 5 THEN 'Jueves'
+                WHEN 6 THEN 'Viernes'
+                WHEN 7 THEN 'Sábado'
+            END AS DiaSemana
+        FROM FechasSinSalida
+        WHERE TieneSalida = 0
+          AND NOT EXISTS (
+              SELECT 1 
+              FROM AlertasSalidaPendiente a 
+              WHERE a.UsuarioId = @UsuarioId 
+                AND a.Fecha = Fecha 
+                AND a.Estado = 'Aceptada'
+          )
+          AND Fecha < CAST(GETDATE() AS DATE)
+        ORDER BY Fecha DESC";
+
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId)
+                };
+
+                DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+
+                // ============================================
+                // SI HAY FECHA PENDIENTE, MOSTRAR ALERTA
+                // ============================================
+                if (dt.Rows.Count > 0)
+                {
+                    DataRow row = dt.Rows[0];
+                    DateTime fechaPendiente = Convert.ToDateTime(row["Fecha"]);
+                    string horaEntrada = row["HoraEntrada"]?.ToString() ?? "--:--";
+                    string diaSemana = row["DiaSemana"]?.ToString() ?? "";
+
+                    int diasRetraso = (DateTime.Now.Date - fechaPendiente.Date).Days;
+
+                    string fechaFormateada = fechaPendiente.ToString("dd 'de' MMMM 'de' yyyy",
+                        new System.Globalization.CultureInfo("es-ES"));
+
+                    string mensaje = $"Tiene salida pendiente del {diaSemana} {fechaFormateada}";
+
+                    var resultado = new
+                    {
+                        success = true,
+                        tieneAlerta = true,
+                        fecha = fechaPendiente.ToString("dd/MM/yyyy"),
+                        fechaFormateada = fechaFormateada,
+                        diaSemana = diaSemana,
+                        horaEntrada = horaEntrada,
+                        diasRetraso = diasRetraso,
+                        mensaje = mensaje
+                    };
+
+                     return Json(resultado, JsonRequestBehavior.AllowGet);
+                }
+
+                // ============================================
+                // NO HAY FECHA PENDIENTE
+                // ============================================
+                System.Diagnostics.Debug.WriteLine("NO HAY ALERTA para usuario: " + usuarioId);
+                return Json(new
+                {
+                    success = true,
+                    tieneAlerta = false,
+                    message = "No hay salidas pendientes"
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("ERROR en ObtenerAlertaSalidaPendiente: " + ex.Message);
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    tieneAlerta = false
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+        // ============================================
+        // REGISTRAR ACEPTACIÓN DE ALERTA DE SALIDA - CORREGIDO
+        // ============================================
+        [HttpPost]
+        public JsonResult RegistrarAceptacionAlertaSalida()
+        {
+            try
+            {
+                if (Session["UsuarioId"] == null)
+                    return Json(new { success = false, message = "Sesión expirada" });
+
+                int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+
+                // Buscar la fecha pendiente más reciente
+                string queryBuscar = @"
+        WITH FechasConEntrada AS (
+            SELECT DISTINCT CAST(FechaHora AS DATE) AS Fecha
+            FROM RegistrosAsistencia
+            WHERE UsuarioId = @UsuarioId
+              AND TipoRegistro = 'Entrada'
+              AND DATEPART(dw, CAST(FechaHora AS DATE)) NOT IN (1)
+        )
+        SELECT TOP 1 Fecha
+        FROM FechasConEntrada f
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM RegistrosAsistencia r 
+            WHERE r.UsuarioId = @UsuarioId 
+              AND r.TipoRegistro = 'Salida' 
+              AND CAST(r.FechaHora AS DATE) = f.Fecha
+        )
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM AlertasSalidaPendiente a 
+            WHERE a.UsuarioId = @UsuarioId 
+              AND a.Fecha = f.Fecha 
+              AND a.Estado = 'Aceptada'
+        )
+        AND f.Fecha < CAST(GETDATE() AS DATE)
+        ORDER BY f.Fecha DESC";
+
+                SqlParameter[] paramBuscar = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId)
+                };
+
+                object fechaObj = DatabaseHelper.ExecuteScalar(queryBuscar, paramBuscar);
+
+                if (fechaObj == null || fechaObj == DBNull.Value)
+                {
+                    return Json(new { success = false, message = "No hay salidas pendientes" });
+                }
+
+                DateTime fechaPendiente = Convert.ToDateTime(fechaObj);
+
+                // Verificar si ya existe un registro de alerta para esta fecha
+                string queryCheck = @"
+        SELECT COUNT(*) FROM AlertasSalidaPendiente 
+        WHERE UsuarioId = @UsuarioId 
+        AND Fecha = @Fecha";
+
+                SqlParameter[] paramCheck = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId),
+            new SqlParameter("@Fecha", fechaPendiente.Date)
+                };
+
+                int existe = Convert.ToInt32(DatabaseHelper.ExecuteScalar(queryCheck, paramCheck));
+
+                if (existe > 0)
+                {
+                    string queryUpdate = @"
+            UPDATE AlertasSalidaPendiente 
+            SET Estado = 'Aceptada', FechaAlerta = GETDATE() 
+            WHERE UsuarioId = @UsuarioId 
+            AND Fecha = @Fecha";
+
+                    SqlParameter[] paramUpdate = new SqlParameter[]
+                    {
+                new SqlParameter("@UsuarioId", usuarioId),
+                new SqlParameter("@Fecha", fechaPendiente.Date)
+                    };
+
+                    DatabaseHelper.ExecuteNonQuery(queryUpdate, paramUpdate);
+                }
+                else
+                {
+                    string queryInsert = @"
+            INSERT INTO AlertasSalidaPendiente (UsuarioId, Fecha, FechaAlerta, Estado)
+            VALUES (@UsuarioId, @Fecha, GETDATE(), 'Aceptada')";
+
+                    SqlParameter[] paramInsert = new SqlParameter[]
+                    {
+                new SqlParameter("@UsuarioId", usuarioId),
+                new SqlParameter("@Fecha", fechaPendiente.Date)
+                    };
+
+                    DatabaseHelper.ExecuteNonQuery(queryInsert, paramInsert);
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Alerta aceptada correctamente",
+                    fecha = fechaPendiente.ToString("dd/MM/yyyy")
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // ============================================
         // OBTENER PERMISO EXCEPCIONAL
         // ============================================

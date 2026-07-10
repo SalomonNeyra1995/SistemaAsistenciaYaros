@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_PublishTargetUrl>C:\Users\HP\Desktop\Escritorio\DocGuiaYamiflo\PublicadoIIS</_PublishTargetUrl>
-    <History>True|2026-06-06T06:08:39.3285481Z;True|2026-06-06T00:56:57.8912161-05:00;True|2026-06-02T16:28:01.6083155-05:00;True|2026-06-02T00:28:05.0474511-05:00;True|2026-06-01T15:46:03.3149227-05:00;True|2026-05-31T22:18:54.7019752-05:00;True|2026-05-31T01:33:52.5890863-05:00;True|2026-05-29T15:52:50.5730838-05:00;</History>
+    <History>True|2026-06-22T06:36:47.1491965Z;True|2026-06-18T21:26:52.9853642-05:00;True|2026-06-06T01:08:39.3285481-05:00;True|2026-06-06T00:56:57.8912161-05:00;True|2026-06-02T16:28:01.6083155-05:00;True|2026-06-02T00:28:05.0474511-05:00;True|2026-06-01T15:46:03.3149227-05:00;True|2026-05-31T22:18:54.7019752-05:00;True|2026-05-31T01:33:52.5890863-05:00;True|2026-05-29T15:52:50.5730838-05:00;</History>
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/Antlr3.Runtime.dll">
@@ -14,17 +14,26 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="bin/Antlr3.Runtime.pdb">
       <publishTime>09/10/2013 16:29:20</publishTime>
     </File>
+    <File Include="bin/ca/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:38</publishTime>
+    </File>
     <File Include="bin/Content/images/Fondo_loginDef.png">
       <publishTime>05/29/2026 11:43:59</publishTime>
     </File>
     <File Include="bin/ControlAsistenciaFinal.dll">
-      <publishTime>06/06/2026 01:08:38</publishTime>
+      <publishTime>06/22/2026 01:36:45</publishTime>
     </File>
     <File Include="bin/ControlAsistenciaFinal.pdb">
-      <publishTime>06/06/2026 01:08:38</publishTime>
+      <publishTime>06/22/2026 01:36:45</publishTime>
+    </File>
+    <File Include="bin/de/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:38</publishTime>
     </File>
     <File Include="bin/EPPlus.dll">
       <publishTime>01/30/2020 02:13:00</publishTime>
+    </File>
+    <File Include="bin/es/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
     </File>
     <File Include="bin/es/System.Web.Helpers.resources.dll">
       <publishTime>11/28/2018 13:04:36</publishTime>
@@ -47,14 +56,50 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="bin/es/System.Web.WebPages.resources.dll">
       <publishTime>11/28/2018 13:04:36</publishTime>
     </File>
+    <File Include="bin/fa/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
+    </File>
+    <File Include="bin/fr/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
+    </File>
+    <File Include="bin/Hangfire.Core.dll">
+      <publishTime>02/05/2026 08:38:34</publishTime>
+    </File>
+    <File Include="bin/Hangfire.SqlServer.dll">
+      <publishTime>02/05/2026 08:38:52</publishTime>
+    </File>
     <File Include="bin/Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll">
       <publishTime>09/05/2018 16:10:50</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.dll">
+      <publishTime>08/19/2014 09:42:24</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.Host.SystemWeb.dll">
+      <publishTime>08/19/2014 09:42:30</publishTime>
     </File>
     <File Include="bin/Microsoft.Web.Infrastructure.dll">
       <publishTime>07/25/2012 11:48:56</publishTime>
     </File>
+    <File Include="bin/nb/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
+    </File>
     <File Include="bin/Newtonsoft.Json.dll">
       <publishTime>04/22/2019 01:06:16</publishTime>
+    </File>
+    <File Include="bin/nl/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
+    </File>
+    <File Include="bin/Owin.dll">
+      <publishTime>11/13/2012 07:19:34</publishTime>
+    </File>
+    <File Include="bin/pt-BR/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
+    </File>
+    <File Include="bin/pt-PT/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
+    </File>
+    <File Include="bin/pt/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:40</publishTime>
     </File>
     <File Include="bin/roslyn/csc.exe">
       <publishTime>08/08/2018 05:38:48</publishTime>
@@ -203,6 +248,9 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="bin/roslyn/VBCSCompiler.exe.config">
       <publishTime>08/08/2018 12:18:16</publishTime>
     </File>
+    <File Include="bin/sv/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:42</publishTime>
+    </File>
     <File Include="bin/System.Web.Helpers.dll">
       <publishTime>11/28/2018 13:04:24</publishTime>
     </File>
@@ -224,8 +272,17 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="bin/System.Web.WebPages.Razor.dll">
       <publishTime>11/28/2018 13:04:24</publishTime>
     </File>
+    <File Include="bin/tr-TR/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:42</publishTime>
+    </File>
     <File Include="bin/WebGrease.dll">
       <publishTime>01/23/2014 13:57:34</publishTime>
+    </File>
+    <File Include="bin/zh-TW/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:42</publishTime>
+    </File>
+    <File Include="bin/zh/Hangfire.Core.resources.dll">
+      <publishTime>02/05/2026 08:38:42</publishTime>
     </File>
     <File Include="Content/bootstrap-theme.css">
       <publishTime>05/22/2026 19:04:52</publishTime>
@@ -399,7 +456,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/31/2026 17:05:35</publishTime>
     </File>
     <File Include="Views/Admin/Dashboard.cshtml">
-      <publishTime>06/02/2026 00:13:39</publishTime>
+      <publishTime>06/22/2026 01:22:07</publishTime>
     </File>
     <File Include="Views/Admin/EditarUsuario.cshtml">
       <publishTime>05/31/2026 17:13:50</publishTime>
@@ -410,6 +467,9 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
     <File Include="Views/Admin/GestionarSolicitudes.cshtml">
       <publishTime>05/29/2026 15:40:56</publishTime>
     </File>
+    <File Include="Views/Admin/PagoxCiclo.cshtml">
+      <publishTime>06/13/2026 01:01:52</publishTime>
+    </File>
     <File Include="Views/Admin/RecuperarContra.cshtml">
       <publishTime>05/28/2026 23:34:46</publishTime>
     </File>
@@ -417,13 +477,19 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/29/2026 00:03:25</publishTime>
     </File>
     <File Include="Views/Admin/ReportePagos.cshtml">
-      <publishTime>05/29/2026 00:16:42</publishTime>
+      <publishTime>06/12/2026 12:47:51</publishTime>
     </File>
     <File Include="Views/Admin/Reportes.cshtml">
       <publishTime>05/30/2026 22:59:07</publishTime>
     </File>
+    <File Include="Views/Admin/ReporteTardanzas.cshtml">
+      <publishTime>06/22/2026 01:23:59</publishTime>
+    </File>
     <File Include="Views/Admin/Usuarios.cshtml">
       <publishTime>06/01/2026 15:00:46</publishTime>
+    </File>
+    <File Include="Views/Backup/Index.cshtml">
+      <publishTime>06/14/2026 00:44:31</publishTime>
     </File>
     <File Include="Views/Home/About.cshtml">
       <publishTime>05/22/2026 19:04:45</publishTime>
@@ -447,16 +513,19 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/22/2026 19:12:52</publishTime>
     </File>
     <File Include="Views/Shared/AccessDenied.cshtml">
-      <publishTime>05/26/2026 20:53:37</publishTime>
+      <publishTime>06/07/2026 17:10:58</publishTime>
     </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>05/22/2026 19:04:45</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>06/06/2026 00:24:45</publishTime>
+      <publishTime>06/22/2026 01:09:43</publishTime>
     </File>
     <File Include="Views/Trabajador/MiJornada.cshtml">
-      <publishTime>06/06/2026 01:08:06</publishTime>
+      <publishTime>06/08/2026 19:06:12</publishTime>
+    </File>
+    <File Include="Views/Trabajador/MiJornadaMejorada.cshtml">
+      <publishTime>06/22/2026 01:14:49</publishTime>
     </File>
     <File Include="Views/Web.config">
       <publishTime>05/22/2026 20:07:43</publishTime>
@@ -465,7 +534,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>05/22/2026 19:04:45</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>05/29/2026 15:52:49</publishTime>
+      <publishTime>06/18/2026 21:26:51</publishTime>
     </File>
   </ItemGroup>
 </Project>

@@ -1,0 +1,38 @@
+2026-06-25 15:55:13 - Convirtiendo fecha: '2/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-02 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '12/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-12 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '23/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-23 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '15/05/2026 00:00:00' para columna 'FechaInicio2'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-05-15 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '1/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-01 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '23/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-23 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '14/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-14 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '23/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-23 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '14/05/2026 00:00:00' para columna 'FechaInicio2'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-05-14 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '14/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-14 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '23/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-23 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '14/06/2026 00:00:00' para columna 'FechaInicio2'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-14 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '30/05/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-05-30 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '23/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-23 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '20/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-20 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '23/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-23 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '4/05/2026 00:00:00' para columna 'FechaInicio2'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-05-04 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '2/06/2026 00:00:00' para columna 'FechaInicio'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-02 00:00:00
+2026-06-25 15:55:13 - Convirtiendo fecha: '21/06/2026 00:00:00' para columna 'UltimaFechaProcesada'
+2026-06-25 15:55:13 -   -> Convertido a: 2026-06-21 00:00:00

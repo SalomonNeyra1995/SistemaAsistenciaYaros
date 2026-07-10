@@ -83,6 +83,62 @@ namespace ControlAsistenciaFinal.Models
             }
         }
 
+        // ============================================
+        // MÉTODOS PARA EJECUTAR SP Y OBTENER RESULTADOS
+        // ============================================
+
+        public static DataTable ExecuteStoredProcedureWithParams(string storedProcedureName, SqlParameter[] parameters)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(storedProcedureName, conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    if (parameters != null)
+                    {
+                        foreach (SqlParameter param in parameters)
+                        {
+                            cmd.Parameters.Add(param);
+                        }
+                    }
+
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    return dt;
+                }
+            }
+        }
+
+        public static SqlDataReader ExecuteStoredProcedureReader(string storedProcedureName, SqlParameter[] parameters)
+        {
+            SqlConnection conn = new SqlConnection(connectionString);
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand(storedProcedureName, conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    if (parameters != null)
+                    {
+                        foreach (SqlParameter param in parameters)
+                        {
+                            cmd.Parameters.Add(param);
+                        }
+                    }
+
+                    conn.Open();
+                    return cmd.ExecuteReader(CommandBehavior.CloseConnection);
+                }
+            }
+            catch
+            {
+                conn.Close();
+                throw;
+            }
+        }
+
         public static object ExecuteScalar(string query, SqlParameter[] parameters)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))

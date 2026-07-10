@@ -1,0 +1,365 @@
+2026-06-25 15:42:50 - === INSERTANDO USUARIO FILA 2 ===
+2026-06-25 15:42:50 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:50 - Columna: CodigoQR, Valor original: '28b5a0c8-6253-4fe9-8a4a-9fa64ea341fc'
+2026-06-25 15:42:50 - Columna: NombreCompleto, Valor original: 'admin'
+2026-06-25 15:42:50 - Columna: Email, Valor original: 'admin@asistenciayaros.com'
+2026-06-25 15:42:50 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:50 - Columna: Rol, Valor original: 'Admin'
+2026-06-25 15:42:50 - Columna: HorasMensualesObjetivo, Valor original: '160.00'
+2026-06-25 15:42:50 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:50 - Columna: FechaRegistro, Valor original: '2/06/2026 00:24:05'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '2/06/2026 00:24:05'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-02 00:24:05
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-02 00:24:05
+2026-06-25 15:42:50 - Columna: Celular, Valor original: ''
+2026-06-25 15:42:50 - Columna: CuentaAhorros, Valor original: ''
+2026-06-25 15:42:50 - Columna: Direccion, Valor original: ''
+2026-06-25 15:42:50 - Columna: DNI, Valor original: ''
+2026-06-25 15:42:50 - Columna: Nombres, Valor original: ''
+2026-06-25 15:42:50 - Columna: ApellidoPaterno, Valor original: ''
+2026-06-25 15:42:50 - Columna: ApellidoMaterno, Valor original: ''
+2026-06-25 15:42:50 - Columna: RolPago, Valor original: 'Facilitador 1'
+2026-06-25 15:42:50 - Columna: TarifaHora, Valor original: '5.89'
+2026-06-25 15:42:50 - Columna: Banco, Valor original: 'OTROS'
+2026-06-25 15:42:50 - Columna: ConceptoPagoId, Valor original: '1'
+2026-06-25 15:42:50 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:50 - Columna: TipoPermisoExcepcional, Valor original: 'Ambos'
+2026-06-25 15:42:50 - Columna: FechaInicio, Valor original: '2/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '2/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-02 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-02 00:00:00
+2026-06-25 15:42:50 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:50 - Columna: HorasExcedentesAcumuladas, Valor original: '0.00'
+2026-06-25 15:42:50 - Columna: UltimaFechaProcesada, Valor original: ''
+2026-06-25 15:42:50 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:50 - Columna: UltimoCalculo, Valor original: ''
+2026-06-25 15:42:50 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:50 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:50 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:50 - Columna: FechaInicio2, Valor original: ''
+2026-06-25 15:42:50 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:50 -   -> Ejecutando INSERT...
+2026-06-25 15:42:50 -   -> INSERT completado, filas afectadas: 1
+2026-06-25 15:42:50 - === INSERTANDO USUARIO FILA 3 ===
+2026-06-25 15:42:50 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:50 - Columna: CodigoQR, Valor original: 'e9c521ce-fd7a-42fe-a96f-c1137122b078'
+2026-06-25 15:42:50 - Columna: NombreCompleto, Valor original: 'Dallane Asuncion Gamarra Justiniani'
+2026-06-25 15:42:50 - Columna: Email, Valor original: 'dgamarraj@asistenciayaros.com'
+2026-06-25 15:42:50 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:50 - Columna: Rol, Valor original: 'Trabajador Independiente'
+2026-06-25 15:42:50 - Columna: HorasMensualesObjetivo, Valor original: '96.00'
+2026-06-25 15:42:50 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:50 - Columna: FechaRegistro, Valor original: '2/06/2026 00:24:17'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '2/06/2026 00:24:17'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-02 00:24:17
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-02 00:24:17
+2026-06-25 15:42:50 - Columna: Celular, Valor original: '994926755'
+2026-06-25 15:42:50 - Columna: CuentaAhorros, Valor original: '00219117751957209554'
+2026-06-25 15:42:50 - Columna: Direccion, Valor original: 'Coop. Virgen del Rosario Mz. G Lt. 4, Los Olivos - Lima'
+2026-06-25 15:42:50 - Columna: DNI, Valor original: '72040895'
+2026-06-25 15:42:50 - Columna: Nombres, Valor original: 'Dallane Asuncion'
+2026-06-25 15:42:50 - Columna: ApellidoPaterno, Valor original: 'Gamarra'
+2026-06-25 15:42:50 - Columna: ApellidoMaterno, Valor original: 'Justiniani'
+2026-06-25 15:42:50 - Columna: RolPago, Valor original: 'Facilitador 1'
+2026-06-25 15:42:50 - Columna: TarifaHora, Valor original: '5.89'
+2026-06-25 15:42:50 - Columna: Banco, Valor original: 'BCP'
+2026-06-25 15:42:50 - Columna: ConceptoPagoId, Valor original: '1'
+2026-06-25 15:42:50 - Columna: PermisoMarcacionExcepcional, Valor original: 'True'
+2026-06-25 15:42:50 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:50 - Columna: FechaInicio, Valor original: '12/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '12/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-12 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-12 00:00:00
+2026-06-25 15:42:50 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:50 - Columna: HorasExcedentesAcumuladas, Valor original: '39.04'
+2026-06-25 15:42:50 - Columna: UltimaFechaProcesada, Valor original: '23/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '23/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-23 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-23 00:00:00
+2026-06-25 15:42:50 - Columna: UltimoCalculo, Valor original: '24/06/2026 18:00:21'
+2026-06-25 15:42:50 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:50 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:50 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:50 - Columna: FechaInicio2, Valor original: '15/05/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '15/05/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-05-15 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-05-15 00:00:00
+2026-06-25 15:42:50 -   -> Ejecutando INSERT...
+2026-06-25 15:42:50 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.
+2026-06-25 15:42:50 - === INSERTANDO USUARIO FILA 4 ===
+2026-06-25 15:42:50 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:50 - Columna: CodigoQR, Valor original: 'dd1a5c84-3331-4f12-8269-804e545ad14a'
+2026-06-25 15:42:50 - Columna: NombreCompleto, Valor original: 'Genesis Nicolle Leon Cartolin'
+2026-06-25 15:42:50 - Columna: Email, Valor original: 'gleonc@asistenciayaros.com'
+2026-06-25 15:42:50 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:50 - Columna: Rol, Valor original: 'Empleado'
+2026-06-25 15:42:50 - Columna: HorasMensualesObjetivo, Valor original: '192.00'
+2026-06-25 15:42:50 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:50 - Columna: FechaRegistro, Valor original: '2/06/2026 00:34:45'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '2/06/2026 00:34:45'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-02 00:34:45
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-02 00:34:45
+2026-06-25 15:42:50 - Columna: Celular, Valor original: '918231890'
+2026-06-25 15:42:50 - Columna: CuentaAhorros, Valor original: '00219110911096909850'
+2026-06-25 15:42:50 - Columna: Direccion, Valor original: 'Ramon Castilla Nro. 751, Collique - Comas'
+2026-06-25 15:42:50 - Columna: DNI, Valor original: '73990423'
+2026-06-25 15:42:50 - Columna: Nombres, Valor original: 'Genesis Nicolle'
+2026-06-25 15:42:50 - Columna: ApellidoPaterno, Valor original: 'Leon'
+2026-06-25 15:42:50 - Columna: ApellidoMaterno, Valor original: 'Cartolin'
+2026-06-25 15:42:50 - Columna: RolPago, Valor original: 'Planilla Full Time'
+2026-06-25 15:42:50 - Columna: TarifaHora, Valor original: '0.00'
+2026-06-25 15:42:50 - Columna: Banco, Valor original: 'BCP'
+2026-06-25 15:42:50 - Columna: ConceptoPagoId, Valor original: '4'
+2026-06-25 15:42:50 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:50 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:50 - Columna: FechaInicio, Valor original: '1/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '1/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-01 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-01 00:00:00
+2026-06-25 15:42:50 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:50 - Columna: HorasExcedentesAcumuladas, Valor original: '64.57'
+2026-06-25 15:42:50 - Columna: UltimaFechaProcesada, Valor original: '23/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '23/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-23 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-23 00:00:00
+2026-06-25 15:42:50 - Columna: UltimoCalculo, Valor original: '24/06/2026 18:00:22'
+2026-06-25 15:42:50 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:50 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:50 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:50 - Columna: FechaInicio2, Valor original: ''
+2026-06-25 15:42:50 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:50 -   -> Ejecutando INSERT...
+2026-06-25 15:42:50 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.
+2026-06-25 15:42:50 - === INSERTANDO USUARIO FILA 5 ===
+2026-06-25 15:42:50 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:50 - Columna: CodigoQR, Valor original: '0aa43569-a17a-4f2d-807c-203bcf3b8f04'
+2026-06-25 15:42:50 - Columna: NombreCompleto, Valor original: 'Cenica Yudit Monteza Navarro'
+2026-06-25 15:42:50 - Columna: Email, Valor original: 'cmontezan@asistenciayaros.com'
+2026-06-25 15:42:50 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:50 - Columna: Rol, Valor original: 'Trabajador Independiente'
+2026-06-25 15:42:50 - Columna: HorasMensualesObjetivo, Valor original: '104.00'
+2026-06-25 15:42:50 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:50 - Columna: FechaRegistro, Valor original: '2/06/2026 02:15:07'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '2/06/2026 02:15:07'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-02 02:15:07
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-02 02:15:07
+2026-06-25 15:42:50 - Columna: Celular, Valor original: '925681891'
+2026-06-25 15:42:50 - Columna: CuentaAhorros, Valor original: '19109398350081'
+2026-06-25 15:42:50 - Columna: Direccion, Valor original: 'Av. 20 de diciembre Nro. 242, Payet – Independencia'
+2026-06-25 15:42:50 - Columna: DNI, Valor original: '72042982'
+2026-06-25 15:42:50 - Columna: Nombres, Valor original: 'Cenica Yudit'
+2026-06-25 15:42:50 - Columna: ApellidoPaterno, Valor original: 'Monteza'
+2026-06-25 15:42:50 - Columna: ApellidoMaterno, Valor original: 'Navarro'
+2026-06-25 15:42:50 - Columna: RolPago, Valor original: 'Facilitador 2'
+2026-06-25 15:42:50 - Columna: TarifaHora, Valor original: '5.43'
+2026-06-25 15:42:50 - Columna: Banco, Valor original: 'BCP'
+2026-06-25 15:42:50 - Columna: ConceptoPagoId, Valor original: '2'
+2026-06-25 15:42:50 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:50 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:50 - Columna: FechaInicio, Valor original: '14/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> Intentando convertir fecha: '14/06/2026 00:00:00'
+2026-06-25 15:42:50 -   -> TryParse exitoso: 2026-06-14 00:00:00
+2026-06-25 15:42:50 -   -> Fecha asignada: 2026-06-14 00:00:00
+2026-06-25 15:42:50 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:51 - Columna: HorasExcedentesAcumuladas, Valor original: '46.97'
+2026-06-25 15:42:51 - Columna: UltimaFechaProcesada, Valor original: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-23 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-23 00:00:00
+2026-06-25 15:42:51 - Columna: UltimoCalculo, Valor original: '24/06/2026 13:10:29'
+2026-06-25 15:42:51 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:51 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 - Columna: FechaInicio2, Valor original: '14/05/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '14/05/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-05-14 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-05-14 00:00:00
+2026-06-25 15:42:51 -   -> Ejecutando INSERT...
+2026-06-25 15:42:51 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.
+2026-06-25 15:42:51 - === INSERTANDO USUARIO FILA 6 ===
+2026-06-25 15:42:51 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:51 - Columna: CodigoQR, Valor original: '919058ef-9700-4cf8-bce5-75412ec27350'
+2026-06-25 15:42:51 - Columna: NombreCompleto, Valor original: 'Mayra Alejandra Ormeño Ramos'
+2026-06-25 15:42:51 - Columna: Email, Valor original: 'mormenor@asistenciayaros.com'
+2026-06-25 15:42:51 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:51 - Columna: Rol, Valor original: 'Trabajador Independiente'
+2026-06-25 15:42:51 - Columna: HorasMensualesObjetivo, Valor original: '104.00'
+2026-06-25 15:42:51 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:51 - Columna: FechaRegistro, Valor original: '4/06/2026 13:52:54'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '4/06/2026 13:52:54'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-04 13:52:54
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-04 13:52:54
+2026-06-25 15:42:51 - Columna: Celular, Valor original: '934600631'
+2026-06-25 15:42:51 - Columna: CuentaAhorros, Valor original: '00382101345259878660'
+2026-06-25 15:42:51 - Columna: Direccion, Valor original: 'Calle Amarantos X-34 981 Palmeras – Los Olivos'
+2026-06-25 15:42:51 - Columna: DNI, Valor original: '74716774'
+2026-06-25 15:42:51 - Columna: Nombres, Valor original: 'Mayra Alejandra'
+2026-06-25 15:42:51 - Columna: ApellidoPaterno, Valor original: 'Ormeño'
+2026-06-25 15:42:51 - Columna: ApellidoMaterno, Valor original: 'Ramos'
+2026-06-25 15:42:51 - Columna: RolPago, Valor original: 'Facilitador 2'
+2026-06-25 15:42:51 - Columna: TarifaHora, Valor original: '5.43'
+2026-06-25 15:42:51 - Columna: Banco, Valor original: 'INTERBANK'
+2026-06-25 15:42:51 - Columna: ConceptoPagoId, Valor original: '2'
+2026-06-25 15:42:51 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:51 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:51 - Columna: FechaInicio, Valor original: '14/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '14/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-14 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-14 00:00:00
+2026-06-25 15:42:51 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:51 - Columna: HorasExcedentesAcumuladas, Valor original: '16.40'
+2026-06-25 15:42:51 - Columna: UltimaFechaProcesada, Valor original: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-23 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-23 00:00:00
+2026-06-25 15:42:51 - Columna: UltimoCalculo, Valor original: '24/06/2026 13:02:41'
+2026-06-25 15:42:51 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:51 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 - Columna: FechaInicio2, Valor original: '14/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '14/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-14 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-14 00:00:00
+2026-06-25 15:42:51 -   -> Ejecutando INSERT...
+2026-06-25 15:42:51 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.
+2026-06-25 15:42:51 - === INSERTANDO USUARIO FILA 7 ===
+2026-06-25 15:42:51 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:51 - Columna: CodigoQR, Valor original: '9ea8ceb5-3f73-4072-a1df-502b1ea3afa5'
+2026-06-25 15:42:51 - Columna: NombreCompleto, Valor original: 'Enzo Fabian Villanueva Ojeda'
+2026-06-25 15:42:51 - Columna: Email, Valor original: 'evillanuevao@asistenciayaros.com'
+2026-06-25 15:42:51 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:51 - Columna: Rol, Valor original: 'Trabajador Independiente'
+2026-06-25 15:42:51 - Columna: HorasMensualesObjetivo, Valor original: '104.00'
+2026-06-25 15:42:51 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:51 - Columna: FechaRegistro, Valor original: '4/06/2026 15:24:48'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '4/06/2026 15:24:48'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-04 15:24:48
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-04 15:24:48
+2026-06-25 15:42:51 - Columna: Celular, Valor original: '936223465'
+2026-06-25 15:42:51 - Columna: CuentaAhorros, Valor original: '00219117205487500051'
+2026-06-25 15:42:51 - Columna: Direccion, Valor original: 'Urb. Sta. Isolina Mz. B Lt. 27 – Comas'
+2026-06-25 15:42:51 - Columna: DNI, Valor original: '74645893'
+2026-06-25 15:42:51 - Columna: Nombres, Valor original: 'Enzo Fabian'
+2026-06-25 15:42:51 - Columna: ApellidoPaterno, Valor original: 'Villanueva'
+2026-06-25 15:42:51 - Columna: ApellidoMaterno, Valor original: 'Ojeda'
+2026-06-25 15:42:51 - Columna: RolPago, Valor original: 'Facilitador 2'
+2026-06-25 15:42:51 - Columna: TarifaHora, Valor original: '5.43'
+2026-06-25 15:42:51 - Columna: Banco, Valor original: 'BCP'
+2026-06-25 15:42:51 - Columna: ConceptoPagoId, Valor original: '2'
+2026-06-25 15:42:51 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:51 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:51 - Columna: FechaInicio, Valor original: '30/05/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '30/05/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-05-30 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-05-30 00:00:00
+2026-06-25 15:42:51 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:51 - Columna: HorasExcedentesAcumuladas, Valor original: '92.06'
+2026-06-25 15:42:51 - Columna: UltimaFechaProcesada, Valor original: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-23 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-23 00:00:00
+2026-06-25 15:42:51 - Columna: UltimoCalculo, Valor original: '24/06/2026 17:59:37'
+2026-06-25 15:42:51 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:51 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 - Columna: FechaInicio2, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 -   -> Ejecutando INSERT...
+2026-06-25 15:42:51 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.
+2026-06-25 15:42:51 - === INSERTANDO USUARIO FILA 8 ===
+2026-06-25 15:42:51 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:51 - Columna: CodigoQR, Valor original: 'cbfd0d12-f20d-4d58-bf24-09d6ab6381d1'
+2026-06-25 15:42:51 - Columna: NombreCompleto, Valor original: 'Jasmin Aracelly De La Cruz Caldas'
+2026-06-25 15:42:51 - Columna: Email, Valor original: 'jdelacruzc@asistenciayaros.com'
+2026-06-25 15:42:51 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:51 - Columna: Rol, Valor original: 'Trabajador Independiente'
+2026-06-25 15:42:51 - Columna: HorasMensualesObjetivo, Valor original: '104.00'
+2026-06-25 15:42:51 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:51 - Columna: FechaRegistro, Valor original: '4/06/2026 21:55:28'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '4/06/2026 21:55:28'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-04 21:55:28
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-04 21:55:28
+2026-06-25 15:42:51 - Columna: Celular, Valor original: '926886219'
+2026-06-25 15:42:51 - Columna: CuentaAhorros, Valor original: '00219110398656102750'
+2026-06-25 15:42:51 - Columna: Direccion, Valor original: 'Mz. E Lot. 6 A.H. 1 De Julio – Comas'
+2026-06-25 15:42:51 - Columna: DNI, Valor original: '73603139'
+2026-06-25 15:42:51 - Columna: Nombres, Valor original: 'Jasmin Aracelly'
+2026-06-25 15:42:51 - Columna: ApellidoPaterno, Valor original: 'De La Cruz'
+2026-06-25 15:42:51 - Columna: ApellidoMaterno, Valor original: 'Caldas'
+2026-06-25 15:42:51 - Columna: RolPago, Valor original: 'Facilitador 2'
+2026-06-25 15:42:51 - Columna: TarifaHora, Valor original: '5.43'
+2026-06-25 15:42:51 - Columna: Banco, Valor original: 'BCP'
+2026-06-25 15:42:51 - Columna: ConceptoPagoId, Valor original: '2'
+2026-06-25 15:42:51 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:51 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:51 - Columna: FechaInicio, Valor original: '20/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '20/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-20 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-20 00:00:00
+2026-06-25 15:42:51 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:51 - Columna: HorasExcedentesAcumuladas, Valor original: '7.37'
+2026-06-25 15:42:51 - Columna: UltimaFechaProcesada, Valor original: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '23/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-23 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-23 00:00:00
+2026-06-25 15:42:51 - Columna: UltimoCalculo, Valor original: '24/06/2026 13:07:52'
+2026-06-25 15:42:51 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:51 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 - Columna: FechaInicio2, Valor original: '4/05/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '4/05/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-05-04 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-05-04 00:00:00
+2026-06-25 15:42:51 -   -> Ejecutando INSERT...
+2026-06-25 15:42:51 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.
+2026-06-25 15:42:51 - === INSERTANDO USUARIO FILA 9 ===
+2026-06-25 15:42:51 - Query: INSERT INTO Usuarios (CodigoQR, NombreCompleto, Email, PasswordHash, Rol, HorasMensualesObjetivo, Activo, FechaRegistro, Celular, CuentaAhorros, Direccion, DNI, Nombres, ApellidoPaterno, ApellidoMaterno, RolPago, TarifaHora, Banco, ConceptoPagoId, PermisoMarcacionExcepcional, TipoPermisoExcepcional, FechaInicio, CicloActualId, HorasExcedentesAcumuladas, UltimaFechaProcesada, UltimoCalculo, CiclosCompletados, UltimaFechaCorte, FechaInicio2) VALUES (@CodigoQR, @NombreCompleto, @Email, @PasswordHash, @Rol, @HorasMensualesObjetivo, @Activo, @FechaRegistro, @Celular, @CuentaAhorros, @Direccion, @DNI, @Nombres, @ApellidoPaterno, @ApellidoMaterno, @RolPago, @TarifaHora, @Banco, @ConceptoPagoId, @PermisoMarcacionExcepcional, @TipoPermisoExcepcional, @FechaInicio, @CicloActualId, @HorasExcedentesAcumuladas, @UltimaFechaProcesada, @UltimoCalculo, @CiclosCompletados, @UltimaFechaCorte, @FechaInicio2)
+2026-06-25 15:42:51 - Columna: CodigoQR, Valor original: '79f126a9-aa8b-4b0c-9f46-425227c08ec5'
+2026-06-25 15:42:51 - Columna: NombreCompleto, Valor original: 'Cristian Andres Rios Perez'
+2026-06-25 15:42:51 - Columna: Email, Valor original: 'criosp@asistenciayaros.com'
+2026-06-25 15:42:51 - Columna: PasswordHash, Valor original: '7C4A8D09CA3762AF61E59520943DC26494F8941B'
+2026-06-25 15:42:51 - Columna: Rol, Valor original: 'Trabajador Independiente'
+2026-06-25 15:42:51 - Columna: HorasMensualesObjetivo, Valor original: '96.00'
+2026-06-25 15:42:51 - Columna: Activo, Valor original: 'True'
+2026-06-25 15:42:51 - Columna: FechaRegistro, Valor original: '10/06/2026 15:37:05'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '10/06/2026 15:37:05'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-10 15:37:05
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-10 15:37:05
+2026-06-25 15:42:51 - Columna: Celular, Valor original: '993695226'
+2026-06-25 15:42:51 - Columna: CuentaAhorros, Valor original: '4883399990330'
+2026-06-25 15:42:51 - Columna: Direccion, Valor original: 'en Jr. Pariahuanca Nro. 717 Urb. El Parque del Naranjal – Los Olivos'
+2026-06-25 15:42:51 - Columna: DNI, Valor original: '05358414'
+2026-06-25 15:42:51 - Columna: Nombres, Valor original: 'Cristian Andres'
+2026-06-25 15:42:51 - Columna: ApellidoPaterno, Valor original: 'Rios'
+2026-06-25 15:42:51 - Columna: ApellidoMaterno, Valor original: 'Perez'
+2026-06-25 15:42:51 - Columna: RolPago, Valor original: 'Facilitador 3'
+2026-06-25 15:42:51 - Columna: TarifaHora, Valor original: '5.89'
+2026-06-25 15:42:51 - Columna: Banco, Valor original: 'INTERBANK'
+2026-06-25 15:42:51 - Columna: ConceptoPagoId, Valor original: '3'
+2026-06-25 15:42:51 - Columna: PermisoMarcacionExcepcional, Valor original: 'False'
+2026-06-25 15:42:51 - Columna: TipoPermisoExcepcional, Valor original: 'Todos'
+2026-06-25 15:42:51 - Columna: FechaInicio, Valor original: '2/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '2/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-02 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-02 00:00:00
+2026-06-25 15:42:51 - Columna: CicloActualId, Valor original: ''
+2026-06-25 15:42:51 - Columna: HorasExcedentesAcumuladas, Valor original: '11.62'
+2026-06-25 15:42:51 - Columna: UltimaFechaProcesada, Valor original: '21/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> Intentando convertir fecha: '21/06/2026 00:00:00'
+2026-06-25 15:42:51 -   -> TryParse exitoso: 2026-06-21 00:00:00
+2026-06-25 15:42:51 -   -> Fecha asignada: 2026-06-21 00:00:00
+2026-06-25 15:42:51 - Columna: UltimoCalculo, Valor original: '24/06/2026 18:01:30'
+2026-06-25 15:42:51 - Columna: CiclosCompletados, Valor original: ''
+2026-06-25 15:42:51 - Columna: UltimaFechaCorte, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 - Columna: FechaInicio2, Valor original: ''
+2026-06-25 15:42:51 -   -> Columna fecha vacía, asignando NULL
+2026-06-25 15:42:51 -   -> Ejecutando INSERT...
+2026-06-25 15:42:51 -   -> ERROR en INSERT: The conversion of a nvarchar data type to a datetime data type resulted in an out-of-range value.
+The statement has been terminated.

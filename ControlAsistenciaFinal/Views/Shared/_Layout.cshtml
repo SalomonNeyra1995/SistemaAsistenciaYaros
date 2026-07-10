@@ -24,7 +24,8 @@
     </script>
     <link href="~/Content/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/Content/css/all.min.css" rel="stylesheet" />
- 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <style>
         body {
             background-color: #f8f9fc;
@@ -86,7 +87,7 @@
                         @* <li class="nav-item"><a class="nav-link" href="@Url.Action("Reportes", "Admin")"><i class="fas fa-file-alt"></i> Reportes</a></li>*@
                         @*<li class="nav-item"><a class="nav-link" href="@Url.Action("ReportePagos", "Admin")"><i class="fas fa-money-bill-wave"></i> Pagos</a></li>*@
                         @*<li class="nav-item"><a class="nav-link" href="@Url.Action("GestionarPermisos", "Admin")"><i class="fas fa-user-shield"></i> Permisos Excepcionales</a></li>*@
-                @*<li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "IPERC")"><i class="fas fa-chart-line"></i> Matriz IPERC</a></li>*@
+                        @*<li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "IPERC")"><i class="fas fa-chart-line"></i> Matriz IPERC</a></li>*@
                         <li class="nav-item">
                             <a class="nav-link" href="@Url.Action("GestionarSolicitudes", "Admin")">
                                 <i class="fas fa-bell"></i> Solicitudes Pendientes
@@ -99,8 +100,18 @@
                                 <span id="alertaCount" class="badge bg-danger rounded-pill" style="display:none;">0</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index", "Backup")">
+                                <i class="fas fa-database"></i> Respaldo
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("PagoxCiclo", "Admin")">
+                                <i class="fas fa-database"></i> Pagos Ciclos
+                            </a>
+                        </li>
                     }
-                   
+
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">

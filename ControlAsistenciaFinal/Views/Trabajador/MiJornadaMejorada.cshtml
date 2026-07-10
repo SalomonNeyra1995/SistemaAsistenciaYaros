@@ -27,7 +27,6 @@
                     <img src="~/Content/images/Logo_Yaros_Group_2.png" alt="Yaros Group" class="img-fluid" style="height: 83px; width: auto; position: relative; right: 0;" />
                 </div>
                 <!-- RELOJ -->
-                <!-- RELOJ -->
                 <div class="clock-box-header">
                     <div class="clock-date-header" id="currentDateHeader">@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"))</div>
                     <div class="clock-time-header" id="currentTimeHeader">--:--:--</div>
@@ -126,6 +125,8 @@
             <div class="card-body">
                 @if (ViewBag.EsFacilitador == true)
                 {
+
+                    <!-- CORREGIDO: AGREGAR HORAS TRABAJADAS -->
                     <div class="mb-3">
                         <label class="text-muted">Horas Trabajadas:</label>
                         <h3 class="text-primary">
@@ -134,10 +135,12 @@
                                 int horasEnteras = (int)horasTrab;
                                 int minutos = (int)((horasTrab - horasEnteras) * 60);
                                 string textoHorasFormateado = horasEnteras + " horas ";
+
                             }
                             @textoHorasFormateado
                         </h3>
                     </div>
+
                     <div class="mb-3">
                         <label class="text-muted">Horas Objetivo:</label>
                         <h3 class="text-success">
@@ -221,6 +224,7 @@
 
     <!-- COLUMNA DERECHA -->
     <div class="col-lg-7 col-md-12 mb-4">
+        <!-- Registros de Hoy -->
         <div class="card border-0 shadow-lg">
             <div class="card-header" style="background: linear-gradient(135deg, #00a7eb 0%, #00baff 50%, #00a7eb 100%);">
                 <div class="d-flex justify-content-between align-items-center w-100">
@@ -243,12 +247,71 @@
                             </tr>
                         </thead>
                         <tbody id="tbodyRegistros">
+                            <!-- Skeleton Loading - Aparece instantáneamente -->
+                            <tr class="skeleton-row">
+                                <td><span class="skeleton-line short"></span></td>
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line long"></span></td>
+                            </tr>
+                            <tr class="skeleton-row">
+                                <td><span class="skeleton-line short"></span></td>
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line long"></span></td>
+                            </tr>
+                            <tr class="skeleton-row">
+                                <td><span class="skeleton-line short"></span></td>
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line long"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE TARDANZAS DEL MES -->
+        <div class="card border-0 shadow-lg mt-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #00a7eb 0%, #00baff 50%, #00a7eb 100%);">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <h5 class="mb-0 text-white card-title-with-bullets">
+                        <i class="fas fa-clock me-2"></i> Registros de Tardanza
+                    </h5>
+                    <span class="badge bg-light text-dark rounded-pill px-3 py-2" id="totalTardanzas">
+                        <i class="fas fa-exclamation-triangle me-1" style="color: #ffc107;"></i>
+                        Total Tardanzas: <span id="totalTardanzasCount">0</span>
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
                             <tr>
-                                <td colspan="3" class="text-center py-5 text-muted">
-                                    <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>
-                                    Cargando registros...
-
-
+                                <th class="py-3"><i class="fas fa-calendar-alt"></i> Fecha</th>
+                                <th class="py-3"><i class="fas fa-clock"></i> Turno</th>
+                                <th class="py-3"><i class="fas fa-door-open"></i> Hora Ingreso</th>
+                                <th class="py-3"><i class="fas fa-hourglass-half"></i> Minutos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyTardanzas">
+                            <!-- Skeleton Loading - Aparece instantáneamente -->
+                            <tr class="skeleton-row">
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line short"></span></td>
+                                <td><span class="skeleton-line short"></span></td>
+                            </tr>
+                            <tr class="skeleton-row">
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line short"></span></td>
+                                <td><span class="skeleton-line short"></span></td>
+                            </tr>
+                            <tr class="skeleton-row">
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line medium"></span></td>
+                                <td><span class="skeleton-line short"></span></td>
+                                <td><span class="skeleton-line short"></span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -258,7 +321,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal de Solicitud Excepcional -->
 <div class="modal fade" id="modalSolicitudExcepcional" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -292,6 +355,78 @@
     </div>
 </div>
 
+
+<!-- ============================================ -->
+<!-- MODAL DE ALERTA DE SALIDA PENDIENTE - CON FECHA -->
+<!-- ============================================ -->
+<div class="modal fade" id="modalAlertaSalida" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <!-- Header con gradiente rojo -->
+            <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 20px 20px 0 0; border: none; flex-shrink: 0;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white rounded-circle p-2" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; animation: pulseModal 2s infinite;">
+                        <i class="fas fa-clock text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold">
+                            <i class="fas fa-exclamation-triangle me-2"></i> ¡Salida Pendiente!
+                        </h5>
+                        <p class="text-white-50 small mb-0" id="modalFechaPendiente">Fecha pendiente: --</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" style="padding: 25px 30px; overflow-y: auto;">
+                <div class="text-center mb-4">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-3 d-inline-block mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-door-closed fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Aún no ha registrado su salida</h5>
+                    <p class="text-muted" id="modalMensajePendiente">Por favor, recuerde registrar su salida del día pendiente.</p>
+                </div>
+
+                <!-- Tarjeta con información de la fecha pendiente -->
+                <div class="card border-danger mb-3" style="border-left: 4px solid #dc3545;">
+                    <div class="card-body py-2 px-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">📅 Fecha Pendiente</small>
+                                <strong class="text-danger" id="modalFechaCompleta" style="font-size: 1.1rem;">--</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">⏰ Hora de Entrada</small>
+                                <strong class="text-primary" id="modalHoraEntrada" style="font-size: 1.1rem;">--:--</strong>
+                            </div>
+                        </div>
+                        <div class="row g-2 mt-1">
+                            <div class="col-6">
+                                <small class="text-muted d-block">📆 Días de Retraso</small>
+                                <strong class="text-warning" id="modalDiasRetraso" style="font-size: 1.1rem;">--</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">📋 Día de la Semana</small>
+                                <strong class="text-info" id="modalDiaSemana" style="font-size: 1.1rem;">--</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning d-flex align-items-center gap-2" style="border-radius: 12px; background: #fff8e1; border-color: #ffc107;">
+                    <i class="fas fa-info-circle text-warning fs-5"></i>
+                    <div>
+                        <small class="text-dark">Por favor, registre su salida lo antes posible para que el día sea considerado como laborado.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 15px 30px; border-radius: 0 0 20px 20px; flex-shrink: 0;">
+                <button type="button" class="btn btn-primary rounded-pill px-5" id="btnAceptarAlerta" style="font-weight: 600;">
+                    <i class="fas fa-check me-2"></i> Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     /* 3 CÍRCULOS DE COLORES AL LADO IZQUIERDO DEL TÍTULO */
     .card-title-with-bullets {
@@ -310,6 +445,40 @@
             margin-right: 50px;
             flex: 0 0 auto;
         }
+
+    /* Animación para el pulso del icono en el modal */
+    @@keyframes pulseModal {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+
+    /* Animación de entrada del modal */
+    .modal.fade .modal-dialog {
+        transform: scale(0.9);
+        transition: all 0.3s ease;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+
+    .btn-danger:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        transition: all 0.3s ease;
+    }
 
     /* RELOJ EN HEADER */
     .clock-box-header {
@@ -381,10 +550,10 @@
         font-weight: 500;
     }
 
-    btn-entrada:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(72, 168, 76, 0.3);
-    }
+        .btn-entrada:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(72, 168, 76, 0.3);
+        }
 
     .btn-salida {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
@@ -447,6 +616,7 @@
     .badge {
         border-radius: 50px;
         font-weight: 500;
+        font-size: 15px !important;
     }
 
     .progress {
@@ -526,23 +696,138 @@
             margin-right: 40px;
         }
     }
+
+    /* Badges de colores para tardanzas */
+    .bg-orange {
+        background-color: #fd7e14;
+        color: white;
+    }
+
+    .bg-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .bg-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    #tbodyTardanzas tr:hover {
+        background-color: rgba(255, 107, 107, 0.05);
+    }
+
+    #tbodyTardanzas .badge {
+        font-size: 0.85rem;
+        font-weight: 600;
+        min-width: 70px;
+    }
+
+    #totalTardanzasCount {
+        transition: all 0.3s ease;
+    }
+
+    /* Forzar que el modal no se cierre al hacer clic fuera */
+    .modal-backdrop {
+        pointer-events: none !important;
+    }
+
+    #modalAlertaSalida .modal {
+        pointer-events: none !important;
+    }
+
+    #modalAlertaSalida .modal-dialog {
+        pointer-events: auto !important;
+    }
+
+    #modalAlertaSalida .modal-content {
+        pointer-events: auto !important;
+    }
+
+    /* Evitar que el body haga scroll cuando el modal está abierto */
+    body.modal-open {
+        overflow: hidden !important;
+        padding-right: 0 !important;
+    }
+
+    /* Bloquear completamente el cierre del modal */
+    #modalAlertaSalida .modal-header .btn-close {
+        display: none !important;
+    }
+
+    #modalAlertaSalida .modal-header .close {
+        display: none !important;
+    }
+
+    /* Forzar que el modal se mantenga abierto */
+    #modalAlertaSalida.modal.show {
+        display: block !important;
+        background-color: rgba(0,0,0,0.5) !important;
+    }
+
+    #modalAlertaSalida .modal-dialog {
+        transform: translate(0, -50%) !important;
+        top: 50% !important;
+        margin: 0 auto !important;
+    }
+
+    /* ============================================
+       SKELETON LOADING - PARA CARGA RÁPIDA
+       ============================================ */
+    .skeleton-row td {
+        padding: 8px 10px !important;
+    }
+
+    .skeleton-line {
+        height: 20px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 4px;
+    }
+
+        .skeleton-line.short {
+            width: 60px;
+        }
+
+        .skeleton-line.medium {
+            width: 100px;
+        }
+
+        .skeleton-line.long {
+            width: 150px;
+        }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+
+        100% {
+            background-position: 200% 0;
+        }
+    }
+
+    /* Mostrar skeleton inmediatamente */
+    #tbodyRegistros .skeleton-row,
+    #tbodyTardanzas .skeleton-row {
+        display: table-row;
+    }
 </style>
+
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // RELOJ
-        // FUNCION DEL RELOJ - Formato 24 HORAS
+        // RELOJ - Formato 24 HORAS
         function updateClockHeader() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('currentDateHeader').textContent = now.toLocaleDateString('es-PE', options);
-
-            // Formato 24 horas sin AM/PM
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
             const seconds = now.getSeconds().toString().padStart(2, '0');
-            document.getElementById('currentTimeHeader').textContent = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('currentTimeHeader').textContent = hours + ':' + minutes + ':' + seconds;
         }
         updateClockHeader();
         setInterval(updateClockHeader, 1000);
@@ -551,28 +836,225 @@
         var esAdmin = @((ViewBag.EsAdmin ?? false).ToString().ToLower());
         var registrosActuales = [];
         var cargaEnProceso = false;
-        var timeoutCarga = null;
         var cacheRegistros = {
             datos: null,
             timestamp: 0,
-            tiempoVida: 30000
+            tiempoVida: 60000  // 1 minuto
         };
+        var cacheTardanzas = {
+            datos: null,
+            timestamp: 0,
+            tiempoVida: 60000  // 1 minuto
+        };
+        var cargandoTardanzas = false;
+        var alertaModalVisible = false;
+        var cerrandoPorAceptar = false;
+        var cargasPendientes = 0;
 
-        $(document).ready(function() {
-            cargarRegistrosHoy();
-            $("#btnRefrescar").click(function() {
-                cacheRegistros.datos = null;
-                cacheRegistros.timestamp = 0;
-                cargarRegistrosHoy(true);
+        // ============================================
+        // FUNCIÓN PARA RENDERIZAR TABLA DE REGISTROS - RÁPIDA
+        // ============================================
+        function renderizarTabla(data) {
+            var tbody = $("#tbodyRegistros");
+            if (!data || data.length === 0) {
+                tbody.html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>No hay registros hoy</td></tr>');
+                registrosActuales = [];
+                return;
+            }
+            data.sort(function (a, b) {
+                return a.Hora.localeCompare(b.Hora);
             });
-        });
+            var html = '';
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var badgeClass = '';
+                var horaMostrar = item.Hora;
+                if (horaMostrar && horaMostrar.length > 5) {
+                    horaMostrar = horaMostrar.substring(0, 5);
+                }
+                if (item.TipoRegistro === 'Entrada') {
+                    badgeClass = 'bg-success';
+                } else if (item.TipoRegistro === 'Almuerzo_Salida') {
+                    badgeClass = 'bg-warning';
+                } else if (item.TipoRegistro === 'Almuerzo_Retorno') {
+                    badgeClass = 'bg-info';
+                } else if (item.TipoRegistro === 'Salida') {
+                    badgeClass = 'bg-danger';
+                }
+                html += '<tr>' +
+                    '<td class="fw-bold">' + horaMostrar + '</td>' +
+                    '<td><span class="badge ' + badgeClass + ' px-3 py-2 rounded-pill">' + item.TipoRegistro + '</span></td>' +
+                    '<td class="text-muted">' + (item.Comentario || '-') + '</td>' +
+                    '</tr>';
+            }
+            tbody.html(html);
+            registrosActuales = data;
+        }
 
+        // ============================================
+        // FUNCIÓN PARA RENDERIZAR TABLA DE TARDANZAS - RÁPIDA
+        // ============================================
+        function renderizarTardanzas(response) {
+            var tbody = $("#tbodyTardanzas");
+            var total = response.total || 0;
+            $('#totalTardanzasCount').text(total);
+
+            if (response.data && response.data.length > 0) {
+                var html = '';
+                for (var i = 0; i < response.data.length; i++) {
+                    var item = response.data[i];
+                    var badgeTurno = item.TipoJornada === 'Mañana'
+                        ? '<span class="badge rounded-pill" style="background: linear-gradient(135deg, #00baff 0%, #007beb 100%); color: white; padding: 6px 12px;"><i class="bi bi-brightness-high-fill me-1"></i> Mañana</span>'
+                        : '<span class="badge rounded-pill" style="background: linear-gradient(135deg, #f7b712 0%, #f28117 100%); color: white; padding: 6px 12px;"><i class="bi bi-brightness-alt-high-fill me-1"></i> Tarde</span>';
+                    var colorMinutos = item.TipoJornada === 'Mañana' ? '#E87C00' : '#BD0808';
+                    html += '<tr>' +
+                        '<td class="fw-bold">' + item.Fecha + '</td>' +
+                        '<td>' + badgeTurno + '</td>' +
+                        '<td><strong>' + item.HoraIngreso + '</strong></td>' +
+                        '<td><span style="font-weight: bold; color: ' + colorMinutos + ';">' + item.MinutosTardanza + ' min</span></td>' +
+                        '</tr>';
+                }
+                tbody.html(html);
+            } else {
+                tbody.html(
+                    '<tr><td colspan="4" class="text-center py-5 text-success">' +
+                    '<i class="fas fa-check-circle fa-2x mb-2 d-block"></i>' +
+                    '¡Felicidades! No tiene tardanzas este mes' +
+                    '</td></tr>'
+                );
+            }
+        }
+
+        // ============================================
+        // CARGAR REGISTROS DE HOY - CON CACHÉ
+        // ============================================
+        function cargarRegistrosHoy(forzarRecarga) {
+            if (forzarRecarga === undefined) forzarRecarga = false;
+            var ahora = new Date().getTime();
+
+            // Usar caché si es válido
+            if (!forzarRecarga && cacheRegistros.datos && (ahora - cacheRegistros.timestamp) < cacheRegistros.tiempoVida) {
+                renderizarTabla(cacheRegistros.datos);
+                return;
+            }
+
+            if (cargaEnProceso) return;
+            cargaEnProceso = true;
+
+            $.ajax({
+                url: '@Url.Action("ObtenerRegistrosHoy", "Trabajador")',
+                type: 'POST',
+                dataType: 'json',
+                timeout: 5000,
+                success: function(data) {
+                    cacheRegistros.datos = data || [];
+                    cacheRegistros.timestamp = new Date().getTime();
+                    renderizarTabla(cacheRegistros.datos);
+                    cargaEnProceso = false;
+                },
+                error: function() {
+                    if (!cacheRegistros.datos) {
+                        $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar datos</td></tr>');
+                    }
+                    cargaEnProceso = false;
+                }
+            });
+        }
+
+        // ============================================
+        // CARGAR TARDANZAS DEL MES - CON CACHÉ
+        // ============================================
+        function cargarTardanzasMes(forzarRecarga) {
+            if (forzarRecarga === undefined) forzarRecarga = false;
+            var ahora = new Date().getTime();
+
+            if (!forzarRecarga && cacheTardanzas.datos && (ahora - cacheTardanzas.timestamp) < cacheTardanzas.tiempoVida) {
+                renderizarTardanzas(cacheTardanzas.datos);
+                return;
+            }
+
+            if (cargandoTardanzas) return;
+            cargandoTardanzas = true;
+
+            $.ajax({
+                url: '@Url.Action("ObtenerTardanzasMes", "Trabajador")',
+                type: 'POST',
+                dataType: 'json',
+                timeout: 5000,
+                success: function(response) {
+                    if (response.success) {
+                        cacheTardanzas.datos = response;
+                        cacheTardanzas.timestamp = new Date().getTime();
+                        renderizarTardanzas(response);
+                    } else {
+                        if (!cacheTardanzas.datos) {
+                            mostrarErrorTardanzas();
+                        }
+                    }
+                    cargandoTardanzas = false;
+                },
+                error: function() {
+                    if (!cacheTardanzas.datos) {
+                        mostrarErrorTardanzas();
+                    }
+                    cargandoTardanzas = false;
+                }
+            });
+        }
+
+        function mostrarErrorTardanzas() {
+            $("#tbodyTardanzas").html(
+                '<tr><td colspan="4" class="text-center py-5 text-danger">' +
+                '<i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>' +
+                'Error al cargar tardanzas. <a href="#" onclick="cargarTardanzasMes(true); return false;">Reintentar</a>' +
+                '</td></tr>'
+            );
+        }
+
+        // ============================================
+        // CARGA INICIAL - INMEDIATA
+        // ============================================
+        function cargarDatosIniciales() {
+            // Intentar cargar desde caché primero (instantáneo)
+            var ahora = new Date().getTime();
+
+            if (cacheRegistros.datos && (ahora - cacheRegistros.timestamp) < cacheRegistros.tiempoVida) {
+                renderizarTabla(cacheRegistros.datos);
+            }
+
+            if (cacheTardanzas.datos && (ahora - cacheTardanzas.timestamp) < cacheTardanzas.tiempoVida) {
+                renderizarTardanzas(cacheTardanzas.datos);
+            }
+
+            // Cargar datos frescos en segundo plano
+            cargarRegistrosHoy();
+            setTimeout(function () {
+                cargarTardanzasMes();
+            }, 300);
+        }
+
+        // ============================================
+        // EXISTE REGISTRO (para validaciones)
+        // ============================================
         function existeRegistro(tipo) {
             return registrosActuales.some(function(registro) {
                 return registro.TipoRegistro === tipo;
             });
         }
 
+        function obtenerNombreTipo(tipo) {
+            switch(tipo) {
+                case 'Entrada': return 'ENTRADA';
+                case 'Salida': return 'SALIDA';
+                case 'Almuerzo_Salida': return 'SALIDA A ALMUERZO';
+                case 'Almuerzo_Retorno': return 'RETORNO DE ALMUERZO';
+                default: return tipo;
+            }
+        }
+
+        // ============================================
+        // VALIDAR ORDEN DE MARCACIÓN
+        // ============================================
         function validarOrdenMarcacion(tipo) {
             var tieneEntrada = existeRegistro('Entrada');
             var tieneSalida = existeRegistro('Salida');
@@ -653,16 +1135,9 @@
             return { valido: true, mensaje: '' };
         }
 
-        function obtenerNombreTipo(tipo) {
-            switch(tipo) {
-                case 'Entrada': return 'ENTRADA';
-                case 'Salida': return 'SALIDA';
-                case 'Almuerzo_Salida': return 'SALIDA A ALMUERZO';
-                case 'Almuerzo_Retorno': return 'RETORNO DE ALMUERZO';
-                default: return tipo;
-            }
-        }
-
+        // ============================================
+        // MARCAR - SIN CAMBIOS
+        // ============================================
         function marcar(tipo) {
             if (!esAdmin) {
                 var validacion = validarOrdenMarcacion(tipo);
@@ -670,11 +1145,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: '⚠️ Orden de marcación incorrecto',
-                        html: `<div style="text-align: left;">
-                            <p>${validacion.mensaje.replace(/\n/g, '<br>')}</p>
-                            <hr>
-                            <p class="text-muted">Si consideras que esto es un error, por favor comunícate con el área administrativa.</p>
-                        </div>`,
+                        html: '<div style="text-align: left;"><p>' + validacion.mensaje.replace(/\n/g, '<br>') + '</p><hr><p class="text-muted">Si consideras que esto es un error, por favor comunícate con el área administrativa.</p></div>',
                         confirmButtonText: 'Entendido',
                         confirmButtonColor: '#3085d6',
                         showCancelButton: false
@@ -694,7 +1165,7 @@
                     break;
                 case 'Salida':
                     titulo = 'Registro de Salida';
-                    mensajeConfirmacion = '¿Desea registrar su SALIDA definitiva? Una vez registrada, no podrá marcar más entradas, almuerzos o retornos hoy.\n\n✅';
+                    mensajeConfirmacion = '¿Desea registrar su SALIDA definitiva? Una vez registrada, no podrá marcar más entradas, almuerzos o retornos hoy.';
                     break;
                 case 'Almuerzo_Salida':
                     titulo = 'Registro de Salida a Almuerzo';
@@ -721,7 +1192,7 @@
                         title: 'Procesando...',
                         text: 'Registrando su marcación',
                         allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
+                        didOpen: function() { Swal.showLoading(); }
                     });
 
                     $.ajax({
@@ -736,18 +1207,21 @@
                                 var mensajeExtra = '';
                                 if (tipo === 'Salida') {
                                     mensajeExtra = '<br><br>🏁 Este día ya cuenta como DÍA TRABAJADO en el resumen del mes.';
+                                    setTimeout(verificarSalidaPendiente, 1000);
                                 } else if (tipo === 'Almuerzo_Salida') {
                                     mensajeExtra = '<br><br>🍽️ No olvide registrar su RETORNO DE ALMUERZO cuando regrese.';
                                 }
                                 Swal.fire({
                                     icon: 'success',
                                     title: '¡Registro Exitoso!',
-                                    html: `✅ ${response.mensaje}<br><br>⏰ Hora: ${new Date().toLocaleTimeString()}${mensajeExtra}`,
+                                    html: '✅ ' + response.mensaje + '<br><br>⏰ Hora: ' + new Date().toLocaleTimeString() + mensajeExtra,
                                     timer: 2500,
                                     showConfirmButton: false
                                 });
                                 $('#txtComentario').val('');
                                 cargarRegistrosHoy(true);
+                                cargarTardanzasMes(true);
+                                setTimeout(verificarSalidaPendiente, 1500);
                                 setTimeout(function() { location.reload(); }, 2500);
                             } else {
                                 Swal.fire({
@@ -770,87 +1244,128 @@
             });
         }
 
-        function renderizarTabla(data) {
-            var tbody = $("#tbodyRegistros");
-            if (!data || data.length === 0) {
-                tbody.html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>No hay registros hoy<\/td>\\n</tr>');
-                registrosActuales = [];
-                return;
-            }
-            data.sort(function (a, b) {
-                return a.Hora.localeCompare(b.Hora);
-            });
-            var filas = [];
-            for (var i = 0; i < data.length; i++) {
-                var item = data[i];
-                var icono = '';
-                var badgeClass = '';
-                var horaMostrar = item.Hora;
-                if (horaMostrar && horaMostrar.length > 5) {
-                    horaMostrar = horaMostrar.substring(0, 5);
-                }
-                if (item.TipoRegistro === 'Entrada') {
-                    icono = '';
-                    badgeClass = 'bg-success';
-                } else if (item.TipoRegistro === 'Almuerzo_Salida') {
-                    icono = '';
-                    badgeClass = 'bg-warning';
-                } else if (item.TipoRegistro === 'Almuerzo_Retorno') {
-                    icono = '';
-                    badgeClass = 'bg-info';
-                } else if (item.TipoRegistro === 'Salida') {
-                    icono = '';
-                    badgeClass = 'bg-danger';
-                }
-                filas.push(
-                    '<tr>' +
-                    '<td class="fw-bold">' + horaMostrar + '<\/td>' +
-                    '<td><span class="badge ' + badgeClass + ' px-3 py-2 rounded-pill">' + icono + ' ' + item.TipoRegistro + '<\/span><\/td>' +
-                    '<td class="text-muted">' + (item.Comentario || '-') + '<\/td>' +
-                    '<\/tr>'
-                );
-            }
-            tbody.html(filas.join(''));
-            registrosActuales = data;
-        }
+        // ============================================
+        // ALERTA DE SALIDA PENDIENTE - RÁPIDA
+        // ============================================
+        function verificarSalidaPendiente() {
+            if (alertaModalVisible) return;
 
-        function cargarRegistrosHoy(forzarRecarga = false) {
-            var ahora = new Date().getTime();
-            if (!forzarRecarga && cacheRegistros.datos && (ahora - cacheRegistros.timestamp) < cacheRegistros.tiempoVida) {
-                renderizarTabla(cacheRegistros.datos);
-                return;
-            }
-            if (cargaEnProceso) return;
-            cargaEnProceso = true;
-            if (!cacheRegistros.datos) {
-                $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>Cargando registros...<\/td>\\n</tr>');
-            }
-            if (timeoutCarga) clearTimeout(timeoutCarga);
-            timeoutCarga = setTimeout(function() {
-                $.ajax({
-                    url: '@Url.Action("ObtenerRegistrosHoy", "Trabajador")',
-                    type: 'POST',
-                    dataType: 'json',
-                    timeout: 10000,
-                    success: function(data) {
-                        cacheRegistros.datos = data || [];
-                        cacheRegistros.timestamp = new Date().getTime();
-                        renderizarTabla(cacheRegistros.datos);
-                        cargaEnProceso = false;
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error al cargar registros:", status, error);
-                        if (status === "timeout") {
-                            $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-warning"><i class="fas fa-clock fa-2x mb-2 d-block"></i>Tiempo de espera agotado. Intente refrescar.<\/td>\\n</tr>');
-                        } else {
-                            $("#tbodyRegistros").html('<tr><td colspan="3" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar datos<\/td>\\n</tr>');
+            $.ajax({
+                url: '@Url.Action("ObtenerAlertaSalidaPendiente", "Trabajador")',
+                type: 'GET',
+                dataType: 'json',
+                timeout: 5000,
+                success: function(response) {
+                    if (response.success && response.tieneAlerta) {
+                        if (response.fechaFormateada) {
+                            $('#modalFechaPendiente').text('Fecha pendiente: ' + response.fechaFormateada);
+                            $('#modalFechaCompleta').text(response.fechaFormateada);
                         }
-                        cargaEnProceso = false;
+                        if (response.diaSemana) {
+                            $('#modalDiaSemana').text(response.diaSemana);
+                        }
+                        if (response.horaEntrada) {
+                            $('#modalHoraEntrada').text(response.horaEntrada);
+                        }
+                        if (response.diasRetraso !== undefined) {
+                            var textoDias = response.diasRetraso === 1 ? '1 día' : response.diasRetraso + ' días';
+                            $('#modalDiasRetraso').text(textoDias);
+                        }
+                        if (response.mensaje) {
+                            $('#modalMensajePendiente').text(response.mensaje);
+                        }
+
+                        if (!alertaModalVisible) {
+                            $('#modalAlertaSalida').modal({
+                                backdrop: 'static',
+                                keyboard: false
+                            });
+                            $('#modalAlertaSalida').modal('show');
+                            alertaModalVisible = true;
+                            cerrandoPorAceptar = false;
+                        }
+                    } else {
+                        if (alertaModalVisible) {
+                            $('#modalAlertaSalida').modal('hide');
+                            alertaModalVisible = false;
+                            cerrandoPorAceptar = false;
+                        }
                     }
-                });
-            }, 10);
+                },
+                error: function() {
+                    setTimeout(verificarSalidaPendiente, 10000);
+                }
+            });
         }
 
+        // ============================================
+        // EVENTO PARA EL BOTÓN ACEPTAR
+        // ============================================
+        $(document).on('click', '#btnAceptarAlerta', function () {
+            $('#btnAceptarAlerta').html('<i class="fas fa-spinner fa-spin me-2"></i> Procesando...');
+            $('#btnAceptarAlerta').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("RegistrarAceptacionAlertaSalida", "Trabajador")',
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    cerrandoPorAceptar = true;
+                    $('#modalAlertaSalida').modal('hide');
+                    alertaModalVisible = false;
+                    $('#btnAceptarAlerta').html('<i class="fas fa-check me-2"></i> Aceptar');
+                    $('#btnAceptarAlerta').prop('disabled', false);
+                },
+                error: function() {
+                    cerrandoPorAceptar = true;
+                    $('#modalAlertaSalida').modal('hide');
+                    alertaModalVisible = false;
+                    $('#btnAceptarAlerta').html('<i class="fas fa-check me-2"></i> Aceptar');
+                    $('#btnAceptarAlerta').prop('disabled', false);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Error al registrar',
+                        text: 'No se pudo registrar su aceptación, pero la alerta no se mostrará nuevamente.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        });
+
+        // ============================================
+        // EVITAR CIERRE DEL MODAL
+        // ============================================
+        $(document).on('click', '#modalAlertaSalida', function(e) {
+            if ($(e.target).is('.modal') || $(e.target).is('.modal-backdrop')) {
+                return false;
+            }
+        });
+
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#modalAlertaSalida').hasClass('show')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+
+        $('#modalAlertaSalida').on('hide.bs.modal', function(e) {
+            if (alertaModalVisible && !cerrandoPorAceptar) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+
+        $('#modalAlertaSalida').on('hidden.bs.modal', function() {
+            alertaModalVisible = false;
+            cerrandoPorAceptar = false;
+        });
+
+        // ============================================
+        // SOLICITUD EXCEPCIONAL
+        // ============================================
         var tipoPermisoGlobal = '@tipoPermisoExcepcional';
 
         function cargarOpcionesTipoPermiso() {
@@ -966,7 +1481,7 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire({ title: 'Enviando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    Swal.fire({ title: 'Enviando...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
                     $.ajax({
                         url: '@Url.Action("SolicitarMarcacionExcepcional", "Trabajador")',
                         type: 'POST',
@@ -996,5 +1511,39 @@
         $('#modalSolicitudExcepcional').on('show.bs.modal', function() {
             cargarOpcionesTipoPermiso();
         });
+
+        // ============================================
+        // DOCUMENT READY - CARGA INMEDIATA
+        // ============================================
+        $(document).ready(function () {
+            // ============================================
+            // 1. INMEDIATO: Verificar salida pendiente
+            // ============================================
+            verificarSalidaPendiente();
+
+            // ============================================
+            // 2. INMEDIATO: Mostrar datos desde caché o skeleton
+            // ============================================
+            cargarDatosIniciales();
+
+            // ============================================
+            // 3. REFRESCAR
+            // ============================================
+            $("#btnRefrescar").click(function () {
+                cacheRegistros.datos = null;
+                cacheRegistros.timestamp = 0;
+                cacheTardanzas.datos = null;
+                cacheTardanzas.timestamp = 0;
+                cargarRegistrosHoy();
+                setTimeout(function () {
+                    cargarTardanzasMes();
+                }, 300);
+            });
+
+            // ============================================
+            // 4. VERIFICAR SALIDA PENDIENTE CADA 2 MINUTOS
+            // ============================================
+            setInterval(verificarSalidaPendiente, 120000);
+        });
     </script>
-}
+}|

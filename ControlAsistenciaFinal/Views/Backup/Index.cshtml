@@ -1,0 +1,1944 @@
+﻿@model List<ControlAsistenciaFinal.Services.BackupInfo>
+
+@{
+    ViewBag.Title = "Respaldo y Restauración";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .backup-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .backup-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        }
+
+    .table-tablas {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+        .table-tablas thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+    .restore-progress {
+        transition: width 0.5s ease;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #00a7eb 0%, #00baff 50%, #00a7eb 100%) !important;
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+    }
+
+    /* ============================================
+       ESTILOS PARA EL OVERLAY DE PROGRESO
+       ============================================ */
+    #overlayProgreso {
+        display: none !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+        #overlayProgreso.show {
+            display: flex !important;
+        }
+
+        #overlayProgreso .overlay-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px 40px;
+            text-align: center;
+            min-width: 320px;
+            max-width: 450px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: fadeInOverlay 0.3s ease;
+        }
+
+    @@keyframes fadeInOverlay {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    #overlayProgreso .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: #0d6efd;
+    }
+
+    #overlayProgreso .progress {
+        height: 5px;
+        border-radius: 10px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+
+    #overlayProgreso .progress-bar {
+        background: #0d6efd;
+        width: 100%;
+        transition: width 0.5s ease;
+    }
+
+        #overlayProgreso .progress-bar.animated {
+            animation: progressAnimation 1.5s ease-in-out infinite;
+        }
+
+    @@keyframes progressAnimation {
+        0% {
+            width: 100%;
+        }
+
+        50% {
+            width: 70%;
+        }
+
+        100% {
+            width: 100%;
+        }
+    }
+
+    #btnCerrarOverlay {
+        display: none;
+        margin-top: 15px;
+    }
+
+        #btnCerrarOverlay.visible {
+            display: inline-block !important;
+        }
+
+    /* Estilos para botones */
+    .btn-eliminar-archivo {
+        transition: all 0.3s ease;
+    }
+
+        .btn-eliminar-archivo:hover {
+            transform: scale(1.05);
+        }
+
+    .btn-eliminar-todos-periodo {
+        transition: all 0.3s ease;
+    }
+
+        .btn-eliminar-todos-periodo:hover {
+            transform: scale(1.05);
+        }
+
+    .btn-limpiar-tabla {
+        transition: all 0.3s ease;
+    }
+
+        .btn-limpiar-tabla:hover {
+            transform: scale(1.05);
+        }
+
+    /* Estilos para el modal de limpieza */
+    .cleanup-card {
+        border-left: 4px solid #ffc107;
+    }
+
+    .table-cleanup-list {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+        .table-cleanup-list .form-check {
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+        }
+
+            .table-cleanup-list .form-check:hover {
+                background: #f8f9fa;
+            }
+
+    .badge-cleanup {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+
+    /* Estilos para el badge de IDENTITY reiniciado */
+    .bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .bg-success.bg-opacity-10 {
+        background-color: rgba(40, 167, 69, 0.1) !important;
+    }
+
+    .bg-danger.bg-opacity-10 {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+
+    /* ============================================
+       ESTILOS PARA COMPACTAR LA SECCIÓN GENERAR RESPALDO
+       ============================================ */
+    .card-generar-respaldo .card-body {
+        padding: 0.75rem 1rem !important;
+    }
+
+    .card-generar-respaldo .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .card-generar-respaldo .form-label {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+
+    .card-generar-respaldo .form-select {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        height: auto !important;
+    }
+
+    .card-generar-respaldo .btn-lg {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    .card-generar-respaldo .btn {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    .card-generar-respaldo hr {
+        margin: 0.4rem 0 !important;
+    }
+
+    .card-generar-respaldo .alert {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.7rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    .card-generar-respaldo .card-header {
+        padding: 0.4rem 1rem !important;
+    }
+
+        .card-generar-respaldo .card-header h5 {
+            font-size: 0.9rem !important;
+        }
+
+    /* Compactar también la card de limpieza */
+    .card-limpieza .card-body {
+        padding: 0.5rem 0.75rem !important;
+    }
+
+    .card-limpieza .alert {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+
+    .card-limpieza .btn-sm {
+        padding: 0.15rem 0.3rem !important;
+        font-size: 0.65rem !important;
+    }
+
+    .card-limpieza .card-header {
+        padding: 0.3rem 0.75rem !important;
+    }
+
+        .card-limpieza .card-header h5 {
+            font-size: 0.8rem !important;
+        }
+
+    .card-limpieza hr {
+        margin: 0.3rem 0 !important;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Header Principal -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background-color: rgb(89, 90, 89) !important">
+                <div class="card-body text-white py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0" style="font-size: 1.3rem;"><i class="fas fa-database me-3"></i> Centro de Respaldo y Restauración</h2>
+                            <p class="mt-1 mb-0 opacity-75" style="font-size: 0.8rem;">Administre los respaldos de su base de datos de forma segura</p>
+                        </div>
+                        <div class="text-end">
+                            <img src="~/Content/images/logo-yaros.png" alt="Yaros Group" style="height: 55px; width: auto;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- ============================================ -->
+        <!-- PANEL IZQUIERDO - GENERAR Y LIMPIAR (COMPACTADO) -->
+        <!-- ============================================ -->
+        <div class="col-lg-4 mb-3">
+            <!-- Card: Generar Respaldo (COMPACTADO) -->
+            <div class="card border-0 shadow-lg backup-card card-generar-respaldo">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i> Generar Nuevo Respaldo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label fw-bold"><i class="fas fa-calendar me-2"></i> Seleccionar Período</label>
+                        <div class="row g-1">
+                            <div class="col-6">
+                                <select id="anioBackup" class="form-select">
+                                    @for (int i = 2024; i <= DateTime.Now.Year + 1; i++)
+                                    {
+                                        <option value="@i" @(i == DateTime.Now.Year ? "selected" : "")>@i</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select id="mesBackup" class="form-select">
+                                    @for (int i = 1; i <= 12; i++)
+                                    {
+                                        var nombreMes = new DateTime(2026, i, 1).ToString("MMMM", new System.Globalization.CultureInfo("es-ES"));
+                                        <option value="@i" @(i == DateTime.Now.Month ? "selected" : "")>@nombreMes</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-1">
+                        <button id="btnGenerarBackup" class="btn btn-success btn-lg">
+                            <i class="fas fa-cloud-upload-alt me-2"></i> Generar Respaldo
+                        </button>
+                        <button id="btnBackupMesAnterior" class="btn btn-outline-secondary">
+                            <i class="fas fa-calendar-week me-2"></i> Respaldo del Mes Anterior
+                        </button>
+                        <button type="button" class="btn btn-info btn-lg mt-1" data-bs-toggle="modal" data-bs-target="#modalSubirArchivo">
+                            <i class="fas fa-upload me-2"></i> Subir Respaldo desde PC
+                        </button>
+                    </div>
+                    <hr>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        El respaldo incluye: Usuarios, Registros de Asistencia, Alertas, Notificaciones y Solicitudes del período seleccionado.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Limpieza Rápida de Tablas (COMPACTADO) -->
+            <div class="card border-0 shadow-lg mt-2 card-limpieza">
+                <div class="card-header" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #333;">
+                    <h5 class="mb-0"><i class="fas fa-broom me-2"></i> Limpieza Rápida de Tablas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning small">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Precaución:</strong> Eliminará TODOS los registros de las tablas seleccionadas.
+                    </div>
+                    <div class="d-grid gap-1">
+                        <button id="btnLimpiarTablas" class="btn btn-danger btn-sm">
+                            <i class="fas fa-broom me-2"></i> Limpiar Tablas Seleccionadas
+                        </button>
+                        <hr>
+                        <div class="row g-1">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-danger btn-sm w-100 btn-limpiar-tabla"
+                                        data-tabla="Usuarios" onclick="limpiarTablaEspecifica('Usuarios')">
+                                    <i class="fas fa-users me-1"></i> Usuarios
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-warning btn-sm w-100 btn-limpiar-tabla"
+                                        data-tabla="RegistrosAsistencia" onclick="limpiarTablaEspecifica('RegistrosAsistencia')">
+                                    <i class="fas fa-clock me-1"></i> Asistencias
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-info btn-sm w-100 btn-limpiar-tabla"
+                                        data-tabla="RegistrosExcepcionales" onclick="limpiarTablaEspecifica('RegistrosExcepcionales')">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Excepcionales
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-secondary btn-sm w-100 btn-limpiar-tabla"
+                                        data-tabla="AlertasHoras" onclick="limpiarTablaEspecifica('AlertasHoras')">
+                                    <i class="fas fa-bell me-1"></i> Alertas
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-primary btn-sm w-100 btn-limpiar-tabla"
+                                        data-tabla="NotificacionesAdmin" onclick="limpiarTablaEspecifica('NotificacionesAdmin')">
+                                    <i class="fas fa-envelope me-1"></i> Notificaciones
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-success btn-sm w-100 btn-limpiar-tabla"
+                                        data-tabla="SolicitudesExcepcionales" onclick="limpiarTablaEspecifica('SolicitudesExcepcionales')">
+                                    <i class="fas fa-file-alt me-1"></i> Solicitudes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- PANEL DERECHO - LISTA DE RESPALDOS            -->
+        <!-- ============================================ -->
+        <div class="col-lg-8 mb-3">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                    <h5 class="mb-0" style="font-size: 0.95rem;">
+                        <i class="fas fa-history me-2"></i> Respaldo Disponibles
+                        <span class="badge bg-light text-dark ms-2">
+                            @{
+                                var totalArchivos = 0;
+                                if (Model != null)
+                                {
+                                    totalArchivos = Model.Sum(b => b.Archivos != null ? b.Archivos.Count : 0);
+                                }
+                            }
+                            @totalArchivos archivo(s)
+                        </span>
+                    </h5>
+                    <div class="d-flex gap-2">
+                        @if (Model != null && Model.Any(b => b.Archivos != null && b.Archivos.Any()))
+                        {
+                            <button id="btnEliminarTodos" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt me-1"></i> Eliminar Todos
+                            </button>
+                        }
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div style="max-height: 600px; overflow-y: auto;">
+                        @if (Model == null || !Model.Any(b => b.Archivos != null && b.Archivos.Any()))
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-4x mb-3 opacity-25"></i>
+                                <p>No hay respaldos disponibles. Genere su primer respaldo.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            // Agrupar por año y mes para evitar duplicados
+                            var backupsAgrupados = Model
+                                .Where(b => b.Archivos != null && b.Archivos.Any())
+                                .GroupBy(b => new { b.Anio, b.Mes })
+                                .Select(g => g.First())
+                                .OrderByDescending(b => b.Anio)
+                                .ThenByDescending(b => b.Mes)
+                                .ToList();
+
+                            <div class="list-group list-group-flush">
+                                @foreach (var backup in backupsAgrupados)
+                                {
+                                    <div class="list-group-item p-0 border-0">
+                                        <div class="card border-0 rounded-0">
+                                            <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-folder-open text-warning me-2"></i>
+                                                    <strong>@backup.NombreMes @backup.Anio</strong>
+                                                    <span class="badge bg-secondary ms-2">@backup.Archivos.Count archivo(s)</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="text-muted small">
+                                                        <i class="fas fa-calendar-alt me-1"></i>
+                                                        @backup.FechaCreacion.ToString("dd/MM/yyyy")
+                                                    </span>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-todos-periodo"
+                                                            data-anio="@backup.Anio" data-mes="@backup.Mes"
+                                                            title="Eliminar todos los respaldos de @backup.NombreMes @backup.Anio">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body p-0">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover table-sm mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="width: 40%;">Archivo</th>
+                                                                <th style="width: 30%;">Fecha Creación</th>
+                                                                <th style="width: 30%;">Acciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var archivo in backup.Archivos.OrderBy(a => a))
+                                                            {
+                                                                var rutaCompleta = System.IO.Path.Combine(backup.RutaCarpeta, archivo);
+                                                                var fechaCreacion = System.IO.File.Exists(rutaCompleta)
+                                                                    ? System.IO.File.GetCreationTime(rutaCompleta)
+                                                                    : DateTime.Now;
+                                                                <tr>
+                                                                    <td>
+                                                                        <i class="fas fa-file-excel text-success me-2"></i>
+                                                                        <span style="font-size: 0.8rem;">@archivo</span>
+                                                                    </td>
+                                                                    <td style="font-size: 0.75rem;">
+                                                                        <i class="fas fa-calendar-alt me-1"></i>
+                                                                        @fechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="btn-group btn-group-sm" role="group">
+                                                                            <button type="button" class="btn btn-info btn-descargar"
+                                                                                    data-anio="@backup.Anio"
+                                                                                    data-mes="@backup.Mes"
+                                                                                    data-archivo="@archivo"
+                                                                                    title="Descargar">
+                                                                                <i class="fas fa-download"></i>
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-warning btn-restaurar"
+                                                                                    data-anio="@backup.Anio"
+                                                                                    data-mes="@backup.Mes"
+                                                                                    data-archivo="@archivo"
+                                                                                    data-bs-toggle="modal"
+                                                                                    data-bs-target="#modalRestaurar"
+                                                                                    title="Restaurar">
+                                                                                <i class="fas fa-upload"></i>
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-danger btn-eliminar-archivo"
+                                                                                    data-anio="@backup.Anio"
+                                                                                    data-mes="@backup.Mes"
+                                                                                    data-archivo="@archivo"
+                                                                                    title="Eliminar este archivo">
+                                                                                <i class="fas fa-trash-alt"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+    /* Estilos para la lista de respaldos */
+    .list-group-item {
+        background-color: transparent;
+    }
+
+    .list-group-item .card {
+        border-radius: 0 !important;
+    }
+
+    .list-group-item .card:not(:last-child) {
+        border-bottom: 1px solid rgba(0,0,0,0.125) !important;
+    }
+
+    .list-group-item .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.125);
+        background-color: #f8f9fa;
+    }
+
+    .list-group-item .card-header strong {
+        font-size: 0.9rem;
+    }
+
+    .list-group-item .card-body .table {
+        background-color: #fff;
+        margin-bottom: 0;
+    }
+
+    .list-group-item .card-body .table thead th {
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;
+        z-index: 2;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .list-group-item .card-body .table tbody td {
+        vertical-align: middle;
+        padding: 0.4rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .list-group-item .card-body .table tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    .list-group-item .card-body .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Botones */
+    .list-group-item .btn-group .btn {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .list-group-item .btn-group .btn-info {
+        color: #fff;
+    }
+
+    .list-group-item .btn-group .btn-warning {
+        color: #212529;
+    }
+
+    .list-group-item .btn-group .btn-danger {
+        color: #fff;
+    }
+
+    /* Scroll personalizado */
+    .card-body > div::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .card-body > div::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .card-body > div::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    .card-body > div::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .list-group-item .card-header {
+            padding: 0.4rem 0.6rem;
+        }
+
+        .list-group-item .card-header strong {
+            font-size: 0.8rem;
+        }
+
+        .list-group-item .card-body .table thead th,
+        .list-group-item .card-body .table tbody td {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.4rem;
+        }
+
+        .list-group-item .btn-group .btn {
+            padding: 0.15rem 0.3rem;
+            font-size: 0.65rem;
+        }
+
+        /* Ocultar columna de fecha en móviles */
+        .list-group-item .card-body .table thead th:nth-child(2),
+        .list-group-item .card-body .table tbody td:nth-child(2) {
+            display: none;
+        }
+
+        .list-group-item .card-body .table thead th:first-child,
+        .list-group-item .card-body .table tbody td:first-child {
+            width: 50% !important;
+        }
+
+        .list-group-item .card-body .table thead th:last-child,
+        .list-group-item .card-body .table tbody td:last-child {
+            width: 50% !important;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .list-group-item .card-header .d-flex {
+            flex-wrap: wrap;
+        }
+
+        .list-group-item .card-header .d-flex .d-flex:first-child {
+            width: 100%;
+            margin-bottom: 0.2rem;
+        }
+
+        .list-group-item .card-header .d-flex .d-flex:last-child {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+        </style>
+
+
+
+        <!-- ============================================ -->
+        <!-- OVERLAY DE PROGRESO                          -->
+        <!-- ============================================ -->
+        <div id="overlayProgreso">
+            <div class="overlay-content">
+                <div class="spinner-border mb-3" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <h5 id="overlayTitulo">Restaurando datos...</h5>
+                <p id="overlayMensaje" class="text-muted small mb-3">Por favor espere, este proceso puede tomar varios minutos</p>
+                <div class="progress">
+                    <div id="overlayBar" class="progress-bar animated" style="width: 100%;"></div>
+                </div>
+                <button type="button" id="btnCerrarOverlay" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-times me-1"></i> Cerrar
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MODAL DE RESTAURACIÓN                        -->
+        <!-- ============================================ -->
+        <div class="modal fade" id="modalRestaurar" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Restaurar Datos
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>¡Advertencia!</strong> La restauración reemplazará los datos existentes del período seleccionado.
+                            Se recomienda generar un respaldo actual antes de continuar.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-info-circle me-2"></i> Información del Backup</h6>
+                                        <hr class="my-2">
+                                        <p class="mb-1"><strong>Archivo:</strong> <span id="modalArchivo"></span></p>
+                                        <p class="mb-1"><strong>Período:</strong> <span id="modalPeriodo"></span></p>
+                                        <p class="mb-0"><strong>Tablas incluidas:</strong> <span id="modalTablasCount"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-table me-2"></i> Seleccionar tablas a restaurar</h6>
+                                        <hr class="my-2">
+                                        <div id="listaTablas" class="table-tablas">
+                                            <div class="form-check">
+                                                <input type="checkbox" id="selectAllTablas" class="form-check-input">
+                                                <label class="form-check-label fw-bold">Seleccionar todas</label>
+                                            </div>
+                                            <hr class="my-1">
+                                            <div id="checkboxesTablas"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="btnConfirmarRestauracion" class="btn btn-danger">
+                            <i class="fas fa-upload me-2"></i> Confirmar Restauración
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MODAL DE RESULTADOS DE RESTAURACIÓN          -->
+        <!-- ============================================ -->
+        <div class="modal fade" id="modalResultadoRestauracion" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #1565c0 100%);">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-chart-bar me-2"></i> Resultado de la Restauración
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Resumen con tarjetas -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #28a745 !important;">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted text-uppercase small mb-2">
+                                            <i class="fas fa-check-circle text-success me-1"></i> Insertados
+                                        </h6>
+                                        <h2 class="mb-0 text-success" id="resInsertados">0</h2>
+                                        <small class="text-muted">registros nuevos</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted text-uppercase small mb-2">
+                                            <i class="fas fa-ban text-warning me-1"></i> Omitidos
+                                        </h6>
+                                        <h2 class="mb-0 text-warning" id="resOmitidos">0</h2>
+                                        <small class="text-muted">duplicados existentes</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted text-uppercase small mb-2">
+                                            <i class="fas fa-exclamation-triangle text-danger me-1"></i> Errores
+                                        </h6>
+                                        <h2 class="mb-0 text-danger" id="resErrores">0</h2>
+                                        <small class="text-muted">fallos en inserción</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #17a2b8 !important;">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted text-uppercase small mb-2">
+                                            <i class="fas fa-cubes text-info me-1"></i> Totales
+                                        </h6>
+                                        <h2 class="mb-0 text-info" id="resTotal">0</h2>
+                                        <small class="text-muted">registros procesados</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado general -->
+                        <div class="alert alert-success" id="resEstadoGeneral" style="display: none;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span id="resMensajeGeneral"></span>
+                        </div>
+                        <div class="alert alert-danger" id="resEstadoError" style="display: none;">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <span id="resMensajeError"></span>
+                        </div>
+
+                        <!-- Detalle por tablas -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-table me-2 text-primary"></i> Resumen por Tabla
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div style="max-height: 250px; overflow-y: auto;" id="resTablasContainer">
+                                            <table class="table table-hover mb-0" id="resTablaResumen">
+                                                <thead class="table-light sticky-top">
+                                                    <tr>
+                                                        <th>Tabla</th>
+                                                        <th class="text-center">Insertados</th>
+                                                        <th class="text-center">Omitidos</th>
+                                                        <th class="text-center">Estado</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="resTablasBody">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-list me-2 text-warning"></i> Registros Omitidos
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div style="max-height: 250px; overflow-y: auto;" id="resOmitidosContainer">
+                                            <div id="resOmitidosLista" class="p-3">
+                                                <p class="text-muted text-center mb-0">No hay registros omitidos</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Errores detallados -->
+                        <div class="row mt-3" id="resErroresContainer" style="display: none;">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-bug me-2"></i> Errores Detallados
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div style="max-height: 150px; overflow-y: auto;">
+                                            <ul class="list-group list-group-flush" id="resErroresLista">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i> Cerrar
+                        </button>
+                        <button type="button" class="btn btn-primary" id="resBtnRecargar" style="display: none;">
+                            <i class="fas fa-sync me-2"></i> Recargar página
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MODAL DE SUBIDA DE ARCHIVO EXCEL             -->
+        <!-- ============================================ -->
+        <div class="modal fade" id="modalSubirArchivo" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%);">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-upload me-2"></i> Subir Respaldo desde tu Computadora
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Seleccione un archivo Excel (.xlsx) generado previamente por el sistema para restaurar sus datos.
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="fas fa-file-excel me-2 text-success"></i> Seleccionar archivo</label>
+                            <input type="file" id="fileExcelRestaurar" class="form-control" accept=".xlsx" />
+                            <small class="text-muted">Solo archivos .xlsx generados por el sistema de respaldo</small>
+                        </div>
+
+                        <div id="vistaPreviaArchivo" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-table me-2"></i> Tablas encontradas en el archivo:</h6>
+                                    <hr class="my-2">
+                                    <div id="listaTablasSubida" class="table-tablas"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="btnSubirArchivo" class="btn btn-info" disabled>
+                            <i class="fas fa-upload me-2"></i> Cargar Archivo
+                        </button>
+                        <button type="button" id="btnRestaurarSubido" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-exchange-alt me-2"></i> Restaurar Datos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MODAL DE LIMPIEZA DE TABLAS                  -->
+        <!-- ============================================ -->
+        <div class="modal fade" id="modalLimpiarTablas" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                        <h5 class="modal-title text-dark">
+                            <i class="fas fa-broom me-2"></i> Limpiar Tablas de la Base de Datos
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>¡ADVERTENCIA!</strong> Esta acción eliminará TODOS los datos de las tablas seleccionadas.
+                            Se recomienda generar un respaldo antes de continuar.
+                        </div>
+
+                        <div class="alert alert-info mt-2">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            <strong>Reinicio automático:</strong> Los contadores IDENTITY de las tablas se reiniciarán automáticamente,
+                            por lo que los nuevos registros comenzarán desde el ID 1.
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-7">
+                                <div class="card bg-light cleanup-card">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-table me-2"></i> Seleccionar tablas a limpiar</h6>
+                                        <hr class="my-2">
+                                        <div class="table-cleanup-list">
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" id="selectAllLimpiar" class="form-check-input" checked>
+                                                <label class="form-check-label fw-bold text-danger">Seleccionar todas</label>
+                                            </div>
+                                            <hr class="my-1">
+                                            <div id="checkboxesLimpiar">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="Usuarios" id="limpiar_Usuarios" checked>
+                                                    <label class="form-check-label" for="limpiar_Usuarios">
+                                                        <i class="fas fa-users text-danger me-1"></i> Usuarios
+                                                        <span class="badge bg-secondary badge-cleanup">Principal</span>
+                                                    </label>
+                                                    <!-- Dentro de checkboxesLimpiar -->
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="AlertasSalidaPendiente" id="limpiar_AlertasSalidaPendiente" checked>
+                                                        <label class="form-check-label" for="limpiar_AlertasSalidaPendiente">
+                                                            <i class="fas fa-bell-slash text-danger me-1"></i> Alertas de Salida Pendiente
+                                                            <span class="badge bg-secondary badge-cleanup">Nueva</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="RegistrosAsistencia" id="limpiar_RegistrosAsistencia" checked>
+                                                    <label class="form-check-label" for="limpiar_RegistrosAsistencia">
+                                                        <i class="fas fa-clock text-warning me-1"></i> Registros de Asistencia
+                                                        <span class="badge bg-secondary badge-cleanup">Principal</span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="RegistrosExcepcionales" id="limpiar_RegistrosExcepcionales" checked>
+                                                    <label class="form-check-label" for="limpiar_RegistrosExcepcionales">
+                                                        <i class="fas fa-exclamation-triangle text-info me-1"></i> Registros Excepcionales
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="AlertasHoras" id="limpiar_AlertasHoras" checked>
+                                                    <label class="form-check-label" for="limpiar_AlertasHoras">
+                                                        <i class="fas fa-bell text-secondary me-1"></i> Alertas de Horas
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="NotificacionesAdmin" id="limpiar_NotificacionesAdmin" checked>
+                                                    <label class="form-check-label" for="limpiar_NotificacionesAdmin">
+                                                        <i class="fas fa-envelope text-primary me-1"></i> Notificaciones Admin
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input tabla-limpiar-checkbox" value="SolicitudesExcepcionales" id="limpiar_SolicitudesExcepcionales" checked>
+                                                    <label class="form-check-label" for="limpiar_SolicitudesExcepcionales">
+                                                        <i class="fas fa-file-alt text-success me-1"></i> Solicitudes Excepcionales
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i> Información</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="small text-muted mb-2">
+                                            <i class="fas fa-check-circle text-success me-1"></i>
+                                            <strong>Orden de limpieza:</strong>
+                                        </p>
+                                        <ol class="small text-muted mb-3">
+                                            <li>Registros Excepcionales</li>
+                                            <li>Registros de Asistencia</li>
+                                            <li>Alertas de Horas</li>
+                                            <li>Notificaciones Admin</li>
+                                            <li>Solicitudes Excepcionales</li>
+                                            <li>Usuarios</li>
+                                        </ol>
+                                        <div class="alert alert-warning small mb-0">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            Las tablas se limpiarán en el orden correcto para evitar conflictos de llaves foráneas.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i> Cancelar
+                        </button>
+                        <button type="button" id="btnConfirmarLimpiar" class="btn btn-danger">
+                            <i class="fas fa-broom me-2"></i> Confirmar Limpieza
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MODAL DE RESULTADOS DE LIMPIEZA              -->
+        <!-- ============================================ -->
+        <div class="modal fade" id="modalResultadoLimpieza" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-broom me-2"></i> Resultado de la Limpieza
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success" id="resLimpiezaExito" style="display: none;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span id="resLimpiezaMensaje"></span>
+                        </div>
+                        <div class="alert alert-danger" id="resLimpiezaError" style="display: none;">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <span id="resLimpiezaErrorMensaje"></span>
+                        </div>
+                        <div id="resLimpiezaDetalles">
+                            <!-- Los detalles se cargarán aquí -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="resLimpiezaRecargar" style="display: none;">
+                            <i class="fas fa-sync me-2"></i> Recargar página
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @section Scripts {
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+        var datosRestauracion = {};
+
+        // ============================================
+        // FUNCIONES PARA MANEJAR EL OVERLAY DE PROGRESO
+        // ============================================
+
+        function mostrarProgreso(titulo, mensaje) {
+            $('#overlayTitulo').text(titulo || 'Restaurando datos...');
+            $('#overlayMensaje').text(mensaje || 'Por favor espere, este proceso puede tomar varios minutos');
+            $('#overlayBar').css('width', '100%');
+            $('#overlayBar').addClass('animated');
+            $('#btnCerrarOverlay').removeClass('visible');
+            $('#overlayProgreso').addClass('show').show();
+        }
+
+        function ocultarProgreso() {
+            $('#overlayProgreso').removeClass('show').hide();
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+            $('body').css('overflow', '');
+            $('body').css('padding-right', '');
+        }
+
+        function finalizarProgreso() {
+            $('#btnCerrarOverlay').addClass('visible');
+            $('#overlayTitulo').text('Proceso completado');
+            $('#overlayMensaje').text('Puede cerrar esta ventana');
+            $('#overlayBar').css('width', '100%');
+            $('#overlayBar').removeClass('animated');
+        }
+
+        $('#btnCerrarOverlay').click(function() {
+            ocultarProgreso();
+        });
+
+        $('#overlayProgreso').click(function(e) {
+            if ($(e.target).is('#overlayProgreso')) {
+                ocultarProgreso();
+            }
+        });
+
+        // ============================================
+        // FUNCIÓN PARA OBTENER NOMBRE DEL MES
+        // ============================================
+
+        function obtenerNombreMes(mes) {
+            var nombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return nombres[mes - 1] || mes;
+        }
+
+        // ============================================
+        // DESCARGA DE BACKUP
+        // ============================================
+
+        $('.btn-descargar, .btn-descargar-backup').click(function() {
+            var anio = $(this).data('anio');
+            var mes = $(this).data('mes');
+            var archivo = $(this).data('archivo');
+            window.location.href = '@Url.Action("DescargarBackup", "Backup")?anio=' + anio + '&mes=' + mes + '&archivo=' + encodeURIComponent(archivo);
+        });
+
+        // ============================================
+        // GENERAR BACKUP
+        // ============================================
+
+        $('#btnGenerarBackup').click(function() {
+            var anio = $('#anioBackup').val();
+            var mes = $('#mesBackup').val();
+            var nombreMes = $('#mesBackup option:selected').text();
+
+            Swal.fire({
+                title: 'Generando respaldo...',
+                text: 'Respaldo del mes ' + nombreMes + ' ' + anio,
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: '@Url.Action("GenerarBackup", "Backup")',
+                type: 'POST',
+                data: { anio: anio, mes: mes },
+                success: function(response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Respaldo generado!',
+                            text: response.mensaje,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => { location.reload(); });
+                    } else {
+                        Swal.fire('Error', response.mensaje, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.close();
+                    Swal.fire('Error', 'No se pudo generar el respaldo', 'error');
+                }
+            });
+        });
+
+        $('#btnBackupMesAnterior').click(function() {
+            Swal.fire({
+                title: 'Generando respaldo...',
+                text: 'Respaldo del mes anterior',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: '@Url.Action("GenerarBackupMesAnterior", "Backup")',
+                type: 'POST',
+                success: function(response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Respaldo generado!',
+                            text: response.mensaje,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => { location.reload(); });
+                    } else {
+                        Swal.fire('Error', response.mensaje, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.close();
+                    Swal.fire('Error', 'No se pudo generar el respaldo', 'error');
+                }
+            });
+        });
+
+        // ============================================
+        // SUBIR ARCHIVO
+        // ============================================
+
+        var archivoSubido = null;
+        var tablasArchivoSubido = [];
+
+        $('#fileExcelRestaurar').on('change', function () {
+            var fileInput = document.getElementById('fileExcelRestaurar');
+            var file = fileInput.files[0];
+
+            if (file) {
+                var extension = file.name.split('.').pop().toLowerCase();
+                if (extension === 'xlsx') {
+                    $('#btnSubirArchivo').prop('disabled', false);
+                    $('#btnSubirArchivo').removeClass('btn-secondary').addClass('btn-info');
+                } else {
+                    $('#btnSubirArchivo').prop('disabled', true);
+                    Swal.fire('Error', 'Solo se permiten archivos Excel (.xlsx)', 'error');
+                    $(this).val('');
+                }
+            } else {
+                $('#btnSubirArchivo').prop('disabled', true);
+            }
+        });
+
+        $('#btnSubirArchivo').click(function() {
+            var fileInput = document.getElementById('fileExcelRestaurar');
+            var file = fileInput.files[0];
+
+            if (!file) {
+                Swal.fire('Atención', 'Seleccione un archivo Excel', 'warning');
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('archivo', file);
+
+            Swal.fire({
+                title: 'Subiendo archivo...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: '@Url.Action("SubirYRestaurarBackup", "Backup")',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    Swal.close();
+                    if (response.success) {
+                        archivoSubido = response.nombreArchivo;
+                        tablasArchivoSubido = response.tablas;
+
+                        var html = '<div class="form-check mb-2">' +
+                            '<input type="checkbox" id="selectAllSubidas" class="form-check-input" checked>' +
+                            '<label class="form-check-label fw-bold">Seleccionar todas</label>' +
+                            '</div><hr>';
+
+                        for (var i = 0; i < response.tablas.length; i++) {
+                            html += '<div class="form-check mt-1">' +
+                                '<input type="checkbox" class="form-check-input tabla-subida-checkbox" value="' + response.tablas[i] + '" id="tabla_subida_' + i + '" checked>' +
+                                '<label class="form-check-label" for="tabla_subida_' + i + '">' + response.tablas[i] + '</label>' +
+                                '</div>';
+                        }
+                        $('#listaTablasSubida').html(html);
+                        $('#vistaPreviaArchivo').show();
+                        $('#btnSubirArchivo').hide();
+                        $('#btnRestaurarSubido').show();
+
+                        Swal.fire('Éxito', response.mensaje, 'success');
+                    } else {
+                        Swal.fire('Error', response.mensaje, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.close();
+                    Swal.fire('Error', 'No se pudo subir el archivo', 'error');
+                }
+            });
+        });
+
+        $(document).on('change', '#selectAllSubidas', function() {
+            $('.tabla-subida-checkbox').prop('checked', $(this).is(':checked'));
+        });
+
+        // ============================================
+        // PREPARAR RESTAURACIÓN
+        // ============================================
+
+        $('.btn-restaurar').click(function() {
+            datosRestauracion = {
+                anio: $(this).data('anio'),
+                mes: $(this).data('mes'),
+                archivo: $(this).data('archivo')
+            };
+
+            $('#modalArchivo').text(datosRestauracion.archivo);
+            $('#checkboxesTablas').html('<div class="text-center py-3"><div class="spinner-border spinner-border-sm me-2"></div>Cargando tablas...</div>');
+            $('#modalRestaurar').modal('show');
+
+            $.ajax({
+                url: '@Url.Action("ObtenerTablasBackup", "Backup")',
+                type: 'GET',
+                data: { anio: datosRestauracion.anio, mes: datosRestauracion.mes, archivo: datosRestauracion.archivo },
+                success: function(response) {
+                    if (response.success && response.tablas) {
+                        var html = '';
+                        for (var i = 0; i < response.tablas.length; i++) {
+                            html += '<div class="form-check mt-1">' +
+                                '<input type="checkbox" class="form-check-input tabla-checkbox" value="' + response.tablas[i] + '" id="tabla_' + i + '" checked>' +
+                                '<label class="form-check-label" for="tabla_' + i + '">' + response.tablas[i] + '</label>' +
+                                '</div>';
+                        }
+                        $('#checkboxesTablas').html(html);
+                        $('#modalTablasCount').text(response.tablas.length + ' tablas');
+                    } else {
+                        $('#checkboxesTablas').html('<div class="alert alert-danger">Error al cargar tablas</div>');
+                    }
+                },
+                error: function() {
+                    $('#checkboxesTablas').html('<div class="alert alert-danger">Error de conexión</div>');
+                }
+            });
+        });
+
+        $(document).on('change', '#selectAllTablas', function() {
+            $('.tabla-checkbox').prop('checked', $(this).is(':checked'));
+        });
+
+        // ============================================
+        // CONFIRMAR RESTAURACIÓN
+        // ============================================
+
+        $('#btnConfirmarRestauracion').click(function() {
+            var tablasSeleccionadas = [];
+            $('.tabla-checkbox:checked').each(function() {
+                tablasSeleccionadas.push($(this).val());
+            });
+
+            if (tablasSeleccionadas.length === 0) {
+                Swal.fire('Atención', 'Seleccione al menos una tabla para restaurar', 'warning');
+                return;
+            }
+
+            $('#modalRestaurar').modal('hide');
+            mostrarProgreso('Restaurando datos...', 'Por favor espere, este proceso puede tomar varios minutos');
+
+            $.ajax({
+                url: '@Url.Action("RestaurarBackup", "Backup")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    anio: datosRestauracion.anio,
+                    mes: datosRestauracion.mes,
+                    archivo: datosRestauracion.archivo,
+                    tablas: tablasSeleccionadas
+                }),
+                success: function(response) {
+                    ocultarProgreso();
+                    setTimeout(function() {
+                        mostrarResultadoRestauracion(response);
+                    }, 300);
+                },
+                error: function(xhr) {
+                    ocultarProgreso();
+                    var errorMsg = xhr.responseJSON?.mensaje || 'Error de conexión con el servidor';
+                    setTimeout(function() {
+                        Swal.fire('Error', errorMsg, 'error');
+                    }, 300);
+                }
+            });
+        });
+
+        // ============================================
+        // RESTAURAR DESDE ARCHIVO SUBIDO
+        // ============================================
+
+        $('#btnRestaurarSubido').click(function() {
+            var tablasSeleccionadas = [];
+            $('.tabla-subida-checkbox:checked').each(function() {
+                tablasSeleccionadas.push($(this).val());
+            });
+
+            if (tablasSeleccionadas.length === 0) {
+                Swal.fire('Atención', 'Seleccione al menos una tabla para restaurar', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Está seguro?',
+                html: '<div style="text-align: left;">' +
+                    '<p><strong>⚠️ Advertencia:</strong> La restauración reemplazará los datos existentes.</p>' +
+                    '<p>Tablas a restaurar: <strong>' + tablasSeleccionadas.length + '</strong></p>' +
+                    '<p class="text-muted small">Se recomienda generar un respaldo actual antes de continuar.</p>' +
+                    '</div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, restaurar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#modalSubirArchivo').modal('hide');
+                    mostrarProgreso('Restaurando datos...', 'Por favor espere, este proceso puede tomar varios minutos');
+
+                    $.ajax({
+                        url: '@Url.Action("RestaurarDesdeArchivoTemp", "Backup")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ tablas: tablasSeleccionadas }),
+                        success: function(response) {
+                            ocultarProgreso();
+                            setTimeout(function() {
+                                mostrarResultadoRestauracion(response);
+                            }, 300);
+                        },
+                        error: function() {
+                            ocultarProgreso();
+                            setTimeout(function() {
+                                Swal.fire('Error', 'Error al conectar con el servidor', 'error');
+                            }, 300);
+                        }
+                    });
+                }
+            });
+        });
+
+        // ============================================
+        // MOSTRAR RESULTADO DE RESTAURACIÓN
+        // ============================================
+
+        function mostrarResultadoRestauracion(data) {
+            $('#resErroresLista').empty();
+            $('#resTablasBody').empty();
+            $('#resOmitidosLista').html('');
+            $('#resErroresContainer').hide();
+            $('#resBtnRecargar').hide();
+
+            $('#resInsertados').text(data.registros || 0);
+            $('#resOmitidos').text(data.omitidos || 0);
+            $('#resErrores').text(data.errores || 0);
+            $('#resTotal').text(data.totalProcesados || 0);
+
+            if (data.success) {
+                $('#resEstadoGeneral').show().removeClass('alert-danger').addClass('alert-success');
+                $('#resMensajeGeneral').text(data.mensaje || 'Restauración completada exitosamente');
+                $('#resEstadoError').hide();
+                if (data.registros > 0) {
+                    $('#resBtnRecargar').show();
+                }
+            } else {
+                $('#resEstadoGeneral').hide();
+                $('#resEstadoError').show().removeClass('alert-success').addClass('alert-danger');
+                $('#resMensajeError').text(data.error || 'Error en la restauración');
+            }
+
+            var tablasBody = $('#resTablasBody');
+            if (data.registrosPorTabla) {
+                var tablasKeys = Object.keys(data.registrosPorTabla);
+                if (tablasKeys.length === 0) {
+                    tablasBody.html('<tr><td colspan="4" class="text-center text-muted">No hay datos disponibles</td></tr>');
+                } else {
+                    var totalInsertados = 0;
+                    var totalOmitidos = 0;
+                    tablasKeys.forEach(function(tabla) {
+                        var insertados = data.registrosPorTabla[tabla] || 0;
+                        var omitidos = data.omitidosPorTabla[tabla] || 0;
+                        var estado = data.tablasEstado ? data.tablasEstado[tabla] : 'Completado';
+                        var estadoIcon = estado === 'Completado' ?
+                            '<span class="badge bg-success">✓ Completado</span>' :
+                            '<span class="badge bg-warning">⏳ ' + estado + '</span>';
+                        totalInsertados += insertados;
+                        totalOmitidos += omitidos;
+                        tablasBody.append('<tr>' +
+                            '<td><strong>' + tabla + '</strong></td>' +
+                            '<td class="text-center"><span class="badge bg-success">' + insertados + '</span></td>' +
+                            '<td class="text-center"><span class="badge bg-warning">' + omitidos + '</span></td>' +
+                            '<td class="text-center">' + estadoIcon + '</td>' +
+                            '</tr>');
+                    });
+                    tablasBody.append('<tr class="table-light fw-bold">' +
+                        '<td>TOTAL</td>' +
+                        '<td class="text-center text-success">' + totalInsertados + '</td>' +
+                        '<td class="text-center text-warning">' + totalOmitidos + '</td>' +
+                        '<td></td>' +
+                        '</tr>');
+                }
+            }
+
+            var omitidosHtml = '';
+            if (data.registrosOmitidosDetalle && data.registrosOmitidosDetalle.length > 0) {
+                var omitidosLista = data.registrosOmitidosDetalle.slice(0, 50);
+                omitidosHtml = '<ul class="list-group list-group-flush">';
+                omitidosLista.forEach(function(item) {
+                    omitidosHtml += '<li class="list-group-item py-1 text-muted small"><i class="fas fa-minus-circle text-warning me-2"></i>' + item + '</li>';
+                });
+                if (data.registrosOmitidosDetalle.length > 50) {
+                    omitidosHtml += '<li class="list-group-item text-muted small text-center">... y ' + (data.registrosOmitidosDetalle.length - 50) + ' más</li>';
+                }
+                omitidosHtml += '</ul>';
+            } else {
+                omitidosHtml = '<p class="text-muted text-center mb-0"><i class="fas fa-check-circle text-success me-2"></i>No se omitieron registros</p>';
+            }
+            $('#resOmitidosLista').html(omitidosHtml);
+
+            if (data.erroresDetallados && data.erroresDetallados.length > 0) {
+                $('#resErroresContainer').show();
+                var erroresLista = $('#resErroresLista');
+                data.erroresDetallados.forEach(function(error) {
+                    erroresLista.append('<li class="list-group-item text-danger small"><i class="fas fa-exclamation-circle me-2"></i>' + error + '</li>');
+                });
+            } else if (data.errores && data.errores > 0) {
+                $('#resErroresContainer').show();
+                var erroresLista = $('#resErroresLista');
+                erroresLista.append('<li class="list-group-item text-warning small"><i class="fas fa-info-circle me-2"></i>Se encontraron ' + data.errores + ' errores, revise el log para más detalles.</li>');
+            }
+
+            $('#modalResultadoRestauracion').modal('show');
+        }
+
+        // ============================================
+        // LIMPIAR TABLAS
+        // ============================================
+
+        // Abrir modal de limpieza
+        $('#btnLimpiarTablas').click(function() {
+            $('#modalLimpiarTablas').modal('show');
+        });
+
+        // Seleccionar todas las tablas en el modal de limpieza
+        $(document).on('change', '#selectAllLimpiar', function() {
+            $('.tabla-limpiar-checkbox').prop('checked', $(this).is(':checked'));
+        });
+
+        // Confirmar limpieza de tablas
+        $('#btnConfirmarLimpiar').click(function() {
+            var tablasSeleccionadas = [];
+            $('.tabla-limpiar-checkbox:checked').each(function() {
+                tablasSeleccionadas.push($(this).val());
+            });
+
+            if (tablasSeleccionadas.length === 0) {
+                Swal.fire('Atención', 'Seleccione al menos una tabla para limpiar', 'warning');
+                return;
+            }
+
+            var nombreTablas = tablasSeleccionadas.join(', ');
+
+            Swal.fire({
+                title: '¿Está seguro de limpiar las tablas seleccionadas?',
+                html: '<div style="text-align: left;">' +
+                    '<p><strong>⚠️ ¡ADVERTENCIA!</strong></p>' +
+                    '<p>Se eliminarán TODOS los datos de las siguientes tablas:</p>' +
+                    '<p><strong>' + nombreTablas + '</strong></p>' +
+                    '<p class="text-danger small">Esta acción no se puede deshacer. Asegúrese de tener un respaldo antes de continuar.</p>' +
+                    '</div>',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, limpiar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#modalLimpiarTablas').modal('hide');
+                    mostrarProgreso('Limpiando tablas...', 'Por favor espere, este proceso puede tomar unos segundos');
+
+                    $.ajax({
+                        url: '@Url.Action("LimpiarTablas", "Backup")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ tablas: tablasSeleccionadas }),
+                        success: function(response) {
+                            ocultarProgreso();
+                            if (response.success) {
+                                mostrarResultadoLimpieza(response);
+                            } else {
+                                Swal.fire('Error', response.mensaje, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            ocultarProgreso();
+                            var errorMsg = xhr.responseJSON?.mensaje || 'Error al limpiar las tablas';
+                            Swal.fire('Error', errorMsg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Mostrar resultado de limpieza
+        function mostrarResultadoLimpieza(response) {
+            var detallesHtml = '';
+            if (response.detalles && response.detalles.length > 0) {
+                detallesHtml = '<div class="card mt-3"><div class="card-body p-0"><ul class="list-group list-group-flush">';
+
+                var tieneError = false;
+                response.detalles.forEach(function (detalle) {
+                    var esError = detalle.includes('Error');
+                    if (esError) tieneError = true;
+
+                    var icono = esError ? 'fa-times-circle' : 'fa-check-circle';
+                    var color = esError ? 'text-danger' : 'text-success';
+                    var bgColor = esError ? 'bg-danger bg-opacity-10' : 'bg-success bg-opacity-10';
+
+                    // Detectar si se reinició el identity
+                    var identityText = '';
+                    if (detalle.includes('IDENTITY reiniciado')) {
+                        identityText = ' <span class="badge bg-info">IDENTITY reiniciado</span>';
+                    }
+
+                    detallesHtml += '<li class="list-group-item ' + bgColor + '">' +
+                        '<i class="fas ' + icono + ' ' + color + ' me-2"></i>' +
+                        '<span class="' + color + '">' + detalle + '</span>' +
+                        identityText +
+                        '</li>';
+                });
+                detallesHtml += '</ul></div></div>';
+
+                // Agregar mensaje adicional sobre el reinicio de IDENTITY
+                if (!tieneError) {
+                    detallesHtml += '<div class="alert alert-success mt-3">' +
+                        '<i class="fas fa-sync-alt me-2"></i>' +
+                        '<strong>¡Contadores reiniciados!</strong> Todos los IDs comenzarán desde 1 en las tablas limpiadas.' +
+                        '</div>';
+                }
+            }
+
+            $('#resLimpiezaMensaje').text(response.mensaje || 'Limpieza completada');
+            $('#resLimpiezaExito').show();
+            $('#resLimpiezaError').hide();
+            $('#resLimpiezaDetalles').html(detallesHtml);
+            $('#resLimpiezaRecargar').show();
+            $('#modalResultadoLimpieza').modal('show');
+        }
+        // Limpiar una tabla específica
+        function limpiarTablaEspecifica(nombreTabla) {
+            var nombresTabla = {
+                'Usuarios': 'Usuarios',
+                'RegistrosAsistencia': 'Registros de Asistencia',
+                'RegistrosExcepcionales': 'Registros Excepcionales',
+                'AlertasHoras': 'Alertas de Horas',
+                'NotificacionesAdmin': 'Notificaciones Admin',
+                'SolicitudesExcepcionales': 'Solicitudes Excepcionales'
+            };
+
+            var nombreMostrar = nombresTabla[nombreTabla] || nombreTabla;
+
+            Swal.fire({
+                title: '¿Limpiar tabla ' + nombreMostrar + '?',
+                html: '<div style="text-align: left;">' +
+                    '<p>Esta acción eliminará TODOS los registros de la tabla:</p>' +
+                    '<p><strong>' + nombreMostrar + '</strong></p>' +
+                    '<p class="text-danger small">⚠️ Esta acción no se puede deshacer.</p>' +
+                    '</div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, limpiar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarProgreso('Limpiando tabla...', 'Por favor espere');
+
+                    $.ajax({
+                        url: '@Url.Action("LimpiarTablaEspecifica", "Backup")',
+                        type: 'POST',
+                        data: { tabla: nombreTabla },
+                        success: function(response) {
+                            ocultarProgreso();
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Tabla limpiada!',
+                                    text: response.mensaje,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => { location.reload(); });
+                            } else {
+                                Swal.fire('Error', response.mensaje, 'error');
+                            }
+                        },
+                        error: function() {
+                            ocultarProgreso();
+                            Swal.fire('Error', 'No se pudo limpiar la tabla', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Recargar página después de limpiar
+        $('#resLimpiezaRecargar').click(function() {
+            location.reload();
+        });
+
+        // ============================================
+        // ELIMINAR RESPALDOS
+        // ============================================
+
+        // Eliminar un archivo individual
+        $(document).on('click', '.btn-eliminar-archivo', function(e) {
+            e.stopPropagation();
+            var anio = $(this).data('anio');
+            var mes = $(this).data('mes');
+            var archivo = $(this).data('archivo');
+            var nombreMes = obtenerNombreMes(mes);
+
+            Swal.fire({
+                title: '¿Eliminar archivo?',
+                html: '<div style="text-align: left;">' +
+                    '<p><strong>Archivo:</strong> ' + archivo + '</p>' +
+                    '<p><strong>Período:</strong> ' + nombreMes + ' ' + anio + '</p>' +
+                    '<p class="text-danger small">⚠️ Esta acción no se puede deshacer.</p>' +
+                    '</div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarProgreso('Eliminando archivo...', 'Por favor espere');
+
+                    $.ajax({
+                        url: '@Url.Action("EliminarBackup", "Backup")',
+                        type: 'POST',
+                        data: { anio: anio, mes: mes, archivo: archivo },
+                        success: function(response) {
+                            ocultarProgreso();
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Eliminado!',
+                                    text: response.mensaje,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => { location.reload(); });
+                            } else {
+                                Swal.fire('Error', response.mensaje, 'error');
+                            }
+                        },
+                        error: function() {
+                            ocultarProgreso();
+                            Swal.fire('Error', 'No se pudo eliminar el archivo', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Eliminar todos los archivos de un período
+        $(document).on('click', '.btn-eliminar-todos-periodo', function(e) {
+            e.stopPropagation();
+            var anio = $(this).data('anio');
+            var mes = $(this).data('mes');
+            var nombreMes = obtenerNombreMes(mes);
+
+            Swal.fire({
+                title: '¿Eliminar todos los respaldos?',
+                html: '<div style="text-align: left;">' +
+                    '<p><strong>Período:</strong> ' + nombreMes + ' ' + anio + '</p>' +
+                    '<p class="text-danger">⚠️ Se eliminarán TODOS los archivos de este período.</p>' +
+                    '<p class="text-danger small">Esta acción no se puede deshacer.</p>' +
+                    '</div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar todos',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarProgreso('Eliminando respaldos...', 'Por favor espere');
+
+                    $.ajax({
+                        url: '@Url.Action("EliminarTodosBackups", "Backup")',
+                        type: 'POST',
+                        data: { anio: anio, mes: mes },
+                        success: function(response) {
+                            ocultarProgreso();
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Eliminados!',
+                                    text: response.mensaje,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => { location.reload(); });
+                            } else {
+                                Swal.fire('Error', response.mensaje, 'error');
+                            }
+                        },
+                        error: function() {
+                            ocultarProgreso();
+                            Swal.fire('Error', 'No se pudieron eliminar los respaldos', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Eliminar TODOS los respaldos
+        $('#btnEliminarTodos').click(function() {
+            Swal.fire({
+                title: '¿Eliminar TODOS los respaldos?',
+                html: '<div style="text-align: left;">' +
+                    '<p class="text-danger"><strong>⚠️ ¡ADVERTENCIA!</strong></p>' +
+                    '<p>Se eliminarán TODOS los respaldos disponibles.</p>' +
+                    '<p class="text-danger small">Esta acción no se puede deshacer.</p>' +
+                    '</div>',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar todos',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    mostrarProgreso('Eliminando todos los respaldos...', 'Por favor espere');
+
+                    $.ajax({
+                        url: '@Url.Action("EliminarTodosLosBackups", "Backup")',
+                        type: 'POST',
+                        success: function(response) {
+                            ocultarProgreso();
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Eliminados!',
+                                    text: response.mensaje,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => { location.reload(); });
+                            } else {
+                                Swal.fire('Error', response.mensaje, 'error');
+                            }
+                        },
+                        error: function() {
+                            ocultarProgreso();
+                            Swal.fire('Error', 'No se pudieron eliminar los respaldos', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // ============================================
+        // RECARGAR PÁGINA
+        // ============================================
+
+        $('#resBtnRecargar').click(function() {
+            location.reload();
+        });
+
+        // ============================================
+        // LIMPIAR MODAL DE SUBIDA
+        // ============================================
+
+        $('#modalSubirArchivo').on('hidden.bs.modal', function() {
+            $('#fileExcelRestaurar').val('');
+            $('#vistaPreviaArchivo').hide();
+            $('#btnSubirArchivo').show();
+            $('#btnRestaurarSubido').hide();
+            archivoSubido = null;
+            tablasArchivoSubido = [];
+        });
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+
+        $(document).ready(function() {
+            $('#overlayProgreso').hide().removeClass('show');
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+            $('body').css('overflow', '');
+            $('body').css('padding-right', '');
+            console.log('Script de respaldo cargado correctamente');
+        });
+            </script>
+        }

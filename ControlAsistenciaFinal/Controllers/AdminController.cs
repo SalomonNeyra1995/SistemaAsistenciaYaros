@@ -9,6 +9,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace ControlAsistenciaFinal.Controllers
 {
@@ -439,7 +440,8 @@ namespace ControlAsistenciaFinal.Controllers
                          CuentaAhorros = @CuentaAhorros,
                          ConceptoPagoId = @ConceptoPagoId,
                          RolPago = @RolPago,
-                         FechaInicio = @FechaInicio
+                         FechaInicio = @FechaInicio,
+                        FechaInicio2 = @FechaInicio
                      WHERE Id = @Id";
 
                     SqlParameter[] parameters = new SqlParameter[]
@@ -455,6 +457,7 @@ namespace ControlAsistenciaFinal.Controllers
                 new SqlParameter("@ConceptoPagoId", conceptoPagoId),
                 new SqlParameter("@RolPago", rolPagoDescripcion),
                 new SqlParameter("@FechaInicio", fechaInicio)
+
                     };
 
                     try
@@ -830,6 +833,32 @@ namespace ControlAsistenciaFinal.Controllers
 
             DataTable solicitudes = DatabaseHelper.ExecuteQuery(query, null);
             return View(solicitudes);
+        }
+
+        [HttpGet]
+        public ActionResult PagoxCiclo()
+        {
+            if (Session["Rol"] == null || Session["Rol"].ToString() != "Admin")
+                return RedirectToAction("Login", "Account");
+
+            // Cargar lista de usuarios para el filtro
+            string queryUsuarios = @"SELECT Id, NombreCompleto, RolPago 
+                             FROM Usuarios 
+                             WHERE Activo = 1 
+                             ORDER BY NombreCompleto";
+            ViewBag.Usuarios = DatabaseHelper.ExecuteQuery(queryUsuarios, null);
+
+            string queryCiclos = "SELECT NombreCiclo FROM ConfiguracionCiclos WHERE Activo = 1 ORDER BY Orden";
+            ViewBag.Ciclos = DatabaseHelper.ExecuteQuery(queryCiclos, null);
+
+            // Cargar lista de roles de pago
+            string queryRoles = @"SELECT DISTINCT RolPago 
+                          FROM Usuarios 
+                          WHERE Activo = 1 AND RolPago IS NOT NULL 
+                          ORDER BY RolPago";
+            ViewBag.RolesPago = DatabaseHelper.ExecuteQuery(queryRoles, null);
+
+            return View();
         }
 
         [HttpPost]
@@ -1308,6 +1337,523 @@ namespace ControlAsistenciaFinal.Controllers
                 return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpPost]
+        public JsonResult ObtenerReportePagosPorCiclo(int? usuarioId, string rolPago, string ciclo)
+        {
+            if (Session["Rol"] == null || Session["Rol"].ToString() != "Admin")
+                return Json(new { success = false, error = "No autorizado" });
+
+            try
+            {
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId.HasValue ? (object)usuarioId.Value : DBNull.Value),
+            new SqlParameter("@RolPago", string.IsNullOrEmpty(rolPago) ? (object)DBNull.Value : rolPago),
+            new SqlParameter("@Ciclo", string.IsNullOrEmpty(ciclo) ? (object)DBNull.Value : ciclo)  // Cambiado de @CicloSeleccionado a @Ciclo
+                };
+
+                DataTable dt = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerReportePagosPorCiclo", parameters);
+
+                var reporte = new List<object>();
+                foreach (DataRow row in dt.Rows)
+                {
+                    reporte.Add(new
+                    {
+                        UsuarioId = row["UsuarioId"],
+                        NombreCompleto = row["NombreCompleto"].ToString(),
+                        Email = row["Email"].ToString(),
+                        RolPago = row["RolPago"].ToString(),
+                        TarifaHora = Convert.ToDecimal(row["TarifaHora"]),
+                        HorasObjetivo = Convert.ToDecimal(row["HorasObjetivo"]),
+                        DiasTrabajados = Convert.ToInt32(row["DiasTrabajados"]),
+                        HorasTotales = Convert.ToDecimal(row["HorasTotales"]),
+                        HorasExcedentes = Convert.ToDecimal(row["HorasExcedentes"]),
+                        HorasExcedentesAcumuladas = row.Table.Columns.Contains("HorasExcedentesAcumuladas") && row["HorasExcedentesAcumuladas"] != DBNull.Value
+                            ? Convert.ToDecimal(row["HorasExcedentesAcumuladas"]) : 0,
+                        MontoTotal = Convert.ToDecimal(row["MontoTotal"]),
+                        Ciclo = row["Ciclo"].ToString(),
+                        DetalleHoras = row["DetalleHoras"].ToString()
+                    });
+                }
+
+                return Json(new { success = true, data = reporte }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult ExportarPagosPorCicloExcel(int? usuarioId, string rolPago, string ciclo)
+        {
+            if (Session["Rol"] == null || Session["Rol"].ToString() != "Admin")
+                return RedirectToAction("Login", "Account");
+
+            try
+            {
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId.HasValue ? (object)usuarioId.Value : DBNull.Value),
+            new SqlParameter("@RolPago", string.IsNullOrEmpty(rolPago) ? (object)DBNull.Value : rolPago),
+            new SqlParameter("@Ciclo", string.IsNullOrEmpty(ciclo) ? (object)DBNull.Value : ciclo)
+                };
+
+                DataTable reportePagos = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerReportePagosPorCiclo", parameters);
+
+                using (var package = new ExcelPackage())
+                {
+                    // Colores personalizados
+                    Color colorCeleste = Color.FromArgb(0, 176, 240);
+                    Color colorVerde = Color.FromArgb(0, 176, 80);
+                    Color colorNaranja = Color.FromArgb(255, 102, 0);
+                    Color colorGris = Color.FromArgb(211, 211, 211);
+                    Color colorAzulOscuro = Color.FromArgb(0, 112, 192);
+                    Color colorRojo = Color.FromArgb(192, 0, 0);
+
+                    // Rutas de logos
+                    string logoIzquierdoPath = Server.MapPath("~/Content/images/logo-empresa.png");
+                    string logoSegundoPath = Server.MapPath("~/Content/images/Logo_Edificio.png");
+
+                    // ============================================
+                    // HOJA 1: REPORTE DE PAGOS POR CICLO
+                    // ============================================
+                    var hojaPagos = package.Workbook.Worksheets.Add("Pagos por Ciclo");
+
+                    // ============================================
+                    // FILA 1: TÍTULO CON LOGOS
+                    // ============================================
+                    int ultimaColumna = 11;
+                    hojaPagos.Row(1).Height = 45;
+                    hojaPagos.Cells[1, 1, 1, ultimaColumna].Merge = true;
+                    hojaPagos.Cells[1, 1].Value = "REPORTE DE PAGOS POR CICLO";
+                    hojaPagos.Cells[1, 1].Style.Font.Name = "Arial";
+                    hojaPagos.Cells[1, 1].Style.Font.Size = 18;
+                    hojaPagos.Cells[1, 1].Style.Font.Bold = true;
+                    hojaPagos.Cells[1, 1].Style.Font.Color.SetColor(Color.Black);
+                    hojaPagos.Cells[1, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    hojaPagos.Cells[1, 1].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    hojaPagos.Cells[1, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    hojaPagos.Cells[1, 1].Style.Fill.BackgroundColor.SetColor(colorCeleste);
+
+                    // LOGO IZQUIERDO
+                    if (System.IO.File.Exists(logoIzquierdoPath))
+                    {
+                        try
+                        {
+                            var logoImage = new FileInfo(logoIzquierdoPath);
+                            var picture = hojaPagos.Drawings.AddPicture("LogoIzquierdo", logoImage);
+                            picture.SetPosition(0, 5, 0, 15);
+                            picture.SetSize(120, 45);
+                        }
+                        catch { }
+                    }
+
+                    // LOGO DERECHO (YAROS GROUP)
+                    if (System.IO.File.Exists(logoSegundoPath))
+                    {
+                        try
+                        {
+                            var logoImageDerecho = new FileInfo(logoSegundoPath);
+                            var pictureDerecho = hojaPagos.Drawings.AddPicture("LogoDerecho", logoImageDerecho);
+                            pictureDerecho.SetPosition(0, 5, ultimaColumna - 1, -45);
+                            pictureDerecho.SetSize(100, 50);
+                        }
+                        catch { }
+                    }
+
+                    // ============================================
+                    // FILA 2: SUBTÍTULO
+                    // ============================================
+                    hojaPagos.Row(2).Height = 20;
+                    hojaPagos.Cells[2, 1, 2, ultimaColumna].Merge = true;
+                    hojaPagos.Cells[2, 1].Value = $"Generado: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                    hojaPagos.Cells[2, 1].Style.Font.Name = "Calibri";
+                    hojaPagos.Cells[2, 1].Style.Font.Size = 10;
+                    hojaPagos.Cells[2, 1].Style.Font.Italic = true;
+                    hojaPagos.Cells[2, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                    // ============================================
+                    // FILA 3: DESCRIPCIÓN
+                    // ============================================
+                    hojaPagos.Row(3).Height = 18;
+                    hojaPagos.Cells[3, 1, 3, ultimaColumna].Merge = true;
+                    hojaPagos.Cells[3, 1].Value = "Reporte de pagos calculados con excedentes acumulados por ciclo";
+                    hojaPagos.Cells[3, 1].Style.Font.Name = "Calibri";
+                    hojaPagos.Cells[3, 1].Style.Font.Size = 10;
+                    hojaPagos.Cells[3, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    hojaPagos.Cells[3, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    hojaPagos.Cells[3, 1].Style.Fill.BackgroundColor.SetColor(colorGris);
+
+                    // ============================================
+                    // FILA 5: ENCABEZADOS
+                    // ============================================
+                    int headerRow = 5;
+                    string[] headers = { "N°", "Empleado", "Email", "Rol de Pago", "Tarifa x Hora", "Horas Objetivo", "Días Trabajados", "Horas Totales", "Horas Excedentes", "Ciclo", "Monto Total" };
+
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        var cell = hojaPagos.Cells[headerRow, i + 1];
+                        cell.Value = headers[i];
+                        cell.Style.Font.Bold = true;
+                        cell.Style.Font.Size = 10;
+                        cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        cell.Style.Fill.BackgroundColor.SetColor(colorRojo);
+                        cell.Style.Font.Color.SetColor(Color.White);
+                        cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        cell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                        cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                        cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                        cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                        cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                    }
+                    hojaPagos.Row(headerRow).Height = 28;
+
+                    // ============================================
+                    // DATOS
+                    // ============================================
+                    int row = headerRow + 1;
+                    int numero = 1;
+                    decimal totalMontoGeneral = 0;
+                    decimal totalHorasGeneral = 0;
+                    decimal totalExcedentesGeneral = 0;
+                    int totalDiasGeneral = 0;
+
+                    foreach (DataRow dr in reportePagos.Rows)
+                    {
+                        decimal monto = dr["MontoTotal"] != DBNull.Value ? Convert.ToDecimal(dr["MontoTotal"]) : 0;
+                        decimal horas = dr["HorasTotales"] != DBNull.Value ? Convert.ToDecimal(dr["HorasTotales"]) : 0;
+                        decimal excedentes = dr["HorasExcedentes"] != DBNull.Value ? Convert.ToDecimal(dr["HorasExcedentes"]) : 0;
+                        int dias = dr["DiasTrabajados"] != DBNull.Value ? Convert.ToInt32(dr["DiasTrabajados"]) : 0;
+
+                        totalMontoGeneral += monto;
+                        totalHorasGeneral += horas;
+                        totalExcedentesGeneral += excedentes;
+                        totalDiasGeneral += dias;
+
+                        hojaPagos.Cells[row, 1].Value = numero++;
+                        hojaPagos.Cells[row, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        hojaPagos.Cells[row, 2].Value = dr["NombreCompleto"].ToString();
+                        hojaPagos.Cells[row, 3].Value = dr["Email"].ToString();
+                        hojaPagos.Cells[row, 4].Value = dr["RolPago"].ToString();
+                        hojaPagos.Cells[row, 4].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        hojaPagos.Cells[row, 5].Value = dr["TarifaHora"] != DBNull.Value ? Convert.ToDecimal(dr["TarifaHora"]) : 0;
+                        hojaPagos.Cells[row, 5].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 5].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        hojaPagos.Cells[row, 6].Value = dr["HorasObjetivo"] != DBNull.Value ? Convert.ToDecimal(dr["HorasObjetivo"]) : 0;
+                        hojaPagos.Cells[row, 6].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 6].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        hojaPagos.Cells[row, 7].Value = dias;
+                        hojaPagos.Cells[row, 7].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        hojaPagos.Cells[row, 8].Value = horas;
+                        hojaPagos.Cells[row, 8].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 8].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        hojaPagos.Cells[row, 9].Value = excedentes;
+                        hojaPagos.Cells[row, 9].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 9].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                        if (excedentes > 0)
+                        {
+                            hojaPagos.Cells[row, 9].Style.Font.Color.SetColor(colorNaranja);
+                            hojaPagos.Cells[row, 9].Style.Font.Bold = true;
+                        }
+
+                        hojaPagos.Cells[row, 10].Value = dr["Ciclo"].ToString();
+                        hojaPagos.Cells[row, 10].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        hojaPagos.Cells[row, 11].Value = monto;
+                        hojaPagos.Cells[row, 11].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 11].Style.Font.Bold = true;
+                        hojaPagos.Cells[row, 11].Style.Font.Color.SetColor(colorVerde);
+                        hojaPagos.Cells[row, 11].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        // Bordes para la fila
+                        for (int j = 1; j <= ultimaColumna; j++)
+                        {
+                            hojaPagos.Cells[row, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                            hojaPagos.Cells[row, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                            hojaPagos.Cells[row, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                            hojaPagos.Cells[row, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        }
+
+                        row++;
+                    }
+
+                    // ============================================
+                    // FILA DE TOTALES
+                    // ============================================
+                    if (row > headerRow + 1)
+                    {
+                        hojaPagos.Cells[row, 1, row, 4].Merge = true;
+                        hojaPagos.Cells[row, 1].Value = "TOTALES:";
+                        hojaPagos.Cells[row, 1].Style.Font.Bold = true;
+                        hojaPagos.Cells[row, 1].Style.Font.Size = 11;
+                        hojaPagos.Cells[row, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                        hojaPagos.Cells[row, 1].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                        hojaPagos.Cells[row, 7].Value = totalDiasGeneral;
+                        hojaPagos.Cells[row, 7].Style.Font.Bold = true;
+                        hojaPagos.Cells[row, 7].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        hojaPagos.Cells[row, 8].Value = totalHorasGeneral;
+                        hojaPagos.Cells[row, 8].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 8].Style.Font.Bold = true;
+                        hojaPagos.Cells[row, 8].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        hojaPagos.Cells[row, 9].Value = totalExcedentesGeneral;
+                        hojaPagos.Cells[row, 9].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 9].Style.Font.Bold = true;
+                        hojaPagos.Cells[row, 9].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        hojaPagos.Cells[row, 11].Value = totalMontoGeneral;
+                        hojaPagos.Cells[row, 11].Style.Numberformat.Format = "#,##0.00";
+                        hojaPagos.Cells[row, 11].Style.Font.Bold = true;
+                        hojaPagos.Cells[row, 11].Style.Font.Color.SetColor(colorVerde);
+                        hojaPagos.Cells[row, 11].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        for (int i = 1; i <= ultimaColumna; i++)
+                        {
+                            hojaPagos.Cells[row, i].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            hojaPagos.Cells[row, i].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(240, 240, 240));
+                            hojaPagos.Cells[row, i].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                            hojaPagos.Cells[row, i].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                            hojaPagos.Cells[row, i].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                            hojaPagos.Cells[row, i].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        }
+                        hojaPagos.Row(row).Height = 22;
+                    }
+
+                    // ============================================
+                    // AJUSTAR ANCHO DE COLUMNAS
+                    // ============================================
+                    hojaPagos.Column(1).Width = 6;
+                    hojaPagos.Column(2).Width = 32;
+                    hojaPagos.Column(3).Width = 35;
+                    hojaPagos.Column(4).Width = 20;
+                    hojaPagos.Column(5).Width = 14;
+                    hojaPagos.Column(6).Width = 14;
+                    hojaPagos.Column(7).Width = 15;
+                    hojaPagos.Column(8).Width = 14;
+                    hojaPagos.Column(9).Width = 15;
+                    hojaPagos.Column(10).Width = 20;
+                    hojaPagos.Column(11).Width = 16;
+
+                    // ============================================
+                    // CONGELAR PANEL
+                    // ============================================
+
+                    // ============================================
+                    // HOJA 2: DETALLE POR EMPLEADO (DINÁMICO)
+                    // ============================================
+                    if (reportePagos.Rows.Count > 0)
+                    {
+                        var hojaDetalle = package.Workbook.Worksheets.Add("Detalle por Empleado");
+
+                        // Calcular dinámicamente el número de columnas necesarias
+                        int columnasDetalle = 5; // Empleado, Horas Objetivo, Horas Trabajadas, Horas Excedentes, Detalle
+
+                        // ============================================
+                        // FILA 1: TÍTULO CON LOGOS
+                        // ============================================
+                        hojaDetalle.Row(1).Height = 45;
+                        hojaDetalle.Cells[1, 1, 1, columnasDetalle].Merge = true;
+                        hojaDetalle.Cells[1, 1].Value = "DETALLE DE HORAS POR EMPLEADO";
+                        hojaDetalle.Cells[1, 1].Style.Font.Size = 16;
+                        hojaDetalle.Cells[1, 1].Style.Font.Bold = true;
+                        hojaDetalle.Cells[1, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        hojaDetalle.Cells[1, 1].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        hojaDetalle.Cells[1, 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hojaDetalle.Cells[1, 1].Style.Fill.BackgroundColor.SetColor(colorCeleste);
+
+                        // LOGO IZQUIERDO EN DETALLE
+                        if (System.IO.File.Exists(logoIzquierdoPath))
+                        {
+                            try
+                            {
+                                var logoDetalle = new FileInfo(logoIzquierdoPath);
+                                var pictureDetalle = hojaDetalle.Drawings.AddPicture("LogoDetalle", logoDetalle);
+                                pictureDetalle.SetPosition(0, 5, 0, 10);
+                                pictureDetalle.SetSize(100, 62);
+                            }
+                            catch { }
+                        }
+
+                        // LOGO DERECHO EN DETALLE - Posicionado al final de la cabecera (columna 5)
+                        if (System.IO.File.Exists(logoSegundoPath))
+                        {
+                            try
+                            {
+                                var logoDetalleDerecho = new FileInfo(logoSegundoPath);
+                                var pictureDetalleDerecho = hojaDetalle.Drawings.AddPicture("LogoDetalleDerecho", logoDetalleDerecho);
+
+                                // Tamaño pequeño
+                                pictureDetalleDerecho.SetSize(80, 45);
+
+                                // Usar un valor fijo grande para forzar la posición a la derecha
+                                // En EPPlus, valores comunes: 100, 150, 200, 250, 300, 350, 400
+                                pictureDetalleDerecho.SetPosition(0, 5, 4, 850);
+                            }
+                            catch { }
+                        }
+                        // ============================================
+                        // FILA 2: SUBTÍTULO
+                        // ============================================
+                        hojaDetalle.Row(2).Height = 18;
+                        hojaDetalle.Cells[2, 1, 2, columnasDetalle].Merge = true;
+                        hojaDetalle.Cells[2, 1].Value = $"Generado: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                        hojaDetalle.Cells[2, 1].Style.Font.Size = 10;
+                        hojaDetalle.Cells[2, 1].Style.Font.Italic = true;
+                        hojaDetalle.Cells[2, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        // ============================================
+                        // FILA 4: ENCABEZADOS
+                        // ============================================
+                        string[] headersDetalle = { "Empleado", "Horas Objetivo", "Horas Trabajadas", "Horas Excedentes", "Detalle" };
+                        for (int i = 0; i < headersDetalle.Length; i++)
+                        {
+                            var cell = hojaDetalle.Cells[4, i + 1];
+                            cell.Value = headersDetalle[i];
+                            cell.Style.Font.Bold = true;
+                            cell.Style.Font.Size = 10;
+                            cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            cell.Style.Fill.BackgroundColor.SetColor(colorAzulOscuro);
+                            cell.Style.Font.Color.SetColor(Color.White);
+                            cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                            cell.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                            cell.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                            cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                            cell.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                            cell.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                        }
+                        hojaDetalle.Row(4).Height = 25;
+
+                        // ============================================
+                        // DATOS
+                        // ============================================
+                        int rowDetalle = 5;
+
+                        foreach (DataRow dr in reportePagos.Rows)
+                        {
+                            hojaDetalle.Cells[rowDetalle, 1].Value = dr["NombreCompleto"].ToString();
+                            hojaDetalle.Cells[rowDetalle, 2].Value = dr["HorasObjetivo"] != DBNull.Value ? Convert.ToDecimal(dr["HorasObjetivo"]) : 0;
+                            hojaDetalle.Cells[rowDetalle, 3].Value = dr["HorasTotales"] != DBNull.Value ? Convert.ToDecimal(dr["HorasTotales"]) : 0;
+                            hojaDetalle.Cells[rowDetalle, 4].Value = dr["HorasExcedentes"] != DBNull.Value ? Convert.ToDecimal(dr["HorasExcedentes"]) : 0;
+
+                            // Obtener el detalle
+                            string detalleTexto = dr["DetalleHoras"] != DBNull.Value ? dr["DetalleHoras"].ToString() : "-";
+                            hojaDetalle.Cells[rowDetalle, 5].Value = detalleTexto;
+
+                            // Configurar el formato de número
+                            hojaDetalle.Cells[rowDetalle, 2, rowDetalle, 4].Style.Numberformat.Format = "#,##0.00";
+                            hojaDetalle.Cells[rowDetalle, 2, rowDetalle, 4].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                            // Ajustar el ancho de la columna 5 según el contenido actual
+                            int anchoRequerido = detalleTexto.Length + 5;
+                            if (anchoRequerido > hojaDetalle.Column(5).Width && anchoRequerido <= 120)
+                            {
+                                hojaDetalle.Column(5).Width = anchoRequerido;
+                            }
+
+                            if (Convert.ToDecimal(dr["HorasExcedentes"]) > 0)
+                            {
+                                hojaDetalle.Cells[rowDetalle, 4].Style.Font.Color.SetColor(colorNaranja);
+                                hojaDetalle.Cells[rowDetalle, 4].Style.Font.Bold = true;
+                            }
+
+                            // Bordes para la fila
+                            for (int j = 1; j <= columnasDetalle; j++)
+                            {
+                                hojaDetalle.Cells[rowDetalle, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                                hojaDetalle.Cells[rowDetalle, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                                hojaDetalle.Cells[rowDetalle, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                                hojaDetalle.Cells[rowDetalle, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                            }
+
+                            rowDetalle++;
+                        }
+
+                        // ============================================
+                        // AJUSTE FINAL DE LA COLUMNA DETALLE (Columna 5)
+                        // ============================================
+                        // Calcular el ancho máximo después de llenar todos los datos
+                        int maxLength = 50; // Longitud mínima
+                        foreach (DataRow dr in reportePagos.Rows)
+                        {
+                            string detalle = dr["DetalleHoras"] != DBNull.Value ? dr["DetalleHoras"].ToString() : "";
+                            if (detalle.Length > maxLength)
+                                maxLength = detalle.Length;
+                        }
+
+                        // Limitar el ancho máximo a 120 caracteres (aproximadamente 1200 píxeles)
+                        if (maxLength > 120) maxLength = 120;
+
+                        // Establecer el ancho final de la columna Detalle
+                        hojaDetalle.Column(5).Width = maxLength + 8;
+
+                        // Ajustar el wrap text para que el texto se vea completo si es muy largo
+                        hojaDetalle.Column(5).Style.WrapText = true;
+
+                        // Ajustar otras columnas
+                        hojaDetalle.Column(1).Width = 35;
+                        hojaDetalle.Column(2).Width = 18;
+                        hojaDetalle.Column(3).Width = 18;
+                        hojaDetalle.Column(4).Width = 18;
+
+                        // ============================================
+                        // CONGELAR PANEL
+                        // ============================================
+              
+                    }
+                    // ============================================
+                    // GUARDAR ARCHIVO
+                    // ============================================
+                    var bytes = package.GetAsByteArray();
+                    string nombreArchivo = $"ReportePagosPorCiclo";
+
+                    if (usuarioId.HasValue && usuarioId.Value > 0 && reportePagos.Rows.Count > 0)
+                    {
+                        DataRow usuario = reportePagos.Rows[0];
+                        nombreArchivo += $"_{usuario["NombreCompleto"].ToString().Replace(" ", "_")}";
+                    }
+                    else if (!string.IsNullOrEmpty(rolPago))
+                    {
+                        nombreArchivo += $"_{rolPago.Replace(" ", "_")}";
+                    }
+                    else if (!string.IsNullOrEmpty(ciclo))
+                    {
+                        nombreArchivo += $"_{ciclo.Replace(" ", "_")}";
+                    }
+                    else
+                    {
+                        nombreArchivo += "_Completo";
+                    }
+
+                    nombreArchivo += $"_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                    var result = new FileContentResult(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    result.FileDownloadName = nombreArchivo;
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error en exportación: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                return Json(new { success = false, error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
 
         [HttpPost]
         public JsonResult ObtenerResumenPagosPorRol(DateTime fechaInicio, DateTime fechaFin)
@@ -3624,10 +4170,11 @@ namespace ControlAsistenciaFinal.Controllers
                 // ============================================
                 string passwordEncriptada = EncryptPasswordSHA1(nuevaContrasena);
 
-                string query = "UPDATE Usuarios SET PasswordHash = @Password WHERE Id = @UsuarioId";
+                string query = "UPDATE Usuarios SET PasswordHash  = @Password ,  ContraInvertida = @ContraInvertida WHERE Id = @UsuarioId";
                 SqlParameter[] parameters = new SqlParameter[]
                 {
             new SqlParameter("@Password", passwordEncriptada),
+            new SqlParameter("@ContraInvertida", nuevaContrasena),
             new SqlParameter("@UsuarioId", usuarioId)
                 };
 
@@ -3783,5 +4330,619 @@ namespace ControlAsistenciaFinal.Controllers
         }
 
 
+        [HttpPost]
+        public JsonResult ObtenerReporteTardanzas(DateTime fechaInicio, DateTime fechaFin, string usuarioId, string rolPago)
+        {
+            try
+            {
+                int? usuarioIdParam = string.IsNullOrEmpty(usuarioId) ? (int?)null : Convert.ToInt32(usuarioId);
+                string rolPagoParam = string.IsNullOrEmpty(rolPago) ? null : rolPago;
+
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@FechaInicio", fechaInicio),
+            new SqlParameter("@FechaFin", fechaFin),
+            new SqlParameter("@UsuarioId", usuarioIdParam.HasValue ? (object)usuarioIdParam.Value : DBNull.Value),
+            new SqlParameter("@RolPago", string.IsNullOrEmpty(rolPagoParam) ? (object)DBNull.Value : rolPagoParam)
+                };
+
+                DataTable resultado = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerReporteTardanzas", parameters);
+
+                var data = new List<object>();
+                foreach (DataRow row in resultado.Rows)
+                {
+                    // Formatear hora correctamente
+                    string horaIngreso = "";
+                    object horaObj = row["HoraIngreso"];
+
+                    if (horaObj is TimeSpan)
+                    {
+                        horaIngreso = ((TimeSpan)horaObj).ToString(@"hh\:mm");
+                    }
+                    else if (horaObj is DateTime)
+                    {
+                        horaIngreso = ((DateTime)horaObj).ToString("HH:mm");
+                    }
+                    else
+                    {
+                        horaIngreso = horaObj?.ToString() ?? "";
+                        if (horaIngreso.Length > 5)
+                            horaIngreso = horaIngreso.Substring(0, 5);
+                    }
+
+                    data.Add(new
+                    {
+                        UsuarioId = Convert.ToInt32(row["UsuarioId"]),
+                        NombreCompleto = row["NombreCompleto"].ToString(),
+                        Email = row["Email"].ToString(),
+                        RolPago = row["RolPago"].ToString(),
+                        Fecha = Convert.ToDateTime(row["Fecha"]).ToString("dd/MM/yyyy"),
+                        HoraIngreso = horaIngreso,
+                        MinutosTardanza = Convert.ToInt32(row["MinutosTardanza"]),
+                        TipoJornada = row["TipoJornada"].ToString(),
+                        NivelTardanza = row["NivelTardanza"].ToString()
+                    });
+                }
+
+                return Json(new { success = true, data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        private string FormatearHora(object horaObj)
+        {
+            if (horaObj == null || horaObj == DBNull.Value)
+                return "-";
+
+            if (horaObj is TimeSpan)
+            {
+                return ((TimeSpan)horaObj).ToString(@"hh\:mm");
+            }
+            else if (horaObj is DateTime)
+            {
+                return ((DateTime)horaObj).ToString("HH:mm");
+            }
+            else
+            {
+                string valor = horaObj.ToString();
+                if (valor.Length > 5)
+                    valor = valor.Substring(0, 5);
+                return valor;
+            }
+        }
+
+
+        [HttpPost]
+        public ActionResult ExportarTardanzasExcel(DateTime fechaInicio, DateTime fechaFin, string usuarioId, string rolPago)
+        {
+            try
+            {
+                // Validar fechas
+                if (fechaInicio == DateTime.MinValue || fechaFin == DateTime.MinValue)
+                {
+                    TempData["Error"] = "Debe seleccionar fechas válidas";
+                    return RedirectToAction("ReporteTardanzas");
+                }
+
+                int? usuarioIdParam = string.IsNullOrEmpty(usuarioId) ? (int?)null : Convert.ToInt32(usuarioId);
+                string rolPagoParam = string.IsNullOrEmpty(rolPago) ? null : rolPago;
+
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@FechaInicio", fechaInicio),
+            new SqlParameter("@FechaFin", fechaFin),
+            new SqlParameter("@UsuarioId", usuarioIdParam.HasValue ? (object)usuarioIdParam.Value : DBNull.Value),
+            new SqlParameter("@RolPago", string.IsNullOrEmpty(rolPagoParam) ? (object)DBNull.Value : rolPagoParam)
+                };
+
+                DataTable resumenGeneral = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerReporteTardanzas", parameters);
+
+                if (resumenGeneral == null || resumenGeneral.Rows.Count == 0)
+                {
+                    TempData["Error"] = "No hay datos para exportar en el período seleccionado";
+                    return RedirectToAction("ReporteTardanzas");
+                }
+
+                using (var package = new ExcelPackage())
+                {
+                    // Logos
+                    string logoIzquierdoPath = Server.MapPath("~/Content/images/logo-empresa.png");
+                    string logoDerechoPath = Server.MapPath("~/Content/images/Logo_Edificio.png");
+
+                    Color colorTitulo = Color.FromArgb(0, 176, 240);
+                    Color colorPeriodo = Color.FromArgb(218, 233, 248);
+                    Color colorFecha = Color.FromArgb(217, 217, 217);
+                    Color colorRojoOscuro = Color.FromArgb(192, 0, 0);
+                    Color colorFondoInfo = Color.FromArgb(218, 233, 248);
+
+                    // ============================================
+                    // HOJA DE INICIO (PORTADA)
+                    // ============================================
+                    var portada = package.Workbook.Worksheets.Add("INICIO");
+
+                    // Título
+                    portada.Row(1).Height = 40;
+                    portada.Cells["A1:G1"].Merge = true;
+                    portada.Cells["A1"].Value = "REPORTE DE TARDANZAS";
+                    portada.Cells["A1"].Style.Font.Size = 16;
+                    portada.Cells["A1"].Style.Font.Bold = true;
+                    portada.Cells["A1"].Style.Font.Color.SetColor(Color.Black);
+                    portada.Cells["A1"].Style.Font.Name = "Arial";
+                    portada.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    portada.Cells["A1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    portada.Cells["A1:G1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells["A1:G1"].Style.Fill.BackgroundColor.SetColor(colorTitulo);
+
+                    // Logos
+                    if (System.IO.File.Exists(logoIzquierdoPath))
+                    {
+                        var logoImage = new FileInfo(logoIzquierdoPath);
+                        var picture = portada.Drawings.AddPicture("LogoIzquierdo", logoImage);
+                        picture.SetPosition(0, 7, 0, 50);
+                        picture.SetSize(100, 45);
+                    }
+
+                    if (System.IO.File.Exists(logoDerechoPath))
+                    {
+                        var logoImageDerecho = new FileInfo(logoDerechoPath);
+                        var pictureDerecho = portada.Drawings.AddPicture("LogoDerecho", logoImageDerecho);
+                        pictureDerecho.SetPosition(0, 5, 6, 2);
+                        pictureDerecho.SetSize(80, 32);
+                    }
+
+                    // Período
+                    portada.Row(2).Height = 18;
+                    portada.Cells["A2:G2"].Merge = true;
+                    portada.Cells["A2"].Value = $"Período: {fechaInicio:dd/MM/yyyy} al {fechaFin:dd/MM/yyyy}";
+                    portada.Cells["A2"].Style.Font.Name = "Arial";
+                    portada.Cells["A2"].Style.Font.Size = 12;
+                    portada.Cells["A2"].Style.Font.Bold = true;
+                    portada.Cells["A2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    portada.Cells["A2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    portada.Cells["A2:G2"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells["A2:G2"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+
+                    // Fecha de generación
+                    portada.Row(3).Height = 18;
+                    portada.Cells["A3:G3"].Merge = true;
+                    portada.Cells["A3"].Value = $"Fecha de generación: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+                    portada.Cells["A3"].Style.Font.Name = "Arial";
+                    portada.Cells["A3"].Style.Font.Size = 10;
+                    portada.Cells["A3"].Style.Font.Italic = true;
+                    portada.Cells["A3"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    portada.Cells["A3"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    portada.Cells["A3:G3"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells["A3:G3"].Style.Fill.BackgroundColor.SetColor(colorFecha);
+
+                    // Información del período
+                    int rowInfo = 5;
+                    portada.Cells[rowInfo, 2].Value = "INFORMACIÓN DEL PERÍODO:";
+                    portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 2].Style.Font.Size = 11;
+                    rowInfo += 1;
+
+                    int totalDias = (fechaFin - fechaInicio).Days + 1;
+                    int diasLaborables = 0;
+                    int domingos = 0;
+
+                    for (DateTime d = fechaInicio; d <= fechaFin; d = d.AddDays(1))
+                    {
+                        if (d.DayOfWeek == DayOfWeek.Sunday)
+                            domingos++;
+                        else
+                            diasLaborables++;
+                    }
+
+                    portada.Cells[rowInfo, 2].Value = "Total de días en el período:";
+                    portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells[rowInfo, 2].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                    portada.Cells[rowInfo, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    portada.Cells[rowInfo, 3].Value = totalDias;
+                    portada.Cells[rowInfo, 3].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                    portada.Cells[rowInfo, 5].Value = "Días laborables (Lun a Sáb):";
+                    portada.Cells[rowInfo, 5].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells[rowInfo, 5].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                    portada.Cells[rowInfo, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    portada.Cells[rowInfo, 6].Value = diasLaborables;
+                    portada.Cells[rowInfo, 6].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    rowInfo += 1;
+
+                    portada.Cells[rowInfo, 2].Value = "Domingos:";
+                    portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells[rowInfo, 2].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                    portada.Cells[rowInfo, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    portada.Cells[rowInfo, 3].Value = domingos;
+                    portada.Cells[rowInfo, 3].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    rowInfo += 2;
+
+                    // Filtros aplicados
+                    portada.Cells[rowInfo, 2].Value = "FILTROS APLICADOS:";
+                    portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 2].Style.Font.Size = 11;
+                    rowInfo += 1;
+
+                    portada.Cells[rowInfo, 2].Value = "Fecha Inicio:";
+                    portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells[rowInfo, 2].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                    portada.Cells[rowInfo, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    portada.Cells[rowInfo, 3].Value = fechaInicio.ToString("dd/MM/yyyy");
+                    portada.Cells[rowInfo, 3].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                    portada.Cells[rowInfo, 5].Value = "Fecha Fin:";
+                    portada.Cells[rowInfo, 5].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    portada.Cells[rowInfo, 5].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                    portada.Cells[rowInfo, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    portada.Cells[rowInfo, 6].Value = fechaFin.ToString("dd/MM/yyyy");
+                    portada.Cells[rowInfo, 6].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    rowInfo += 1;
+
+                    if (!string.IsNullOrEmpty(rolPagoParam))
+                    {
+                        portada.Cells[rowInfo, 2].Value = "Rol de Pago:";
+                        portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                        portada.Cells[rowInfo, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        portada.Cells[rowInfo, 2].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        portada.Cells[rowInfo, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        portada.Cells[rowInfo, 3].Value = rolPagoParam;
+                        portada.Cells[rowInfo, 3].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        rowInfo += 1;
+                    }
+
+                    if (usuarioIdParam.HasValue && usuarioIdParam.Value > 0)
+                    {
+                        portada.Cells[rowInfo, 2].Value = "Usuario filtrado:";
+                        portada.Cells[rowInfo, 2].Style.Font.Bold = true;
+                        portada.Cells[rowInfo, 2].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        portada.Cells[rowInfo, 2].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        portada.Cells[rowInfo, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        portada.Cells[rowInfo, 3].Value = "Empleado específico";
+                        portada.Cells[rowInfo, 3].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        rowInfo += 1;
+                    }
+
+                    // Tabla resumen general
+                    rowInfo += 1;
+                    portada.Cells[rowInfo, 1, rowInfo, 7].Merge = true;
+                    portada.Cells[rowInfo, 1].Value = "RESUMEN GENERAL DEL PERÍODO";
+                    portada.Cells[rowInfo, 1].Style.Font.Bold = true;
+                    portada.Cells[rowInfo, 1].Style.Font.Size = 12;
+                    portada.Cells[rowInfo, 1].Style.Font.Name = "Arial";
+                    portada.Cells[rowInfo, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    portada.Cells[rowInfo, 1].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                    rowInfo += 1;
+
+                    string[] headersResumen = { "N°", "Empleado", "Rol de Pago", "Total Tardanzas", "Total Minutos",   "Nivel" };
+                    for (int i = 0; i < headersResumen.Length; i++)
+                    {
+                        portada.Cells[rowInfo, i + 1].Value = headersResumen[i];
+                        portada.Cells[rowInfo, i + 1].Style.Font.Bold = true;
+                        portada.Cells[rowInfo, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        portada.Cells[rowInfo, i + 1].Style.Fill.BackgroundColor.SetColor(colorRojoOscuro);
+                        portada.Cells[rowInfo, i + 1].Style.Font.Color.SetColor(Color.White);
+                        portada.Cells[rowInfo, i + 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                    }
+                    rowInfo++;
+
+                    // Agrupar por usuario
+                    var resumenUsuarios = new Dictionary<int, dynamic>();
+                    foreach (DataRow dr in resumenGeneral.Rows)
+                    {
+                        int usuarioIdActual = Convert.ToInt32(dr["UsuarioId"]);
+                        if (!resumenUsuarios.ContainsKey(usuarioIdActual))
+                        {
+                            resumenUsuarios[usuarioIdActual] = new
+                            {
+                                NombreCompleto = dr["NombreCompleto"].ToString(),
+                                RolPago = dr["RolPago"].ToString(),
+                                TotalTardanzas = 0,
+                                TotalMinutos = 0
+                            };
+                        }
+
+                        var usuario = resumenUsuarios[usuarioIdActual];
+                        int minutos = Convert.ToInt32(dr["MinutosTardanza"]);
+                        resumenUsuarios[usuarioIdActual] = new
+                        {
+                            usuario.NombreCompleto,
+                            usuario.RolPago,
+                            TotalTardanzas = usuario.TotalTardanzas + 1,
+                            TotalMinutos = usuario.TotalMinutos + minutos
+                        };
+                    }
+
+                    int numero = 1;
+                    foreach (var usuario in resumenUsuarios)
+                    {
+                        var data = usuario.Value;
+                        string nivel = data.TotalMinutos / data.TotalTardanzas <= 10 ? "Leve" :
+                                       data.TotalMinutos / data.TotalTardanzas <= 30 ? "Moderada" : "Grave";
+
+                        portada.Cells[rowInfo, 1].Value = numero++;
+                        portada.Cells[rowInfo, 2].Value = data.NombreCompleto;
+                        portada.Cells[rowInfo, 3].Value = data.RolPago;
+                        portada.Cells[rowInfo, 4].Value = data.TotalTardanzas;
+                        portada.Cells[rowInfo, 5].Value = data.TotalMinutos;
+                       
+                        portada.Cells[rowInfo, 6].Value = nivel;
+
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            portada.Cells[rowInfo, i].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        }
+                        rowInfo++;
+                    }
+
+                    portada.Cells[1, 1, rowInfo, 7].AutoFitColumns();
+
+                    // ============================================
+                    // HOJAS INDIVIDUALES POR EMPLEADO
+                    // ============================================
+                    var usuariosUnicos = resumenGeneral.AsEnumerable()
+                        .Select(row => new
+                        {
+                            UsuarioId = Convert.ToInt32(row["UsuarioId"]),
+                            NombreCompleto = row["NombreCompleto"].ToString(),
+                            RolPago = row["RolPago"].ToString(),
+                            Email = row["Email"].ToString()
+                        })
+                        .Distinct()
+                        .ToList();
+
+                    foreach (var usuario in usuariosUnicos)
+                    {
+                        string nombreHoja = usuario.NombreCompleto.Length > 31 ? usuario.NombreCompleto.Substring(0, 28) + ".." : usuario.NombreCompleto;
+                        nombreHoja = nombreHoja.Replace("/", "").Replace("\\", "").Replace("?", "").Replace("*", "").Replace("[", "").Replace("]", "").Replace(":", "");
+
+                        SqlParameter[] detalleParams = new SqlParameter[]
+                        {
+                    new SqlParameter("@UsuarioId", usuario.UsuarioId),
+                    new SqlParameter("@FechaInicio", fechaInicio),
+                    new SqlParameter("@FechaFin", fechaFin)
+                        };
+
+                        DataTable detalle = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerDetalleTardanzasPorUsuario", detalleParams);
+
+                        var hoja = package.Workbook.Worksheets.Add(nombreHoja);
+
+                        // Encabezado
+                        hoja.Row(1).Height = 40;
+                        hoja.Cells["A1:J1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["A1:J1"].Style.Fill.BackgroundColor.SetColor(colorTitulo);
+                        hoja.Cells["B1:I1"].Merge = true;
+                        hoja.Cells["B1"].Value = "REPORTE DE TARDANZAS - DETALLE";
+                        hoja.Cells["B1"].Style.Font.Size = 14;
+                        hoja.Cells["B1"].Style.Font.Bold = true;
+                        hoja.Cells["B1"].Style.Font.Color.SetColor(Color.Black);
+                        hoja.Cells["B1"].Style.Font.Name = "Arial";
+                        hoja.Cells["B1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        hoja.Cells["B1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                        // Logos
+                        if (System.IO.File.Exists(logoIzquierdoPath))
+                        {
+                            var logoImage = new FileInfo(logoIzquierdoPath);
+                            var picture = hoja.Drawings.AddPicture("LogoIzquierdo", logoImage);
+                            picture.SetPosition(0, 7, 0, 30);
+                            picture.SetSize(115, 45);
+                        }
+
+                        if (System.IO.File.Exists(logoDerechoPath))
+                        {
+                            var logoImageDerecho = new FileInfo(logoDerechoPath);
+                            var pictureDerecho = hoja.Drawings.AddPicture("LogoDerecho", logoImageDerecho);
+                            pictureDerecho.SetPosition(0, 5, 8, 0);
+                            pictureDerecho.SetSize(80, 32);
+                        }
+
+                        // Información del empleado
+                        hoja.Cells["B3"].Value = "Empleado:";
+                        hoja.Cells["B3"].Style.Font.Bold = true;
+                        hoja.Cells["B3"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["B3"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        hoja.Cells["B3"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        hoja.Cells["C3"].Value = usuario.NombreCompleto;
+                        hoja.Cells["C3"].Style.Font.Bold = true;
+                        hoja.Cells["C3"].Style.Font.Color.SetColor(Color.FromArgb(54, 86, 139));
+                        hoja.Cells["C3"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        hoja.Cells["B4"].Value = "Rol de Pago:";
+                        hoja.Cells["B4"].Style.Font.Bold = true;
+                        hoja.Cells["B4"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["B4"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        hoja.Cells["B4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        hoja.Cells["C4"].Value = usuario.RolPago;
+                        hoja.Cells["C4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        hoja.Cells["B5"].Value = "Email:";
+                        hoja.Cells["B5"].Style.Font.Bold = true;
+                        hoja.Cells["B5"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["B5"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        hoja.Cells["B5"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        hoja.Cells["C5"].Value = usuario.Email;
+                        hoja.Cells["C5"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        hoja.Cells["E3"].Value = "Período:";
+                        hoja.Cells["E3"].Style.Font.Bold = true;
+                        hoja.Cells["E3"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["E3"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        hoja.Cells["E3"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        hoja.Cells["F3"].Value = $"{fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}";
+                        hoja.Cells["F3"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        int totalTardanzas = detalle.Rows.Count;
+                        int totalMinutos = 0;
+                        foreach (DataRow dr in detalle.Rows)
+                        {
+                            totalMinutos += Convert.ToInt32(dr["MinutosTardanza"]);
+                        }
+
+                        hoja.Cells["E4"].Value = "Total Tardanzas:";
+                        hoja.Cells["E4"].Style.Font.Bold = true;
+                        hoja.Cells["E4"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["E4"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        hoja.Cells["E4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        hoja.Cells["F4"].Value = totalTardanzas;
+                        hoja.Cells["F4"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        hoja.Cells["E5"].Value = "Total Minutos:";
+                        hoja.Cells["E5"].Style.Font.Bold = true;
+                        hoja.Cells["E5"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells["E5"].Style.Fill.BackgroundColor.SetColor(colorPeriodo);
+                        hoja.Cells["E5"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        hoja.Cells["F5"].Value = totalMinutos;
+                        hoja.Cells["F5"].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        // Tabla de registros
+                        int filaTabla = 7;
+                        string[] headersTabla = { "N°", "Fecha", "Hora Ingreso", "Turno", "Minutos", "Nivel" };
+
+                        Color[] headerColors = new Color[]
+                        {
+                    Color.FromArgb(192, 0, 0), Color.FromArgb(192, 0, 0),
+                    Color.FromArgb(60, 125, 34), Color.FromArgb(0, 112, 192),
+                    Color.FromArgb(192, 0, 0), Color.FromArgb(192, 0, 0)
+                        };
+
+                        for (int i = 0; i < headersTabla.Length; i++)
+                        {
+                            hoja.Cells[filaTabla, i + 1].Value = headersTabla[i];
+                            hoja.Cells[filaTabla, i + 1].Style.Font.Bold = true;
+                            hoja.Cells[filaTabla, i + 1].Style.Font.Color.SetColor(Color.White);
+                            hoja.Cells[filaTabla, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            hoja.Cells[filaTabla, i + 1].Style.Fill.BackgroundColor.SetColor(headerColors[i]);
+                            hoja.Cells[filaTabla, i + 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                        }
+                        filaTabla++;
+
+                        int diaNumero = 1;
+                        foreach (DataRow dr in detalle.Rows)
+                        {
+                            string nivel = dr["NivelTardanza"].ToString();
+                            string tipoJornada = dr["TipoJornada"].ToString();
+                            int minutos = Convert.ToInt32(dr["MinutosTardanza"]);
+
+                            // Formatear hora correctamente
+                            string horaIngreso = "";
+                            object horaObj = dr["HoraIngreso"];
+
+                            if (horaObj is TimeSpan)
+                            {
+                                horaIngreso = ((TimeSpan)horaObj).ToString(@"hh\:mm");
+                            }
+                            else if (horaObj is DateTime)
+                            {
+                                horaIngreso = ((DateTime)horaObj).ToString("HH:mm");
+                            }
+                            else
+                            {
+                                horaIngreso = horaObj?.ToString() ?? "";
+                                if (horaIngreso.Length > 5)
+                                    horaIngreso = horaIngreso.Substring(0, 5);
+                            }
+
+                            hoja.Cells[filaTabla, 1].Value = diaNumero++;
+                            hoja.Cells[filaTabla, 2].Value = Convert.ToDateTime(dr["Fecha"]).ToString("dd/MM/yyyy");
+                            hoja.Cells[filaTabla, 3].Value = horaIngreso;
+                            hoja.Cells[filaTabla, 4].Value = tipoJornada;
+                            hoja.Cells[filaTabla, 5].Value = minutos;
+                            hoja.Cells[filaTabla, 6].Value = nivel;
+
+                            for (int i = 1; i <= 6; i++)
+                            {
+                                hoja.Cells[filaTabla, i].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+                            }
+
+                            // Color según nivel
+                            if (nivel == "Leve")
+                                hoja.Cells[filaTabla, 6].Style.Font.Color.SetColor(Color.FromArgb(255, 193, 7));
+                            else if (nivel == "Moderada")
+                                hoja.Cells[filaTabla, 6].Style.Font.Color.SetColor(Color.FromArgb(253, 126, 20));
+                            else
+                                hoja.Cells[filaTabla, 6].Style.Font.Color.SetColor(Color.FromArgb(220, 53, 69));
+
+                            filaTabla++;
+                        }
+
+                        // Resumen
+                        int filaResumen = filaTabla + 1;
+                        hoja.Cells[filaResumen, 1, filaResumen, 3].Merge = true;
+                        hoja.Cells[filaResumen, 1, filaResumen, 3].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        hoja.Cells[filaResumen, 1, filaResumen, 3].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(57, 57, 57));
+                        hoja.Cells[filaResumen, 1].Value = "RESUMEN DE TARDANZAS";
+                        hoja.Cells[filaResumen, 1].Style.Font.Bold = true;
+                        hoja.Cells[filaResumen, 1].Style.Font.Color.SetColor(Color.White);
+                        hoja.Cells[filaResumen, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        filaResumen++;
+                        hoja.Cells[filaResumen, 1].Value = "Total Tardanzas:";
+                        hoja.Cells[filaResumen, 1].Style.Font.Bold = true;
+                        hoja.Cells[filaResumen, 2].Value = totalTardanzas;
+                        hoja.Cells[filaResumen, 1, filaResumen, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        filaResumen++;
+                        hoja.Cells[filaResumen, 1].Value = "Total Minutos de Tardanza:";
+                        hoja.Cells[filaResumen, 1].Style.Font.Bold = true;
+                        hoja.Cells[filaResumen, 2].Value = totalMinutos;
+                        hoja.Cells[filaResumen, 1, filaResumen, 2].Style.Border.BorderAround(ExcelBorderStyle.Thin);
+
+                        filaResumen++;
+                   
+
+                        hoja.Cells[1, 1, filaResumen + 2, 6].AutoFitColumns();
+                    }
+
+                    var bytes = package.GetAsByteArray();
+                    var result = new FileContentResult(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    result.FileDownloadName = $"ReporteTardanzas_{fechaInicio:yyyyMMdd}_{fechaFin:yyyyMMdd}.xlsx";
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error en ExportarTardanzasExcel: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("StackTrace: " + ex.StackTrace);
+                TempData["Error"] = "Error al exportar: " + ex.Message;
+                return RedirectToAction("ReporteTardanzas");
+            }
+        }
+
+
+
+        [HttpGet]
+        public ActionResult ReporteTardanzas()
+        {
+            try
+            {
+                var usuarios = DatabaseHelper.ExecuteQuery("SELECT Id, NombreCompleto, RolPago FROM Usuarios ORDER BY NombreCompleto", null);
+                var rolesPago = DatabaseHelper.ExecuteQuery("SELECT DISTINCT RolPago FROM Usuarios WHERE RolPago IS NOT NULL ORDER BY RolPago", null);
+
+                ViewBag.Usuarios = usuarios;
+                ViewBag.RolesPago = rolesPago;
+                DateTime primerDiaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                ViewBag.FechaInicio = primerDiaMes.ToString("yyyy-MM-dd");
+                ViewBag.FechaFin = DateTime.Now.ToString("yyyy-MM-dd");
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View();
+            }
+        }
+
+
+
     }
+
 }

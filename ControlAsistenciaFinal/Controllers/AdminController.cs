@@ -441,7 +441,8 @@ namespace ControlAsistenciaFinal.Controllers
                          ConceptoPagoId = @ConceptoPagoId,
                          RolPago = @RolPago,
                          FechaInicio = @FechaInicio,
-                        FechaInicio2 = @FechaInicio
+                        FechaInicio2 = @FechaInicio ,
+                        FechaInicioOriginal = @FechaInicio
                      WHERE Id = @Id";
 
                     SqlParameter[] parameters = new SqlParameter[]
@@ -844,17 +845,17 @@ namespace ControlAsistenciaFinal.Controllers
             // Cargar lista de usuarios para el filtro
             string queryUsuarios = @"SELECT Id, NombreCompleto, RolPago 
                              FROM Usuarios 
-                             WHERE Activo = 1 
+                             WHERE Activo = 1 and not NombreCompleto = 'admin' 
                              ORDER BY NombreCompleto";
             ViewBag.Usuarios = DatabaseHelper.ExecuteQuery(queryUsuarios, null);
 
-            string queryCiclos = "SELECT NombreCiclo FROM ConfiguracionCiclos WHERE Activo = 1 ORDER BY Orden";
+            string queryCiclos = "SELECT NombreCiclo FROM ConfiguracionCiclos WHERE Activo = 1  ORDER BY Orden";
             ViewBag.Ciclos = DatabaseHelper.ExecuteQuery(queryCiclos, null);
 
             // Cargar lista de roles de pago
             string queryRoles = @"SELECT DISTINCT RolPago 
                           FROM Usuarios 
-                          WHERE Activo = 1 AND RolPago IS NOT NULL 
+                          WHERE Activo = 1  AND RolPago IS NOT NULL 
                           ORDER BY RolPago";
             ViewBag.RolesPago = DatabaseHelper.ExecuteQuery(queryRoles, null);
 
@@ -1121,7 +1122,7 @@ namespace ControlAsistenciaFinal.Controllers
 
         private void CargarListasReportes()
         {
-            string queryUsuarios = "SELECT Id, NombreCompleto FROM Usuarios WHERE Activo = 1 ORDER BY NombreCompleto";
+            string queryUsuarios = "SELECT Id, NombreCompleto FROM Usuarios WHERE Activo = 1 and not NombreCompleto = 'admin' ORDER BY NombreCompleto";
             ViewBag.Usuarios = DatabaseHelper.ExecuteQuery(queryUsuarios, null);
 
             DataTable roles = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerRoles", null);
@@ -1198,11 +1199,9 @@ namespace ControlAsistenciaFinal.Controllers
                     string conceptoPago = row["ConceptoPago"] != DBNull.Value ? row["ConceptoPago"].ToString() : "";
                     decimal horasTrabajadas = row["TotalHorasTrabajadas"] != DBNull.Value ? Convert.ToDecimal(row["TotalHorasTrabajadas"]) : 0;
                     int diasTrabajados = row["DiasTrabajados"] != DBNull.Value ? Convert.ToInt32(row["DiasTrabajados"]) : 0;
-
-                    // Calcular horas esperadas con la nueva lógica
-                    decimal horasEsperadas = CalcularHorasEsperadas(conceptoPago, fechaInicio, fechaFin);
-                    decimal diferencia = horasTrabajadas - horasEsperadas;
-
+                    int HorasEsperadas = row["HorasEsperadas"] != DBNull.Value ? Convert.ToInt32(row["HorasEsperadas"]) : 0;
+                    int Diferencia = row["Diferencia"] != DBNull.Value ? Convert.ToInt32(row["Diferencia"]) : 0;
+                    // Calcular horas esperadas con la nueva lógica 
                     resumen.Add(new
                     {
                         NombreCompleto = row["NombreCompleto"].ToString(),
@@ -1211,8 +1210,8 @@ namespace ControlAsistenciaFinal.Controllers
                         ConceptoPago = conceptoPago,
                         DiasTrabajados = diasTrabajados,
                         TotalHorasTrabajadas = Math.Round(horasTrabajadas, 2),
-                        HorasEsperadas = Math.Round(horasEsperadas, 2),
-                        DiferenciaHoras = Math.Round(diferencia, 2)
+                        HorasEsperadas = HorasEsperadas,
+                        DiferenciaHoras = Diferencia
                     });
                 }
 
@@ -3548,29 +3547,7 @@ namespace ControlAsistenciaFinal.Controllers
                             diaNumero++;
                         }
 
-                        // Totales
-                        //hoja.Cells[filaTabla + 1, 7].Value = "TOTALES:";
-                        //hoja.Cells[filaTabla + 1, 7].Style.Font.Bold = true;
-                        //hoja.Cells[filaTabla + 1, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        //hoja.Cells[filaTabla + 1, 7].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(146, 208, 80));
-                        //hoja.Cells[filaTabla + 1, 7].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        //hoja.Cells[filaTabla + 1, 7].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        //hoja.Cells[filaTabla + 1, 7].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                        //hoja.Cells[filaTabla + 1, 8].Value = totalHorasHoja;
-                        //hoja.Cells[filaTabla + 1, 8].Style.Numberformat.Format = "0.00";
-                        //hoja.Cells[filaTabla + 1, 8].Style.Font.Bold = true;
-                        //hoja.Cells[filaTabla + 1, 8].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        //hoja.Cells[filaTabla + 1, 8].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        //hoja.Cells[filaTabla + 1, 8].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                        //hoja.Cells[filaTabla + 1, 9].Value = totalMontoHoja;
-                        //hoja.Cells[filaTabla + 1, 9].Style.Numberformat.Format = "0.00";
-                        //hoja.Cells[filaTabla + 1, 9].Style.Font.Bold = true;
-                        //hoja.Cells[filaTabla + 1, 9].Style.Font.Color.SetColor(Color.Green);
-                        //hoja.Cells[filaTabla + 1, 9].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                        //hoja.Cells[filaTabla + 1, 9].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        //hoja.Cells[filaTabla + 1, 9].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                   
                         // Resumen de pago
                         int filaResumen = filaTabla + 1;
 
@@ -3591,7 +3568,7 @@ namespace ControlAsistenciaFinal.Controllers
                         hoja.Cells[filaDatosResumen, 1].Style.Font.Bold = true;
                         hoja.Cells[filaDatosResumen, 1, filaDatosResumen, 4].Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
-                        hoja.Cells[filaDatosResumen, 5].Value = totalHorasGeneral;
+                        hoja.Cells[filaDatosResumen, 5].Value = totalHorasEmpleado;
                         hoja.Cells[filaDatosResumen, 5].Style.Numberformat.Format = "0.00";
                         hoja.Cells[filaDatosResumen, 5].Style.Border.BorderAround(ExcelBorderStyle.Thin);
 
@@ -4329,6 +4306,53 @@ namespace ControlAsistenciaFinal.Controllers
             }
         }
 
+        [HttpGet]
+        public JsonResult ObtenerSalidasPendientesAdmin()
+        {
+            try
+            {
+                // Ejecutar el SP
+                DataTable dt = DatabaseHelper.ExecuteStoredProcedure("sp_Admin_ObtenerSalidasPendientes", null);
+
+                List<object> alertas = new List<object>();
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    DateTime fechaPendiente = Convert.ToDateTime(row["Fecha"]);
+
+                    alertas.Add(new
+                    {
+                        Id = row["UsuarioId"].ToString() + "_" + fechaPendiente.ToString("yyyyMMdd"),
+                        UsuarioId = Convert.ToInt32(row["UsuarioId"]),
+                        NombreCompleto = row["NombreCompleto"].ToString(),
+                        Email = row["Email"].ToString(),
+                        RolPago = row["RolPago"].ToString(),
+                        Fecha = fechaPendiente.ToString("dd/MM/yyyy"),
+                        FechaFormateada = row["FechaFormateada"].ToString(),
+                        DiaSemana = row["DiaSemana"].ToString(),
+                        HoraEntrada = row["HoraEntrada"]?.ToString() ?? "--:--",
+                        DiasRetraso = Convert.ToInt32(row["DiasRetraso"]),
+                        Mensaje = row["Mensaje"].ToString()
+                    });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    totalPendientes = alertas.Count,
+                    alertas = alertas
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    alertas = new List<object>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         [HttpPost]
         public JsonResult ObtenerReporteTardanzas(DateTime fechaInicio, DateTime fechaFin, string usuarioId, string rolPago)
@@ -4923,8 +4947,8 @@ namespace ControlAsistenciaFinal.Controllers
         {
             try
             {
-                var usuarios = DatabaseHelper.ExecuteQuery("SELECT Id, NombreCompleto, RolPago FROM Usuarios ORDER BY NombreCompleto", null);
-                var rolesPago = DatabaseHelper.ExecuteQuery("SELECT DISTINCT RolPago FROM Usuarios WHERE RolPago IS NOT NULL ORDER BY RolPago", null);
+                var usuarios = DatabaseHelper.ExecuteQuery("SELECT Id, NombreCompleto, RolPago FROM Usuarios where 	  Activo = 1 and Rol != 'Admin'  ORDER BY NombreCompleto", null);
+                var rolesPago = DatabaseHelper.ExecuteQuery("SELECT DISTINCT RolPago FROM Usuarios WHERE  Activo = 1 and Rol != 'Admin'  and RolPago IS NOT NULL ORDER BY RolPago", null);
 
                 ViewBag.Usuarios = usuarios;
                 ViewBag.RolesPago = rolesPago;

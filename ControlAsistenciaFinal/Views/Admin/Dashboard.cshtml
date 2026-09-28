@@ -5,8 +5,7 @@
 <link href="~/Content/css/all.min.css" rel="stylesheet" />
 
 <style>
-    /* ========== CONTENEDOR PRINCIPAL PARA LIMITAR ANCHO EN PANTALLAS GRANDES ========== */
-    /* Este contenedor envuelve todo el contenido para que no se estire en pantallas grandes */
+    /* ========== CONTENEDOR PRINCIPAL ========== */
     .responsive-container {
         max-width: 1400px;
         margin: 0 auto;
@@ -25,7 +24,6 @@
         background: #f0f2f5;
     }
 
-    /* Asegurar que el layout original se mantenga */
     .container-fluid, .container {
         width: 100%;
         padding-right: 15px;
@@ -34,7 +32,7 @@
         margin-left: auto;
     }
 
-    /* ========== ENCABEZADO RESPONSIVO ========== */
+    /* ========== ENCABEZADO ========== */
     .header-left {
         display: flex;
         flex-direction: column;
@@ -59,7 +57,7 @@
         font-size: clamp(0.8rem, 3vw, 1rem);
     }
 
-    /* ========== TARJETAS ESTADÍSTICAS - GRID RESPONSIVO ========== */
+    /* ========== TARJETAS ESTADÍSTICAS ========== */
     .row {
         display: flex;
         flex-wrap: wrap;
@@ -72,8 +70,7 @@
             padding-left: 8px;
         }
 
-    /* Tarjetas responsivas */
-    .card {
+    .card:not(.panel-alertas-admin) {
         border: none;
         border-radius: 16px;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -81,46 +78,223 @@
         min-height: 130px;
     }
 
-        .card:hover {
+        .card:not(.panel-alertas-admin):hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 24px rgba(0,0,0,0.15);
         }
 
-    .card-body {
+    .card-body:not(.panel-alertas-admin .card-body) {
         padding: clamp(0.8rem, 3vw, 1.2rem);
         display: flex;
         flex-direction: column;
         height: 100%;
     }
 
-        .card-body .d-flex {
-            flex-wrap: wrap;
-            gap: 10px;
+    .card-body .d-flex {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .card-body h6 {
+        font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+        margin-bottom: 5px;
+        white-space: nowrap;
+    }
+
+    .card-body h2 {
+        font-size: clamp(1.3rem, 5vw, 2rem);
+        margin: 0;
+        font-weight: bold;
+    }
+
+    .card-body .fa-3x {
+        font-size: clamp(1.5rem, 6vw, 2.5rem);
+    }
+
+    .card-body .small {
+        font-size: clamp(0.6rem, 2vw, 0.75rem);
+        margin-top: 8px;
+        display: inline-block;
+    }
+
+    /* ============================================================
+       NUEVO DISEÑO: PANEL FLOTANTE COLAPSABLE (NOVEDOSO)
+       ============================================================ */
+
+    /* Botón flotante para abrir el panel (cuando está cerrado) */
+    .fab-alertas-admin {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 25px rgba(37, 117, 252, 0.4);
+        cursor: pointer;
+        z-index: 1050;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: none;
+    }
+
+        .fab-alertas-admin:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 12px 35px rgba(37, 117, 252, 0.5);
         }
 
-        .card-body h6 {
-            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
-            margin-bottom: 5px;
-            white-space: nowrap;
-        }
-
-        .card-body h2 {
-            font-size: clamp(1.3rem, 5vw, 2rem);
-            margin: 0;
+        .fab-alertas-admin .badge-fab {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            font-size: 0.8rem;
             font-weight: bold;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .card-body .fa-3x {
-            font-size: clamp(1.5rem, 6vw, 2.5rem);
+    /* Panel de alertas (expandido) */
+    .panel-alertas-admin {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 500px;
+        max-width: calc(100vw - 40px);
+        max-height: 80vh;
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        z-index: 1060;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(30px) scale(0.95);
+    }
+
+        .panel-alertas-admin.activo {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
         }
 
-        .card-body .small {
-            font-size: clamp(0.6rem, 2vw, 0.75rem);
-            margin-top: 8px;
-            display: inline-block;
+        /* Cabecera del panel */
+        .panel-alertas-admin .panel-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
         }
 
-    /* ========== MENÚ RÁPIDO RESPONSIVO ========== */
+            .panel-alertas-admin .panel-header h5 {
+                margin: 0;
+                font-size: 1.05rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .panel-alertas-admin .panel-header .header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .panel-alertas-admin .panel-header .btn-icon {
+                background: rgba(255,255,255,0.2);
+                color: #fff;
+                border: none;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-size: 0.9rem;
+            }
+
+                .panel-alertas-admin .panel-header .btn-icon:hover {
+                    background: rgba(255,255,255,0.4);
+                    transform: rotate(90deg);
+                }
+
+            .panel-alertas-admin .panel-header .btn-cerrar:hover {
+                background: rgba(220, 53, 69, 0.8);
+                transform: scale(1.1) rotate(0deg);
+            }
+
+        /* Cuerpo del panel (scrollable) */
+        .panel-alertas-admin .panel-body {
+            padding: 1.2rem;
+            overflow-y: auto;
+            background: #f8f9fa;
+            flex-grow: 1;
+            max-height: 60vh;
+        }
+
+            /* Scrollbar personalizado */
+            .panel-alertas-admin .panel-body::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .panel-alertas-admin .panel-body::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            .panel-alertas-admin .panel-body::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 10px;
+            }
+
+                .panel-alertas-admin .panel-body::-webkit-scrollbar-thumb:hover {
+                    background: #a8a8a8;
+                }
+
+    /* Tarjetas de alerta dentro del panel */
+    .alerta-card-admin {
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border-left: 5px solid transparent;
+    }
+
+        .alerta-card-admin:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .alerta-card-admin .icono-flotante {
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            font-size: 5rem;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+    /* ========== MENÚ RÁPIDO ========== */
     .card-header {
         padding: clamp(0.7rem, 3vw, 1rem);
     }
@@ -129,27 +303,23 @@
             font-size: clamp(0.9rem, 3vw, 1.1rem);
         }
 
-    /* Grid de menú - se adapta automáticamente */
     .row .col-md-3 {
         flex: 0 0 auto;
         width: 100%;
     }
 
-    /* Tablet y desktop pequeños */
     @@media (min-width: 576px) {
         .row .col-md-3 {
             width: 50%;
         }
     }
 
-    /* Desktop normal */
     @@media (min-width: 992px) {
         .row .col-md-3 {
             width: 25%;
         }
     }
 
-    /* Pantallas grandes (curvas, 4K) - SOLO limitamos el ancho del contenedor, no cambiamos diseño */
     @@media (min-width: 1400px) {
         .responsive-container {
             max-width: 1400px;
@@ -161,7 +331,6 @@
         }
     }
 
-    /* Pantallas ultra grandes (1920px+) - mantenemos el diseño centrado */
     @@media (min-width: 1920px) {
         .responsive-container {
             max-width: 1400px;
@@ -173,7 +342,6 @@
         }
     }
 
-    /* Elementos de menú centrados y responsivos */
     .row .col-md-3.text-center {
         margin-bottom: 20px;
     }
@@ -248,7 +416,6 @@
         overflow-x: auto;
     }
 
-    /* Tablas responsivas - horizontal scroll en móvil */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -270,13 +437,12 @@
             word-break: break-word;
         }
 
-    /* Badges responsivos */
     .badge {
         font-size: clamp(0.6rem, 2vw, 0.75rem);
         padding: clamp(3px, 1vw, 6px) clamp(6px, 2vw, 10px);
     }
 
-    /* ========== ALERTAS RESPONSIVAS ========== */
+    /* ========== ALERTAS (Modal existente) ========== */
     .alertas-container {
         max-height: 60vh;
         overflow-y: auto;
@@ -294,7 +460,6 @@
             font-size: clamp(0.6rem, 2vw, 0.75rem);
         }
 
-    /* Tabs responsivos */
     .nav-tabs .nav-link {
         padding: clamp(6px, 2vw, 10px) clamp(10px, 3vw, 20px);
         font-size: clamp(0.75rem, 2.5vw, 0.9rem);
@@ -302,7 +467,6 @@
 
     /* ========== AJUSTES PARA CELULARES ========== */
     @@media (max-width: 575.98px) {
-        /* Stack vertical para todas las columnas */
         .row {
             flex-direction: column;
         }
@@ -311,31 +475,45 @@
                 width: 100%;
                 margin-bottom: 12px;
             }
-        /* Tarjetas toman ancho completo */
-        .card {
+
+        .card:not(.panel-alertas-admin) {
             margin-bottom: 0;
         }
-        /* Menú rápido: 2 columnas en móvil */
+
         .row .col-md-3.text-center {
             width: 50%;
             display: inline-block;
             vertical-align: top;
         }
-        /* Ajuste para el contenedor del menú */
+
         .card-body .row {
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
         }
-        /* Botones del modal más grandes para touch */
+
         .modal-footer .btn {
             padding: 8px 12px;
             font-size: 0.8rem;
         }
-        /* Espaciado general */
+
         .container, .container-fluid {
             padding-left: 12px;
             padding-right: 12px;
+        }
+        /* Ajustes del panel flotante en móvil */
+        .panel-alertas-admin {
+            width: calc(100vw - 20px);
+            right: 10px;
+            bottom: 10px;
+            max-height: 85vh;
+        }
+
+        .fab-alertas-admin {
+            bottom: 15px;
+            right: 15px;
+            width: 55px;
+            height: 55px;
         }
     }
 
@@ -350,12 +528,11 @@
             }
     }
 
-    /* ========== ANIMACIONES Y MEJORAS VISUALES ========== */
+    /* ========== ANIMACIONES ========== */
     .card, .alerta-card, button, .nav-link {
         transition: all 0.2s ease-in-out;
     }
 
-    /* Mejora para touch en móviles */
     @@media (hover: none) and (pointer: coarse) {
         .card:hover {
             transform: none;
@@ -371,7 +548,6 @@
             }
     }
 
-    /* Scrollbar personalizado pero responsivo */
     .alertas-container::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -385,10 +561,9 @@
     }
 </style>
 
-<!-- CONTENEDOR RESPONSIVO - Solo limita el ancho en pantallas grandes, NO cambia el diseño -->
+<!-- CONTENEDOR RESPONSIVO -->
 <div class="responsive-container">
-    <!-- Encabezado con logo centrado y título debajo -->
-    <!-- Encabezado con logo arriba y título abajo, alineado a la izquierda -->
+    <!-- Encabezado -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="header-left">
@@ -418,7 +593,6 @@
             </a>
         </div>
 
-        <!-- Tarjeta Presentes Hoy -->
         <div class="col-md-3">
             <div class="card text-white" style="cursor: pointer; background-color: rgb(89, 90, 89) !important;" onclick="verPresentes()">
                 <div class="card-body">
@@ -502,9 +676,6 @@
                             <h5 class="mt-2">Permisos Excepcionales</h5>
                             <p>Gestionar permisos</p>
                         </div>
-                        <!-- ============================================ -->
-                        <!-- NUEVO: Reporte de Tardanzas -->
-                        <!-- ============================================ -->
                         <div class="col-md-3 text-center">
                             <div onclick="window.location.href='@Url.Action("ReporteTardanzas", "Admin")'" style="cursor: pointer; display: inline-block;  ">
                                 <i class="fas fa-clock fa-3x" style="color: rgb(89, 90, 89) !important;"></i>
@@ -512,8 +683,6 @@
                             <h5 class="mt-2">Reporte de Tardanzas</h5>
                             <p>Ver reporte de tardanzas</p>
                         </div>
-
-
                         <div class="col-md-3 text-center">
                             <a href="@Url.Action("RecuperarUser", "Admin")" style="cursor: pointer; text-decoration: none; color: inherit; display: inline-block;">
                                 <div>
@@ -530,7 +699,41 @@
     </div>
 </div>
 
-<!-- Modal para alertas de horas completadas - VERSIÓN MEJORADA -->
+<!-- ============================================================ -->
+<!-- COMPONENTE FLOTANTE: ALERTAS DE SALIDAS PENDIENTES (ADMIN)   -->
+<!-- ============================================================ -->
+<!-- Botón flotante (FAB) - Visible cuando el panel está cerrado -->
+<button type="button" class="fab-alertas-admin" id="fabAlertasAdmin" onclick="togglePanelAlertasAdmin()">
+    <i class="fas fa-exclamation-triangle fa-2x"></i>
+    <span class="badge-fab" id="fabAlertaCount" style="display: none;">0</span>
+</button>
+
+<!-- Panel de Alertas - Visible cuando se abre -->
+<div class="panel-alertas-admin" id="panelAlertasAdmin">
+    <div class="panel-header">
+        <h5>
+            <i class="fas fa-exclamation-triangle"></i>
+            Salidas Pendientes
+            <span class="badge bg-light text-dark ms-2" id="panelAlertaCount" style="font-size: 0.75rem;">0</span>
+        </h5>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="cargarSalidasPendientesAdmin()" title="Actualizar">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="btn-icon btn-cerrar" onclick="togglePanelAlertasAdmin()" title="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <div class="panel-body" id="contenedorSalidasPendientesAdmin">
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3 d-block"></i>
+            <p class="mb-0">Cargando salidas pendientes...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para alertas de horas completadas -->
 <div class="modal fade" id="modalAlertasHoras" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
@@ -548,7 +751,6 @@
             </div>
 
             <div class="modal-body p-0">
-                <!-- Tabs modernos -->
                 <ul class="nav nav-tabs px-4 pt-3" id="alertasTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
                     <li class="nav-item me-3" role="presentation">
                         <button class="nav-link active fw-semibold" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab" style="border: none; color: #6c757d; padding: 0.75rem 0;">
@@ -566,7 +768,6 @@
                 </ul>
 
                 <div class="tab-content" id="alertasTabsContent">
-                    <!-- Tab de alertas pendientes -->
                     <div class="tab-pane fade show active p-3" id="pendientes" role="tabpanel">
                         <div id="listaAlertasPendientes" class="alertas-container" style="max-height: 550px; overflow-y: auto;">
                             <div class="text-center py-5 text-muted">
@@ -576,7 +777,6 @@
                         </div>
                     </div>
 
-                    <!-- Tab de historial -->
                     <div class="tab-pane fade p-3" id="historico" role="tabpanel">
                         <div id="listaAlertasHistorico" class="alertas-container" style="max-height: 550px; overflow-y: auto;">
                             <div class="text-center py-5 text-muted">
@@ -620,141 +820,375 @@
     </div>
 </div>
 
- 
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    @section Scripts {
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Toast personalizado
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true
+    });
 
-        <script>
-        // Toast personalizado
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 5000,
-            timerProgressBar: true
-        });
+    $(document).ready(function() {
+        console.log("Document ready");
 
-        $(document).ready(function() {
-            console.log("Document ready");
-            // Verificar si existe el botón de alertas
-            if ($('#btnAlertasHoras').length === 0) {
-                console.log("Botón de alertas no encontrado, agregando...");
-                $('body').append(`
-                    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-                        <a href="#" id="btnAlertasHoras" class="btn btn-light rounded-circle shadow-lg" style="width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; text-decoration: none; position: relative;">
-                            <i class="fas fa-bell fa-2x" style="color: #ffc107;"></i>
-                            <span id="alertaCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.7rem; min-width: 22px;">0</span>
-                        </a>
-                    </div>
-                `);
-            }
+        // Verificar si existe el botón de alertas (campana flotante)
+        if ($('#btnAlertasHoras').length === 0) {
+            console.log("Botón de alertas no encontrado, agregando...");
+            $('body').append(`
+                <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+                    <a href="#" id="btnAlertasHoras" class="btn btn-light rounded-circle shadow-lg" style="width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; text-decoration: none; position: relative;">
+                        <i class="fas fa-bell fa-2x" style="color: #ffc107;"></i>
+                        <span id="alertaCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.7rem; min-width: 22px;">0</span>
+                    </a>
+                </div>
+            `);
+        }
 
-            // Cargar alertas
+        // Cargar alertas normales (trabajadores)
+        cargarAlertas();
+
+        // Cargar salidas pendientes (admin) - Solo actualiza el contador del FAB
+        cargarSalidasPendientesAdmin();
+
+        // Evento clic en la campana
+        $(document).on('click', '#btnAlertasHoras', function(e) {
+            e.preventDefault();
+            console.log("Abriendo modal de alertas");
+            $('#modalAlertasHoras').modal('show');
             cargarAlertas();
-
-            // Evento campana
-            $(document).on('click', '#btnAlertasHoras', function(e) {
-                e.preventDefault();
-                console.log("Abriendo modal de alertas");
-                $('#modalAlertasHoras').modal('show');
-                cargarAlertas();
-            });
-
-            // Evento marcar todas
-            $(document).on('click', '#btnMarcarTodasLeidas', function() {
-                marcarTodasLeidas();
-            });
         });
 
-        function cargarAlertas() {
-            console.log("Cargando alertas...");
+        // Evento marcar todas como leídas
+        $(document).on('click', '#btnMarcarTodasLeidas', function() {
+            marcarTodasLeidas();
+        });
 
-            // Cargar pendientes (no leídas)
-            $.ajax({
-                url: '/Trabajador/ObtenerAlertasHorasJson',
-                type: 'GET',
-                data: { soloNoLeidas: true },
-                dataType: 'json',
-                success: function(response) {
-                    console.log("Pendientes response:", response);
-                    if (response.success) {
-                        if (response.data && response.data.length > 0) {
-                            mostrarAlertasPendientes(response.data);
-                            $('#pendientesCount').text(response.data.length);
-                            $('#alertaCount').text(response.data.length).show();
+        // Cerrar panel al hacer clic fuera (opcional)
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#panelAlertasAdmin').length && !$(e.target).closest('#fabAlertasAdmin').length) {
+                $('#panelAlertasAdmin').removeClass('activo');
+            }
+        });
+    });
 
-                            // Mostrar notificación
-                            Toast.fire({
-                                icon: 'info',
-                                title: response.data.length + ' trabajador(es) alcanzaron su meta',
-                                timer: 8000
-                            });
-                        } else {
-                            $('#listaAlertasPendientes').html(`
-                                <div class="text-center py-5 text-muted">
-                                    <i class="fas fa-check-circle fa-4x text-success mb-3 d-block"></i>
-                                    <h6 class="fw-bold">¡Todo en orden!</h6>
-                                    <p class="mb-0">No hay alertas pendientes</p>
-                                </div>
-                            `);
-                            $('#pendientesCount').text(0);
-                            $('#alertaCount').hide();
-                        }
+    // ============================================
+    // TOGGLE PANEL DE ALERTAS ADMIN (NOVEDOSO)
+    // ============================================
+    function togglePanelAlertasAdmin() {
+        $('#panelAlertasAdmin').toggleClass('activo');
+    }
+
+    // ============================================
+    // CARGAR ALERTAS NORMALES (TRABAJADORES)
+    // ============================================
+    function cargarAlertas() {
+        console.log("Cargando alertas...");
+
+        $.ajax({
+            url: '/Trabajador/ObtenerAlertasHorasJson',
+            type: 'GET',
+            data: { soloNoLeidas: true },
+            dataType: 'json',
+            success: function(response) {
+                console.log("Pendientes response:", response);
+                if (response.success) {
+                    if (response.data && response.data.length > 0) {
+                        mostrarAlertasPendientes(response.data);
+                        $('#pendientesCount').text(response.data.length);
+                        $('#alertaCount').text(response.data.length).show();
+
+                        Toast.fire({
+                            icon: 'info',
+                            title: response.data.length + ' trabajador(es) alcanzaron su meta',
+                            timer: 8000
+                        });
                     } else {
-                        mostrarError('pendientes');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error:", error, xhr.responseText);
-                    mostrarError('pendientes');
-                }
-            });
-
-            // Cargar historial (todas)
-            $.ajax({
-                url: '/Trabajador/ObtenerAlertasHorasJson',
-                type: 'GET',
-                data: { soloNoLeidas: false },
-                dataType: 'json',
-                success: function(response) {
-                    console.log("Historial response:", response);
-                    if (response.success && response.data && response.data.length > 0) {
-                        mostrarAlertasHistorial(response.data);
-                    } else {
-                        $('#listaAlertasHistorico').html(`
+                        $('#listaAlertasPendientes').html(`
                             <div class="text-center py-5 text-muted">
-                                <i class="fas fa-history fa-4x mb-3 d-block"></i>
-                                <h6 class="fw-bold">Sin historial</h6>
-                                <p class="mb-0">No hay alertas registradas</p>
+                                <i class="fas fa-check-circle fa-4x text-success mb-3 d-block"></i>
+                                <h6 class="fw-bold">¡Todo en orden!</h6>
+                                <p class="mb-0">No hay alertas pendientes</p>
                             </div>
                         `);
+                        $('#pendientesCount').text(0);
+                        $('#alertaCount').hide();
                     }
-                },
-                error: function() {
+                } else {
+                    mostrarError('pendientes');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", error, xhr.responseText);
+                mostrarError('pendientes');
+            }
+        });
+
+        $.ajax({
+            url: '/Trabajador/ObtenerAlertasHorasJson',
+            type: 'GET',
+            data: { soloNoLeidas: false },
+            dataType: 'json',
+            success: function(response) {
+                console.log("Historial response:", response);
+                if (response.success && response.data && response.data.length > 0) {
+                    mostrarAlertasHistorial(response.data);
+                } else {
                     $('#listaAlertasHistorico').html(`
-                        <div class="text-center py-5 text-danger">
-                            <i class="fas fa-exclamation-triangle fa-3x mb-2 d-block"></i>
-                            <p>Error al cargar historial</p>
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-history fa-4x mb-3 d-block"></i>
+                            <h6 class="fw-bold">Sin historial</h6>
+                            <p class="mb-0">No hay alertas registradas</p>
                         </div>
                     `);
                 }
-            });
+            },
+            error: function() {
+                $('#listaAlertasHistorico').html(`
+                    <div class="text-center py-5 text-danger">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-2 d-block"></i>
+                        <p>Error al cargar historial</p>
+                    </div>
+                `);
+            }
+        });
+    }
+
+    // ============================================
+    // CARGAR SALIDAS PENDIENTES (ADMIN) - FAB
+    // ============================================
+    function cargarSalidasPendientesAdmin() {
+        console.log("Cargando salidas pendientes (Admin)...");
+
+        $.ajax({
+            url: '@Url.Action("ObtenerSalidasPendientesAdmin", "Admin")',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Actualizar contador del FAB
+                    var total = response.totalPendientes || 0;
+                    $('#fabAlertaCount').text(total);
+                    $('#panelAlertaCount').text(total);
+
+                    if (total > 0) {
+                        $('#fabAlertaCount').show();
+                    } else {
+                        $('#fabAlertaCount').hide();
+                    }
+
+                    // Renderizar el contenido si el panel está abierto o si se va a abrir
+                    if (response.alertas && response.alertas.length > 0) {
+                        renderizarSalidasPendientesAdmin(response.alertas);
+                    } else {
+                        $('#contenedorSalidasPendientesAdmin').html(`
+                            <div class="text-center py-5">
+                                <i class="fas fa-check-circle fa-5x text-success mb-3 d-block"></i>
+                                <h5 class="text-success">¡Todo al día!</h5>
+                                <p class="text-muted mb-0">No hay salidas pendientes de trabajadores.</p>
+                            </div>
+                        `);
+                    }
+                } else {
+                    // Si hay un error, mostrar en el contenedor interno
+                    if ($('#contenedorSalidasPendientesAdmin').length) {
+                        $('#contenedorSalidasPendientesAdmin').html(`
+                            <div class="text-center py-4 text-danger">
+                                <i class="fas fa-exclamation-triangle fa-4x mb-2"></i>
+                                <h5>Error al cargar</h5>
+                                <button class="btn btn-primary btn-sm mt-3" onclick="cargarSalidasPendientesAdmin()">
+                                    <i class="fas fa-sync-alt"></i> Reintentar
+                                </button>
+                            </div>
+                        `);
+                    }
+                }
+            },
+            error: function() {
+                // En caso de error de red
+                $('#fabAlertaCount').hide();
+                if ($('#contenedorSalidasPendientesAdmin').length) {
+                    $('#contenedorSalidasPendientesAdmin').html(`
+                        <div class="text-center py-4 text-danger">
+                            <i class="fas fa-exclamation-triangle fa-4x mb-2"></i>
+                            <h5>Error de conexión</h5>
+                            <button class="btn btn-primary btn-sm mt-3" onclick="cargarSalidasPendientesAdmin()">
+                                <i class="fas fa-sync-alt"></i> Reintentar
+                            </button>
+                        </div>
+                    `);
+                }
+            }
+        });
+    }
+
+    // ============================================
+    // RENDERIZAR ALERTAS DE SALIDAS PENDIENTES (ADMIN)
+    // ============================================
+    function renderizarSalidasPendientesAdmin(alertas) {
+        var html = '';
+
+        for (var i = 0; i < alertas.length; i++) {
+            var item = alertas[i];
+            var diasRetraso = item.DiasRetraso || 0;
+
+            var colorFondo = '#fff3cd';
+            var colorBorde = '#ffc107';
+            var colorIcono = '#ffc107';
+            var colorBadge = 'bg-warning text-dark';
+            var icono = 'fa-clock';
+            var tituloBadge = 'Pendiente';
+
+            if (diasRetraso >= 2) {
+                colorFondo = '#f8d7da';
+                colorBorde = '#dc3545';
+                colorIcono = '#dc3545';
+                colorBadge = 'bg-danger';
+                icono = 'fa-exclamation-triangle';
+                tituloBadge = 'CRÍTICO';
+            } else if (diasRetraso === 1) {
+                colorFondo = '#fff3cd';
+                colorBorde = '#ffc107';
+                colorIcono = '#ffc107';
+                colorBadge = 'bg-warning text-dark';
+                icono = 'fa-hourglass-half';
+                tituloBadge = 'Urgente';
+            }
+
+            html += `
+                <div class="alerta-card-admin" style="background: ${colorFondo}; border-left-color: ${colorBorde};">
+
+                    <i class="fas ${icono} icono-flotante" style="color: ${colorIcono};"></i>
+
+                    <div class="position-relative">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3"
+                                     style="width: 50px; height: 50px; background-color: ${colorIcono}; box-shadow: 0 0 15px ${colorIcono}80;">
+                                    <i class="fas ${icono} fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">${escapeHtml(item.NombreCompleto)}</h6>
+                                    <small class="text-muted">${escapeHtml(item.Email)}</small>
+                                </div>
+                            </div>
+                            <span class="badge ${colorBadge} rounded-pill px-3 py-2" style="font-size: 0.7rem;">
+                                ${tituloBadge}
+                            </span>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Fecha pendiente:</small>
+                                <strong style="font-size: 0.85rem;">${item.FechaFormateada} (${item.DiaSemana})</strong>
+                            </div>
+                            <div class="col-3 text-center">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Entrada:</small>
+                                <strong style="font-size: 0.85rem;">${item.HoraEntrada}</strong>
+                            </div>
+                            <div class="col-3 text-center">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Días:</small>
+                                <strong style="color: ${colorIcono}; font-size: 1.2rem;">${diasRetraso}</strong>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-${diasRetraso >= 2 ? 'danger' : 'warning'} py-1 px-2 mb-2 small d-flex align-items-center" style="font-size: 0.75rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span>${item.Mensaje}</span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-2">
+                            <button class="btn btn-sm btn-outline-dark ver-detalle-admin-btn" data-id="${item.Id}" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                                <i class="fas fa-search me-1"></i> Detalle
+                            </button>
+                            <button class="btn btn-sm btn-success marcar-gestionada-admin-btn" data-id="${item.Id}" data-usuario="${item.UsuarioId}" data-fecha="${item.Fecha}" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                                <i class="fas fa-check me-1"></i> Gestionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
-        function mostrarAlertasPendientes(alertas) {
-            var html = '';
-            for (var i = 0; i < alertas.length; i++) {
-                var item = alertas[i];
+        $('#contenedorSalidasPendientesAdmin').html(html);
+
+        $('.marcar-gestionada-admin-btn').off('click').on('click', function() {
+            var id = $(this).data('id');
+            var usuarioId = $(this).data('usuario');
+            var fecha = $(this).data('fecha');
+            marcarSalidaGestionadaAdmin(usuarioId, fecha, id);
+        });
+
+        $('.ver-detalle-admin-btn').off('click').on('click', function() {
+            var id = $(this).data('id');
+            Swal.fire({
+                title: 'Detalle de la Salida',
+                html: `<p>ID de registro: <strong>${id}</strong></p>
+                       <p>Aquí puedes cargar más datos del trabajador si lo deseas.</p>`,
+                icon: 'info',
+                confirmButtonText: 'Cerrar'
+            });
+        });
+    }
+
+    // ============================================
+    // MARCAR SALIDA COMO GESTIONADA (ADMIN)
+    // ============================================
+    function marcarSalidaGestionadaAdmin(usuarioId, fecha, id) {
+        Swal.fire({
+            title: '¿Marcar como Gestionada?',
+            text: 'Esta salida pendiente ya no aparecerá en la lista.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, gestionar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#28a745'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("MarcarSalidaGestionada", "Admin")',
+                    type: 'POST',
+                    data: { usuarioId: usuarioId, fecha: fecha },
+                    success: function(response) {
+                        if (response.success) {
+                            Toast.fire({ icon: 'success', title: 'Salida gestionada correctamente' });
+                            cargarSalidasPendientesAdmin();
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudo realizar la acción.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // ============================================
+    // MOSTRAR ALERTAS PENDIENTES (TRABAJADORES)
+    // ============================================
+    function mostrarAlertasPendientes(alertas) {
+        var html = '';
+        for (var i = 0; i < alertas.length; i++) {
+            var item = alertas[i];
+
+            if (item.TipoAlerta === 'HorasCompletadas') {
                 var porcentaje = (item.HorasAlcanzadas / item.HorasObjetivo) * 100;
 
                 html += `
-                    <div class="alerta-card mb-3 p-3 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #fff9e6 0%, #fff3c9 100%); border-left: 5px solid #ffc107;">
+                    <div class="alerta-card mb-3 p-3 rounded-3 shadow-sm"
+                         style="background: linear-gradient(135deg, #fff9e6 0%, #fff3c9 100%); border-left: 5px solid #ffc107;">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3" style="width: 55px; height: 55px;">
+                                <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center me-3"
+                                     style="width: 55px; height: 55px;">
                                     <i class="fas fa-trophy fa-2x"></i>
                                 </div>
                                 <div>
@@ -767,17 +1201,18 @@
                                     </p>
                                 </div>
                             </div>
-                            <span class="badge bg-success rounded-pill px-3 py-2">
-                                <i class="fas fa-check-circle me-1"></i> Meta alcanzada
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                <i class="fas fa-flag-checkered me-1"></i> Ciclo #${item.CicloNumero}
                             </span>
                         </div>
                         <div class="mt-3">
                             <div class="d-flex justify-content-between mb-1">
-                                <small class="text-muted">Progreso: ${porcentaje.toFixed(0)}%</small>
-                                <small class="text-muted fw-bold">${item.HorasAlcanzadas} / ${item.HorasObjetivo} hrs</small>
+                                <small class="text-muted">Meta alcanzada</small>
+                                <small class="text-muted fw-bold">${item.HorasObjetivo} hrs</small>
                             </div>
                             <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: ${porcentaje}%; border-radius: 10px;"></div>
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: 100%; border-radius: 10px;"></div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">
@@ -791,233 +1226,318 @@
                     </div>
                 `;
             }
+            else if (item.TipoAlerta === 'CierreMes') {
+                var debeHoras = item.Diferencia < 0;
+                var colorBg = debeHoras ? '#fef2f2' : '#f0fdf4';
+                var colorBorder = debeHoras ? '#dc3545' : '#16a34a';
+                var colorIcon = debeHoras ? '#dc3545' : '#16a34a';
+                var icono = debeHoras ? 'fa-hourglass-end' : 'fa-hourglass-half';
+                var titulo = debeHoras ? 'Debe horas' : 'Se le deben horas';
+                var badgeClass = debeHoras ? 'bg-danger' : 'bg-success';
+                var signo = item.Diferencia > 0 ? '+' : '';
 
-            $('#listaAlertasPendientes').html(html);
-
-            // Eventos para botones de marcar leída
-            $('.marcar-leida-btn').off('click').on('click', function() {
-                var id = $(this).data('id');
-                marcarLeida(id);
-            });
-        }
-
-        function mostrarAlertasHistorial(alertas) {
-            var html = '';
-            for (var i = 0; i < alertas.length; i++) {
-                var item = alertas[i];
-                var estaLeida = item.Leido === true || item.Leido === 1;
+                var meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                var nombreMes = meses[item.Mes] || '';
 
                 html += `
-                    <div class="alerta-card mb-3 p-3 rounded-3 ${estaLeida ? 'bg-light' : 'bg-white'}" style="border-left: 5px solid ${estaLeida ? '#6c757d' : '#ffc107'};">
+                    <div class="alerta-card mb-3 p-3 rounded-3 shadow-sm"
+                         style="background: ${colorBg}; border-left: 5px solid ${colorBorder};">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex align-items-center">
-                                <div class="rounded-circle ${estaLeida ? 'bg-secondary' : 'bg-warning'} text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                                    <i class="fas ${estaLeida ? 'fa-check' : 'fa-trophy'} fa-2x"></i>
+                                <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3"
+                                     style="width: 55px; height: 55px; background-color: ${colorIcon};">
+                                    <i class="fas ${icono} fa-2x"></i>
                                 </div>
                                 <div>
                                     <h6 class="mb-1 fw-bold">${escapeHtml(item.NombreCompleto)}</h6>
                                     <p class="mb-0 text-muted small">
                                         <i class="fas fa-envelope me-1"></i> ${escapeHtml(item.Email)}
                                     </p>
+                                    <p class="mb-0 text-muted small">
+                                        <i class="fas fa-tag me-1"></i> ${escapeHtml(item.RolPago)}
+                                    </p>
                                 </div>
                             </div>
-                            <span class="badge ${estaLeida ? 'bg-secondary' : 'bg-success'} rounded-pill">
-                                <i class="fas ${estaLeida ? 'fa-check-circle' : 'fa-trophy'} me-1"></i>
-                                ${estaLeida ? 'Leída' : 'Meta alcanzada'}
+                            <span class="badge ${badgeClass} rounded-pill px-3 py-2">
+                                <i class="fas fa-calendar-check me-1"></i> ${nombreMes} ${item.Anio}
                             </span>
                         </div>
-                        <div class="mt-2">
-                            <small class="text-muted">
-                                <i class="fas fa-calendar-alt me-1"></i> ${item.FechaAlerta}
-                            </small>
-                            <div class="mt-1">
-                                <small class="text-muted">Horas: ${item.HorasAlcanzadas} / ${item.HorasObjetivo}</small>
+                        <div class="mt-3">
+                            <div class="row g-2 mb-2">
+                                <div class="col-4 text-center">
+                                    <small class="text-muted d-block">Esperadas</small>
+                                    <strong>${item.HorasEsperadas} hrs</strong>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted d-block">Trabajadas</small>
+                                    <strong>${item.HorasTrabajadas} hrs</strong>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <small class="text-muted d-block">Diferencia</small>
+                                    <strong style="color: ${colorIcon};">${signo}${item.Diferencia} hrs</strong>
+                                </div>
+                            </div>
+                            <div class="alert alert-${debeHoras ? 'danger' : 'success'} py-2 px-3 mb-2 small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>${titulo}:</strong>
+                                ${Math.abs(item.Diferencia).toFixed(2)} hrs
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> ${item.FechaAlerta}
+                                </small>
+                                <button class="btn btn-sm btn-success marcar-leida-btn" data-id="${item.Id}">
+                                    <i class="fas fa-check me-1"></i> Marcar como leída
+                                </button>
                             </div>
                         </div>
                     </div>
                 `;
             }
-            $('#listaAlertasHistorico').html(html);
         }
 
-        function marcarLeida(alertaId) {
-            Swal.fire({
-                title: '¿Marcar como leída?',
-                text: 'Esta alerta se moverá al historial',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, marcar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/Trabajador/MarcarAlertaLeida',
-                        type: 'POST',
-                        data: { alertaId: alertaId },
-                        success: function(response) {
-                            if (response.success) {
-                                Toast.fire({
-                                    icon: 'success',
-                                    title: 'Alerta marcada como leída'
-                                });
-                                cargarAlertas();
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function() {
-                            Swal.fire('Error', 'No se pudo marcar la alerta', 'error');
-                        }
-                    });
-                }
-            });
-        }
+        $('#listaAlertasPendientes').html(html);
 
-        function marcarTodasLeidas() {
-            Swal.fire({
-                title: 'Marcar todas como leídas',
-                text: '¿Está seguro de marcar TODAS las alertas como leídas?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, marcar todas',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#28a745'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '/Trabajador/MarcarTodasAlertasLeidas',
-                        type: 'POST',
-                        success: function(response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Completado!',
-                                    text: `Se marcaron ${response.count} alertas como leídas`,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                                cargarAlertas();
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function() {
-                            Swal.fire('Error', 'No se pudo completar la acción', 'error');
-                        }
-                    });
-                }
-            });
-        }
-
-        function mostrarError(tab) {
-            if (tab === 'pendientes') {
-                $('#listaAlertasPendientes').html(`
-                    <div class="text-center py-5 text-danger">
-                        <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block"></i>
-                        <h6 class="fw-bold">Error al cargar las alertas</h6>
-                        <p class="mb-0">Por favor, intente nuevamente</p>
-                        <button class="btn btn-primary btn-sm mt-3" onclick="cargarAlertas()">
-                            <i class="fas fa-sync-alt me-1"></i> Reintentar
-                        </button>
-                    </div>
-                `);
-            }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '-';
-            return text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        // Funciones existentes de presentes/tardanzas/ausentes
-        function verPresentes() {
-            $('#modalTitle').text('Empleados Presentes Hoy');
-            $('#modalHeader').removeClass().addClass('modal-header text-white');
-            $('#modalHeader').css('background-color', 'rgb(89, 90, 89)');
-            $('#theadDetalle').html('<table><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Comentario</th></tr>');
-            $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center">Cargando...</td></tr>');
-            $('#modalDetalle').modal('show');
-
-            $.ajax({
-                url: '@Url.Action("ObtenerDetallePresentes", "Admin")',
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    var tbody = $('#tbodyDetalle');
-                    tbody.empty();
-                    if (data.length === 0) {
-                        tbody.html('<tr><td colspan="4" class="text-center">No hay registros</td></tr>');
-                    } else {
-                        for (var i = 0; i < data.length; i++) {
-                            var item = data[i];
-                            tbody.append('<tr><td>' + escapeHtml(item.NombreCompleto) + '</td><td>' + escapeHtml(item.Email) + '</td><td>' + item.HoraEntrada + '</td><td>' + (item.Comentario || '-') + '</td></tr>');
-                        }
-                    }
-                }
-            });
-        }
-
-        function verTardanzas() {
-            $('#modalTitle').text('Empleados con Tardanza Hoy');
-            $('#modalHeader').removeClass().addClass('modal-header bg-warning text-dark');
-            $('#theadDetalle').html('<tr><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Minutos Tarde</th><th>Comentario</th></tr>');
-            $('#tbodyDetalle').html('<tr><td colspan="5" class="text-center">Cargando...</td></tr>');
-            $('#modalDetalle').modal('show');
-
-            $.ajax({
-                url: '@Url.Action("ObtenerDetalleTardanzas", "Admin")',
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    var tbody = $('#tbodyDetalle');
-                    tbody.empty();
-                    if (data.length === 0) {
-                        tbody.html('<tr><td colspan="5" class="text-center">No hay tardanzas</td></tr>');
-                    } else {
-                        for (var i = 0; i < data.length; i++) {
-                            var item = data[i];
-                            tbody.append('<tr><td>' + escapeHtml(item.NombreCompleto) + '</td><td>' + escapeHtml(item.Email) + '</td><td>' + item.HoraEntrada + '</td><td>' + item.MinutosTarde + '</td><td>' + (item.Comentario || '-') + '</td></tr>');
-                        }
-                    }
-                }
-            });
-        }
-
-        function verAusentes() {
-            $('#modalTitle').text('Empleados Ausentes Hoy');
-            $('#modalHeader').removeClass().addClass('modal-header text-white');
-            $('#modalHeader').css('background-color', '#dc3545');
-            $('#theadDetalle').html('<tr><th><i class="fas fa-user me-1"></i> Nombre</th><th><i class="fas fa-envelope me-1"></i> Email</th><th><i class="fas fa-calendar me-1"></i> Fecha</th><th><i class="fas fa-comment me-1"></i> Estado</th></tr>');
-            $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>');
-            $('#modalDetalle').modal('show');
-
-            $.ajax({
-                url: '@Url.Action("ObtenerDetalleAusentes", "Admin")',
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    var tbody = $('#tbodyDetalle');
-                    tbody.empty();
-                    if (data.length === 0) {
-                        tbody.html('<tr><td colspan="4" class="text-center py-4"><i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i><span>Todos los empleados están presentes hoy</span></td></tr>');
-                    } else {
-                        for (var i = 0; i < data.length; i++) {
-                            var item = data[i];
-                            tbody.append('<tr><td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td><td>' + escapeHtml(item.Email) + '</td><td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td><td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td></tr>');
-                        }
-                    }
-                },
-                error: function() {
-                    $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar los datos</td></tr>');
-                }
-            });
-        }
-        </script>
+        $('.marcar-leida-btn').off('click').on('click', function () {
+            var id = $(this).data('id');
+            marcarLeida(id);
+        });
     }
- 
+
+    // ============================================
+    // MOSTRAR HISTORIAL DE ALERTAS (TRABAJADORES)
+    // ============================================
+    function mostrarAlertasHistorial(alertas) {
+        var html = '';
+        for (var i = 0; i < alertas.length; i++) {
+            var item = alertas[i];
+            var estaLeida = item.Leido === true || item.Leido === 1;
+
+            html += `
+                <div class="alerta-card mb-3 p-3 rounded-3 ${estaLeida ? 'bg-light' : 'bg-white'}" style="border-left: 5px solid ${estaLeida ? '#6c757d' : '#ffc107'};">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle ${estaLeida ? 'bg-secondary' : 'bg-warning'} text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fas ${estaLeida ? 'fa-check' : 'fa-trophy'} fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-bold">${escapeHtml(item.NombreCompleto)}</h6>
+                                <p class="mb-0 text-muted small">
+                                    <i class="fas fa-envelope me-1"></i> ${escapeHtml(item.Email)}
+                                </p>
+                            </div>
+                        </div>
+                        <span class="badge ${estaLeida ? 'bg-secondary' : 'bg-success'} rounded-pill">
+                            <i class="fas ${estaLeida ? 'fa-check-circle' : 'fa-trophy'} me-1"></i>
+                            ${estaLeida ? 'Leída' : 'Meta alcanzada'}
+                        </span>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt me-1"></i> ${item.FechaAlerta}
+                        </small>
+                        <div class="mt-1">
+                            <small class="text-muted">Horas: ${item.HorasAlcanzadas} / ${item.HorasObjetivo}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        $('#listaAlertasHistorico').html(html);
+    }
+
+    // ============================================
+    // MARCAR UNA ALERTA COMO LEÍDA
+    // ============================================
+    function marcarLeida(alertaId) {
+        Swal.fire({
+            title: '¿Marcar como leída?',
+            text: 'Esta alerta se moverá al historial',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, marcar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#28a745'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Trabajador/MarcarAlertaLeida',
+                    type: 'POST',
+                    data: { alertaId: alertaId },
+                    success: function(response) {
+                        if (response.success) {
+                            Toast.fire({
+                                icon: 'success',
+                                title: 'Alerta marcada como leída'
+                            });
+                            cargarAlertas();
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudo marcar la alerta', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // ============================================
+    // MARCAR TODAS LAS ALERTAS COMO LEÍDAS
+    // ============================================
+    function marcarTodasLeidas() {
+        Swal.fire({
+            title: 'Marcar todas como leídas',
+            text: '¿Está seguro de marcar TODAS las alertas como leídas?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, marcar todas',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#28a745'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Trabajador/MarcarTodasAlertasLeidas',
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Completado!',
+                                text: `Se marcaron ${response.count} alertas como leídas`,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            cargarAlertas();
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudo completar la acción', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    // ============================================
+    // MOSTRAR ERROR EN CARGA DE ALERTAS
+    // ============================================
+    function mostrarError(tab) {
+        if (tab === 'pendientes') {
+            $('#listaAlertasPendientes').html(`
+                <div class="text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block"></i>
+                    <h6 class="fw-bold">Error al cargar las alertas</h6>
+                    <p class="mb-0">Por favor, intente nuevamente</p>
+                    <button class="btn btn-primary btn-sm mt-3" onclick="cargarAlertas()">
+                        <i class="fas fa-sync-alt me-1"></i> Reintentar
+                    </button>
+                </div>
+            `);
+        }
+    }
+
+    // ============================================
+    // FUNCIÓN PARA ESCAPAR HTML
+    // ============================================
+    function escapeHtml(text) {
+        if (!text) return '-';
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // ============================================
+    // FUNCIONES EXISTENTES (Presentes/Tardanzas/Ausentes)
+    // ============================================
+    function verPresentes() {
+        $('#modalTitle').text('Empleados Presentes Hoy');
+        $('#modalHeader').removeClass().addClass('modal-header text-white');
+        $('#modalHeader').css('background-color', 'rgb(89, 90, 89)');
+        $('#theadDetalle').html('<table><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Comentario</th></tr>');
+        $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center">Cargando...</td></tr>');
+        $('#modalDetalle').modal('show');
+
+        $.ajax({
+            url: '@Url.Action("ObtenerDetallePresentes", "Admin")',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#tbodyDetalle');
+                tbody.empty();
+                if (data.length === 0) {
+                    tbody.html('<tr><td colspan="4" class="text-center">No hay registros</td></tr>');
+                } else {
+                    for (var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        tbody.append('<tr><td>' + escapeHtml(item.NombreCompleto) + '</td><td>' + escapeHtml(item.Email) + '</td><td>' + item.HoraEntrada + '</td><td>' + (item.Comentario || '-') + '</td></tr>');
+                    }
+                }
+            }
+        });
+    }
+
+    function verTardanzas() {
+        $('#modalTitle').text('Empleados con Tardanza Hoy');
+        $('#modalHeader').removeClass().addClass('modal-header bg-warning text-dark');
+        $('#theadDetalle').html('<tr><th>Nombre</th><th>Email</th><th>Hora Entrada</th><th>Minutos Tarde</th><th>Comentario</th></tr>');
+        $('#tbodyDetalle').html('<tr><td colspan="5" class="text-center">Cargando...</td></tr>');
+        $('#modalDetalle').modal('show');
+
+        $.ajax({
+            url: '@Url.Action("ObtenerDetalleTardanzas", "Admin")',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#tbodyDetalle');
+                tbody.empty();
+                if (data.length === 0) {
+                    tbody.html('<tr><td colspan="5" class="text-center">No hay tardanzas</td></tr>');
+                } else {
+                    for (var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        tbody.append('<tr><td>' + escapeHtml(item.NombreCompleto) + '</td><td>' + escapeHtml(item.Email) + '</td><td>' + item.HoraEntrada + '</td><td>' + item.MinutosTarde + '</td><td>' + (item.Comentario || '-') + '</td></tr>');
+                    }
+                }
+            }
+        });
+    }
+
+    function verAusentes() {
+        $('#modalTitle').text('Empleados Ausentes Hoy');
+        $('#modalHeader').removeClass().addClass('modal-header text-white');
+        $('#modalHeader').css('background-color', '#dc3545');
+        $('#theadDetalle').html('<tr><th><i class="fas fa-user me-1"></i> Nombre</th><th><i class="fas fa-envelope me-1"></i> Email</th><th><i class="fas fa-calendar me-1"></i> Fecha</th><th><i class="fas fa-comment me-1"></i> Estado</th></tr>');
+        $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</td></tr>');
+        $('#modalDetalle').modal('show');
+
+        $.ajax({
+            url: '@Url.Action("ObtenerDetalleAusentes", "Admin")',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#tbodyDetalle');
+                tbody.empty();
+                if (data.length === 0) {
+                    tbody.html('<tr><td colspan="4" class="text-center py-4"><i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i><span>Todos los empleados están presentes hoy</span></td></tr>');
+                } else {
+                    for (var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        tbody.append('<tr><td><strong>' + escapeHtml(item.NombreCompleto) + '</strong></td><td>' + escapeHtml(item.Email) + '</td><td><span class="badge bg-secondary">' + (item.Fecha || new Date().toLocaleDateString()) + '</span></td><td><span class="badge bg-danger"><i class="fas fa-user-slash me-1"></i> Ausente</span></td></tr>');
+                    }
+                }
+            },
+            error: function() {
+                $('#tbodyDetalle').html('<tr><td colspan="4" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>Error al cargar los datos</td></tr>');
+            }
+        });
+    }
+    </script>
+}

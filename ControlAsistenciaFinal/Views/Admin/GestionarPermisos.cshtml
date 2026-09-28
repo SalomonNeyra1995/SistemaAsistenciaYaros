@@ -39,9 +39,13 @@
                             tienePermiso = Convert.ToBoolean(row["PermisoMarcacionExcepcional"]);
                         }
 
-                        if (row["TipoPermisoExcepcional"] != DBNull.Value && row["TipoPermisoExcepcional"] != null)
+                        // FIX: Leer el tipo de permiso correctamente, ignorando nulls y vacíos
+                        if (row.Table.Columns.Contains("TipoPermisoExcepcional")
+                            && row["TipoPermisoExcepcional"] != DBNull.Value
+                            && row["TipoPermisoExcepcional"] != null
+                            && !string.IsNullOrWhiteSpace(row["TipoPermisoExcepcional"].ToString()))
                         {
-                            tipoPermiso = row["TipoPermisoExcepcional"].ToString();
+                            tipoPermiso = row["TipoPermisoExcepcional"].ToString().Trim();
                         }
 
                         <tr id="fila_@row["Id"]">
@@ -63,7 +67,7 @@
                                 </select>
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-info btn-registrar-hora" data-id="@row["Id"]" data-nombre="@row["NombreCompleto"]" data-tipo="@tipoPermiso" @(!tienePermiso ? "disabled" : "")>
+                                <button class="btn btn-sm btn-info btn-registrar-hora" data-id="@row["Id"]" data-nombre="@row["NombreCompleto"]" @(!tienePermiso ? "disabled" : "")>
                                     <i class="fas fa-clock"></i> Registrar Hora Manual
                                 </button>
                             </td>
@@ -102,7 +106,6 @@
                         <i class="fas fa-tag me-1"></i> Tipo de Registro
                     </label>
                     <select id="tipoRegistroModal" class="form-select" style="border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; background-color: white;">
-                        <!-- Las opciones se llenarán dinámicamente según el permiso del usuario -->
                     </select>
                 </div>
 
@@ -175,7 +178,6 @@
                                     if (habilitar) {
                                         selectTipo.prop('disabled', false);
                                         btnRegistrar.prop('disabled', false);
-                                        btnRegistrar.data('tipo', tipoPermiso);
                                     } else {
                                         selectTipo.prop('disabled', true);
                                         btnRegistrar.prop('disabled', true);
@@ -201,12 +203,8 @@
                 var usuarioId = select.data('id');
                 var tipoPermiso = select.val();
                 var habilitar = $('.permiso-switch[data-id="' + usuarioId + '"]').is(':checked');
-                var btnRegistrar = $('.btn-registrar-hora[data-id="' + usuarioId + '"]');
 
                 if (habilitar) {
-                    // Actualizar el data-tipo del botón
-                    btnRegistrar.data('tipo', tipoPermiso);
-
                     $.ajax({
                         url: '@Url.Action("ActualizarPermisoExcepcional", "Admin")',
                         type: 'POST',
@@ -218,7 +216,9 @@
             $('.btn-registrar-hora').click(function() {
                 var usuarioId = $(this).data('id');
                 var nombre = $(this).data('nombre');
-                var tipoPermiso = $(this).data('tipo'); // Obtener el tipo de permiso
+                // FIX: leer el tipo de permiso directamente del select de la tabla,
+                // no del data-tipo del botón (que puede estar desactualizado)
+                var tipoPermiso = $('.tipo-permiso[data-id="' + usuarioId + '"]').val();
                 var habilitado = $('.permiso-switch[data-id="' + usuarioId + '"]').is(':checked');
 
                 if (!habilitado) {
@@ -230,7 +230,6 @@
                 $('#tipoPermisoUsuario').val(tipoPermiso);
                 $('#empleadoNombre').text(nombre);
 
-                // Cargar las opciones según el tipo de permiso
                 var selectTipo = $('#tipoRegistroModal');
                 selectTipo.empty();
 
@@ -276,7 +275,6 @@
                 var hora = $('#horaModal').val();
                 var justificacion = $('#justificacionModal').val();
 
-                // Validar que el tipo de registro esté permitido según el permiso
                 if (tipoPermiso !== 'Todos' && tipoRegistro !== tipoPermiso) {
                     Swal.fire('Atención', 'Este usuario solo puede registrar ' + tipoPermiso, 'warning');
                     return;

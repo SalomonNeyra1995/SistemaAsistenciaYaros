@@ -396,7 +396,12 @@ namespace ControlAsistenciaFinal.Controllers
                             FechaAlerta = Convert.ToDateTime(row["FechaAlerta"]).ToString("dd/MM/yyyy HH:mm"),
                             Leido = Convert.ToBoolean(row["Leido"]),
                             Estado = row["Estado"]?.ToString() ?? "",
-                            TipoAlerta = row["TipoAlerta"]?.ToString() ?? ""
+                            TipoAlerta = row["TipoAlerta"]?.ToString() ?? "",
+                            // NUEVOS CAMPOS
+                            CicloNumero = row["CicloNumero"] != DBNull.Value ? Convert.ToInt32(row["CicloNumero"]) : (int?)null,
+                            HorasEsperadas = row["HorasEsperadas"] != DBNull.Value ? Convert.ToDecimal(row["HorasEsperadas"]) : (decimal?)null,
+                            HorasTrabajadas = row["HorasTrabajadas"] != DBNull.Value ? Convert.ToDecimal(row["HorasTrabajadas"]) : (decimal?)null,
+                            Diferencia = row["Diferencia"] != DBNull.Value ? Convert.ToDecimal(row["Diferencia"]) : (decimal?)null
                         };
                         alertas.Add(alerta);
                     }
@@ -410,7 +415,6 @@ namespace ControlAsistenciaFinal.Controllers
                 return Json(new { success = false, message = ex.Message, data = new List<object>(), count = 0 }, JsonRequestBehavior.AllowGet);
             }
         }
-
 
         [HttpGet]
         public JsonResult ObtenerConteoAlertasNoLeidas()
@@ -790,7 +794,7 @@ namespace ControlAsistenciaFinal.Controllers
         // OBTENER ALERTA DE SALIDA PENDIENTE - CON DEPURACIÓN
         // ============================================
         [HttpGet]
-        public JsonResult ObtenerAlertaSalidaPendiente()
+        public JsonResult ObtenerAlertaSalidaPendiente1()
         {
             try
             {
@@ -800,7 +804,7 @@ namespace ControlAsistenciaFinal.Controllers
                 int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
 
                 // ============================================
-                // BUSCAR CUALQUIER FECHA DONDE FALTE SALIDA
+                // QUERY CORREGIDA - Devuelve TODAS las fechas sin salida
                 // ============================================
                 string query = @"
         WITH FechasConEntrada AS (
@@ -808,48 +812,34 @@ namespace ControlAsistenciaFinal.Controllers
             FROM RegistrosAsistencia
             WHERE UsuarioId = @UsuarioId
               AND TipoRegistro = 'Entrada'
-              AND DATEPART(dw, CAST(FechaHora AS DATE)) NOT IN (1) -- Excluye domingos
-        ),
-        FechasSinSalida AS (
-            SELECT 
-                f.Fecha,
-                (SELECT TOP 1 FORMAT(r.FechaHora, 'HH:mm')
-                 FROM RegistrosAsistencia r
-                 WHERE r.UsuarioId = @UsuarioId
-                   AND r.TipoRegistro = 'Entrada'
-                   AND CAST(r.FechaHora AS DATE) = f.Fecha
-                 ORDER BY r.FechaHora ASC) AS HoraEntrada,
-                (SELECT COUNT(*)
-                 FROM RegistrosAsistencia r
-                 WHERE r.UsuarioId = @UsuarioId
-                   AND r.TipoRegistro = 'Salida'
-                   AND CAST(r.FechaHora AS DATE) = f.Fecha) AS TieneSalida
-            FROM FechasConEntrada f
+              AND DATENAME(dw, CAST(FechaHora AS DATE)) != 'Domingo'
         )
-        SELECT TOP 1 
-            Fecha,
-            HoraEntrada,
-            TieneSalida,
-            CASE DATEPART(dw, Fecha)
-                WHEN 1 THEN 'Domingo'
-                WHEN 2 THEN 'Lunes'
-                WHEN 3 THEN 'Martes'
-                WHEN 4 THEN 'Miércoles'
-                WHEN 5 THEN 'Jueves'
-                WHEN 6 THEN 'Viernes'
-                WHEN 7 THEN 'Sábado'
-            END AS DiaSemana
-        FROM FechasSinSalida
-        WHERE TieneSalida = 0
-          AND NOT EXISTS (
-              SELECT 1 
-              FROM AlertasSalidaPendiente a 
-              WHERE a.UsuarioId = @UsuarioId 
-                AND a.Fecha = Fecha 
-                AND a.Estado = 'Aceptada'
-          )
-          AND Fecha < CAST(GETDATE() AS DATE)
-        ORDER BY Fecha DESC";
+        SELECT 
+            f.Fecha,
+            (SELECT TOP 1 FORMAT(r.FechaHora, 'HH:mm')
+             FROM RegistrosAsistencia r
+             WHERE r.UsuarioId = @UsuarioId
+               AND r.TipoRegistro = 'Entrada'
+               AND CAST(r.FechaHora AS DATE) = f.Fecha
+             ORDER BY r.FechaHora ASC) AS HoraEntrada,
+            DATENAME(dw, f.Fecha) AS DiaSemana
+        FROM FechasConEntrada f
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM RegistrosAsistencia r
+            WHERE r.UsuarioId = @UsuarioId
+              AND r.TipoRegistro = 'Salida'
+              AND CAST(r.FechaHora AS DATE) = f.Fecha
+        )
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM AlertasSalidaPendiente a 
+            WHERE a.UsuarioId = @UsuarioId 
+              AND a.Fecha = f.Fecha 
+              AND a.Estado = 'Aceptada'
+        )
+        AND f.Fecha < CAST(GETDATE() AS DATE)
+        ORDER BY f.Fecha DESC";
 
                 SqlParameter[] parameters = new SqlParameter[]
                 {
@@ -859,45 +849,70 @@ namespace ControlAsistenciaFinal.Controllers
                 DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
 
                 // ============================================
-                // SI HAY FECHA PENDIENTE, MOSTRAR ALERTA
+                // SI HAY FECHAS PENDIENTES, DEVOLVER TODAS
                 // ============================================
                 if (dt.Rows.Count > 0)
                 {
-                    DataRow row = dt.Rows[0];
-                    DateTime fechaPendiente = Convert.ToDateTime(row["Fecha"]);
-                    string horaEntrada = row["HoraEntrada"]?.ToString() ?? "--:--";
-                    string diaSemana = row["DiaSemana"]?.ToString() ?? "";
-
-                    int diasRetraso = (DateTime.Now.Date - fechaPendiente.Date).Days;
-
-                    string fechaFormateada = fechaPendiente.ToString("dd 'de' MMMM 'de' yyyy",
+                    // Obtener la primera fecha (la más reciente) para el mensaje principal
+                    DataRow primeraFila = dt.Rows[0];
+                    DateTime primeraFecha = Convert.ToDateTime(primeraFila["Fecha"]);
+                    string primeraHoraEntrada = primeraFila["HoraEntrada"]?.ToString() ?? "--:--";
+                    string primerDiaSemana = primeraFila["DiaSemana"]?.ToString() ?? "";
+                    int primerDiasRetraso = (DateTime.Now.Date - primeraFecha.Date).Days;
+                    string primeraFechaFormateada = primeraFecha.ToString("dd 'de' MMMM 'de' yyyy",
                         new System.Globalization.CultureInfo("es-ES"));
 
-                    string mensaje = $"Tiene salida pendiente del {diaSemana} {fechaFormateada}";
+                    // Construir la lista de TODAS las alertas
+                    List<object> alertas = new List<object>();
 
-                    var resultado = new
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        DateTime fechaPendiente = Convert.ToDateTime(row["Fecha"]);
+                        string horaEntrada = row["HoraEntrada"]?.ToString() ?? "--:--";
+                        string diaSemana = row["DiaSemana"]?.ToString() ?? "";
+
+                        int diasRetraso = (DateTime.Now.Date - fechaPendiente.Date).Days;
+
+                        string fechaFormateada = fechaPendiente.ToString("dd 'de' MMMM 'de' yyyy",
+                            new System.Globalization.CultureInfo("es-ES"));
+
+                        alertas.Add(new
+                        {
+                            fecha = fechaPendiente.ToString("dd/MM/yyyy"),
+                            fechaFormateada = fechaFormateada,
+                            diaSemana = diaSemana,
+                            horaEntrada = horaEntrada,
+                            diasRetraso = diasRetraso,
+                            mensaje = $"Tiene salida pendiente del {diaSemana} {fechaFormateada}"
+                        });
+                    }
+
+                    // Devolver el mismo formato que espera el frontend
+                    return Json(new
                     {
                         success = true,
                         tieneAlerta = true,
-                        fecha = fechaPendiente.ToString("dd/MM/yyyy"),
-                        fechaFormateada = fechaFormateada,
-                        diaSemana = diaSemana,
-                        horaEntrada = horaEntrada,
-                        diasRetraso = diasRetraso,
-                        mensaje = mensaje
-                    };
-
-                     return Json(resultado, JsonRequestBehavior.AllowGet);
+                        totalPendientes = alertas.Count,
+                        alertas = alertas,
+                        // Campos para la alerta principal (la más reciente)
+                        fecha = primeraFecha.ToString("dd/MM/yyyy"),
+                        fechaFormateada = primeraFechaFormateada,
+                        diaSemana = primerDiaSemana,
+                        horaEntrada = primeraHoraEntrada,
+                        diasRetraso = primerDiasRetraso,
+                        mensaje = $"Tiene salida pendiente del {primerDiaSemana} {primeraFechaFormateada}"
+                    }, JsonRequestBehavior.AllowGet);
                 }
 
                 // ============================================
-                // NO HAY FECHA PENDIENTE
+                // NO HAY FECHAS PENDIENTES
                 // ============================================
-                System.Diagnostics.Debug.WriteLine("NO HAY ALERTA para usuario: " + usuarioId);
                 return Json(new
                 {
                     success = true,
                     tieneAlerta = false,
+                    totalPendientes = 0,
+                    alertas = new List<object>(),
                     message = "No hay salidas pendientes"
                 }, JsonRequestBehavior.AllowGet);
             }
@@ -908,7 +923,97 @@ namespace ControlAsistenciaFinal.Controllers
                 {
                     success = false,
                     message = ex.Message,
-                    tieneAlerta = false
+                    tieneAlerta = false,
+                    totalPendientes = 0,
+                    alertas = new List<object>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerAlertaSalidaPendiente()
+        {
+            try
+            {
+                if (Session["UsuarioId"] == null)
+                    return Json(new { success = false, message = "Sesión expirada" }, JsonRequestBehavior.AllowGet);
+
+                int usuarioId = Convert.ToInt32(Session["UsuarioId"]);
+
+                // ============================================
+                // CONSUMIR STORED PROCEDURE
+                // ============================================
+                SqlParameter[] parameters = new SqlParameter[]
+                {
+            new SqlParameter("@UsuarioId", usuarioId)
+                };
+
+                // Usamos el método ExecuteStoredProcedure que mencionaste
+                DataTable dt = DatabaseHelper.ExecuteStoredProcedure("sp_ObtenerAlertaSalidaPendiente", parameters);
+
+                // ============================================
+                // SI HAY FECHAS PENDIENTES
+                // ============================================
+                if (dt.Rows.Count > 0)
+                {
+                    List<object> alertas = new List<object>();
+                    DataRow primeraFila = dt.Rows[0];
+
+                    // Iterar sobre el resultado del SP y armar la lista de alertas
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        DateTime fechaPendiente = Convert.ToDateTime(row["Fecha"]);
+
+                        alertas.Add(new
+                        {
+                            fecha = fechaPendiente.ToString("dd/MM/yyyy"), // Formato para el frontend
+                            fechaFormateada = row["FechaFormateada"].ToString(),
+                            diaSemana = row["DiaSemana"].ToString(),
+                            horaEntrada = row["HoraEntrada"]?.ToString() ?? "--:--",
+                            diasRetraso = Convert.ToInt32(row["DiasRetraso"]),
+                            mensaje = row["Mensaje"].ToString()
+                        });
+                    }
+
+                    // Devolver el mismo formato JSON que tenías antes
+                    return Json(new
+                    {
+                        success = true,
+                        tieneAlerta = true,
+                        totalPendientes = alertas.Count,
+                        alertas = alertas,
+                        // Campos para la alerta principal (la más reciente)
+                        fecha = Convert.ToDateTime(primeraFila["Fecha"]).ToString("dd/MM/yyyy"),
+                        fechaFormateada = primeraFila["FechaFormateada"].ToString(),
+                        diaSemana = primeraFila["DiaSemana"].ToString(),
+                        horaEntrada = primeraFila["HoraEntrada"]?.ToString() ?? "--:--",
+                        diasRetraso = Convert.ToInt32(primeraFila["DiasRetraso"]),
+                        mensaje = primeraFila["Mensaje"].ToString()
+                    }, JsonRequestBehavior.AllowGet);
+                }
+
+                // ============================================
+                // NO HAY FECHAS PENDIENTES
+                // ============================================
+                return Json(new
+                {
+                    success = true,
+                    tieneAlerta = false,
+                    totalPendientes = 0,
+                    alertas = new List<object>(),
+                    message = "No hay salidas pendientes"
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("ERROR en ObtenerAlertaSalidaPendiente: " + ex.Message);
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    tieneAlerta = false,
+                    totalPendientes = 0,
+                    alertas = new List<object>()
                 }, JsonRequestBehavior.AllowGet);
             }
         }

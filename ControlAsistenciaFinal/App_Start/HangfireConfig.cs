@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using ControlAsistenciaFinal.Services;
+using System.Threading;
 
 namespace ControlAsistenciaFinal.App_Start
 {
@@ -55,27 +56,73 @@ namespace ControlAsistenciaFinal.App_Start
         public static void EjecutarBackupMensual()
         {
             var logPath = @"C:\Users\HP\Desktop\Escritorio\DocGuiaYamiflo\backup_log.txt";
+            var maxIntentos = 3;
 
             try
             {
-                File.AppendAllText(logPath, $"{DateTime.Now}: INICIANDO BACKUP AUTOMÁTICO\r\n");
+                // Escribir log con retry
+                EscribirLogConRetry(logPath, $"{DateTime.Now}: INICIANDO BACKUP AUTOMÁTICO");
 
+                // IMPORTANTE: Usar using correctamente y asegurar que se cierra todo
                 using (var backupService = new BackupService())
                 {
                     var fechaActual = DateTime.Now;
+
+                    // Ejecutar la tarea asíncrona de manera segura
                     var tarea = backupService.GenerarBackupMensualCompletoAsync(fechaActual.Year, fechaActual.Month);
-                    tarea.Wait();
+                    tarea.Wait(); // O mejor usa tarea.GetAwaiter().GetResult()
                     var ruta = tarea.Result;
 
-                    File.AppendAllText(logPath, $"{DateTime.Now}: Backup generado en: {ruta}\r\n");
+                    EscribirLogConRetry(logPath, $"{DateTime.Now}: Backup generado en: {ruta}");
                 }
 
-                File.AppendAllText(logPath, $"{DateTime.Now}: BACKUP COMPLETADO\r\n");
+                EscribirLogConRetry(logPath, $"{DateTime.Now}: BACKUP COMPLETADO");
             }
             catch (Exception ex)
             {
-                File.AppendAllText(logPath, $"{DateTime.Now}: ERROR: {ex.Message}\r\n");
-                File.AppendAllText(logPath, $"{DateTime.Now}: STACK: {ex.StackTrace}\r\n");
+                // Escribir el error con retry
+                EscribirLogConRetry(logPath, $"{DateTime.Now}: ERROR: {ex.Message}");
+                EscribirLogConRetry(logPath, $"{DateTime.Now}: STACK: {ex.StackTrace}");
+
+                // Opcional: También escribir en un archivo de error separado
+                try
+                {
+                    var errorPath = Path.Combine(Path.GetDirectoryName(logPath), "backup_error.log");
+                    File.AppendAllText(errorPath, $"{DateTime.Now}: ERROR EN BACKUP: {ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}");
+                }
+                catch { /* Ignorar errores de log */ }
+            }
+        }
+
+        // Método auxiliar para escribir logs con reintentos
+        private static void EscribirLogConRetry(string logPath, string mensaje, int maxIntentos = 3)
+        {
+            for (int intento = 0; intento < maxIntentos; intento++)
+            {
+                try
+                {
+                    // Usar FileShare.ReadWrite para permitir acceso compartido
+                    using (var fileStream = new FileStream(logPath,
+                        FileMode.Append,
+                        FileAccess.Write,
+                        FileShare.ReadWrite))
+                    using (var writer = new StreamWriter(fileStream))
+                    {
+                        writer.WriteLine(mensaje);
+                        writer.Flush();
+                    }
+                    return; // Si funcionó, salir
+                }
+                catch (IOException) when (intento < maxIntentos - 1)
+                {
+                    // Esperar antes de reintentar (con backoff exponencial)
+                    Thread.Sleep(100 * (intento + 1));
+                }
+                catch (Exception)
+                {
+                    // Si hay otro tipo de error, no reintentar
+                    break;
+                }
             }
         }
 

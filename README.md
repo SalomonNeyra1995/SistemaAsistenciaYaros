@@ -1,6 +1,8 @@
 🚀 Sistema de Control de Asistencia - Yaros Group Peru
 Versión .NET SQL Server Licencia
 
+Mi contacto : +51 928837010
+
 📋 Descripción del Proyecto
 Sistema integral de gestión de asistencia y control de personal desarrollado para Yaros Group Peru. Permite el registro de entrada/salida de empleados, control de tardanzas, ausencias, gestión de pagos y reportes automatizados.
 
